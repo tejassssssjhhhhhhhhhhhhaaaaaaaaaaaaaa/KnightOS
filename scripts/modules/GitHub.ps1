@@ -25,10 +25,15 @@ function Create-GitHubRelease {
         [string]$ApkPath
     )
 
-    $arguments = @('release', 'create', $TagName, '--repo', $Repository, '--title', $Title, '--notes', $ReleaseNotes, $ApkPath)
-    $process = Start-Process -FilePath 'gh' -ArgumentList $arguments -NoNewWindow -Wait -PassThru -ErrorAction Stop
-    if ($process.ExitCode -ne 0) {
-        throw "GitHub release creation failed for $TagName"
+    $commandArgs = @('release', 'create', $TagName, '--repo', $Repository, '--title', $Title, '--notes', $ReleaseNotes, $ApkPath)
+    Push-Location (Get-Location)
+    try {
+        & gh @commandArgs
+        if ($LASTEXITCODE -ne 0) {
+            throw "GitHub release creation failed for $TagName"
+        }
+    } finally {
+        Pop-Location
     }
 }
 
