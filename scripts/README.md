@@ -8,7 +8,9 @@ This directory contains the release automation toolkit for KnightOS.
 - optionally runs `flutter analyze` and `flutter test`
 - builds the Android release APK
 - optionally creates a git tag
-- optionally creates or updates a GitHub release and uploads the APK asset
+- automatically stages, commits, and pushes release changes when enabled
+- automatically creates or updates a GitHub release and uploads the APK asset when enabled
+- optionally updates OTA metadata if an OTA metadata file path is configured
 
 ## Quick start
 1. Open a PowerShell terminal from the repository root.
@@ -29,6 +31,8 @@ Edit `scripts/config/release.json` to customize:
 - `createGitHubRelease`: whether to create a GitHub release
 - `uploadApk`: whether to upload the APK asset
 - `createGitTag`: whether to create a git tag
+- `gitAutomation`: whether to run git add/commit/push during publish
+- `otaMetadataPath`: optional path to an OTA metadata JSON file to update during publish
 - `flutterCommand`: the Flutter CLI command path or alias
 
 ## Requirements

@@ -32,6 +32,21 @@ function Create-GitHubRelease {
     }
 }
 
+function Update-GitHubRelease {
+    param(
+        [string]$Repository,
+        [string]$TagName,
+        [string]$Title,
+        [string]$ReleaseNotes
+    )
+
+    $arguments = @('release', 'edit', $TagName, '--repo', $Repository, '--title', $Title, '--notes', $ReleaseNotes)
+    $process = Start-Process -FilePath 'gh' -ArgumentList $arguments -NoNewWindow -Wait -PassThru -ErrorAction Stop
+    if ($process.ExitCode -ne 0) {
+        throw "GitHub release update failed for $TagName"
+    }
+}
+
 function Upload-GitHubReleaseAsset {
     param(
         [string]$Repository,

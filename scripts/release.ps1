@@ -83,36 +83,82 @@ try {
         Write-Success "Git tag created: $tagName"
     }
 
-    if ($config.createGitHubRelease -or $config.uploadApk) {
-        if (-not (Ensure-GitHubCliInstalled)) {
-            Write-WarningMessage 'GitHub CLI is not installed. Install it from https://cli.github.com/ and try again.'
-        } elseif (-not (Ensure-GitHubAuthenticated)) {
-            Write-WarningMessage 'Not authenticated with GitHub CLI. Run gh auth login and retry.'
+    if (Prompt-YesNo "Ready to publish Release $tagName. Continue?" $false) {
+        Write-Host 'Publishing workflow confirmed. Starting automated publish steps...'
+
+        $branchName = Get-CurrentBranch -RootPath $root
+        $gitPushEnabled = $config.gitAutomation
+
+        if (-not (Ensure-GitInstalled)) {
+            Write-WarningMessage 'Git is not installed or not available on PATH. Skipping git publish steps.'
+        } elseif (-not (Test-GitRemoteConfigured -RootPath $root)) {
+            Write-WarningMessage 'No git remote is configured for this repository. Skipping git push.'
         } else {
-            $repo = $config.githubRepository
-            if ([string]::IsNullOrWhiteSpace($repo)) {
-                throw 'GitHub repository is not configured in scripts/config/release.json.'
-            }
-
-            $releaseExists = GitHub-ReleaseExists -Repository $repo -TagName $tagName
-            if ($releaseExists) {
-                Write-WarningMessage "GitHub release $tagName already exists. Uploading APK asset to existing release."
-            } else {
-                if ($config.createGitHubRelease) {
-                    Create-GitHubRelease -Repository $repo -TagName $tagName -Title "KnightOS $tagName" -ReleaseNotes "Release $tagName" -ApkPath $apkPath
-                    Write-Success "GitHub release created: $tagName"
+            if ($gitPushEnabled) {
+                Git-AddAll -RootPath $root
+                $commitCreated = Git-CommitIfNeeded -RootPath $root -Message "chore(release): publish $tagName"
+                if ($commitCreated) {
+                    Write-Success "Created git commit for $tagName"
+                } else {
+                    Write-Host 'No new changes to commit. Skipping commit step.'
                 }
-            }
 
-            if ($config.uploadApk) {
-                Upload-GitHubReleaseAsset -Repository $repo -TagName $tagName -ApkPath $apkPath
-                Write-Success 'APK uploaded to GitHub release.'
+                try {
+                    Git-PushCurrentBranch -RootPath $root -BranchName $branchName | Out-Null
+                    Write-Success "Pushed branch $branchName to origin"
+                } catch {
+                    Write-WarningMessage "Git push failed: $($_.Exception.Message)"
+                }
+            } else {
+                Write-Host 'Git automation disabled in configuration. Skipping git add/commit/push.'
             }
         }
-    }
 
-    if (Prompt-YesNo "Ready to publish Release $tagName. Continue?" $false) {
-        Write-Host 'Publishing workflow confirmed. Execute git push and gh release commands manually as needed.'
+        if ($config.createGitHubRelease -or $config.uploadApk) {
+            if (-not (Ensure-GitHubCliInstalled)) {
+                Write-WarningMessage 'GitHub CLI is not installed. Install it from https://cli.github.com/ and try again.'
+            } elseif (-not (Ensure-GitHubAuthenticated)) {
+                Write-WarningMessage 'Not authenticated with GitHub CLI. Run gh auth login and retry.'
+            } else {
+                $repo = $config.githubRepository
+                if ([string]::IsNullOrWhiteSpace($repo)) {
+                    Write-WarningMessage 'GitHub repository is not configured in scripts/config/release.json. Skipping GitHub release publish.'
+                } else {
+                    $releaseExists = GitHub-ReleaseExists -Repository $repo -TagName $tagName
+                    if ($releaseExists) {
+                        Update-GitHubRelease -Repository $repo -TagName $tagName -Title "KnightOS $tagName" -ReleaseNotes "Release $tagName"
+                        Write-Success "GitHub release updated: $tagName"
+                    } elseif ($config.createGitHubRelease) {
+                        Create-GitHubRelease -Repository $repo -TagName $tagName -Title "KnightOS $tagName" -ReleaseNotes "Release $tagName" -ApkPath $apkPath
+                        Write-Success "GitHub release created: $tagName"
+                    }
+
+                    if ($config.uploadApk) {
+                        Upload-GitHubReleaseAsset -Repository $repo -TagName $tagName -ApkPath $apkPath
+                        Write-Success 'APK uploaded to GitHub release.'
+                    }
+                }
+            }
+        }
+
+        if ($config.otaMetadataPath) {
+            $otaMetadataPath = Join-Path $root $config.otaMetadataPath
+            if (Test-Path $otaMetadataPath) {
+                try {
+                    $otaJson = Get-Content -Path $otaMetadataPath -Raw | ConvertFrom-Json
+                    $otaJson.version = $newVersion
+                    $otaJson.releaseTag = $tagName
+                    $otaJson | ConvertTo-Json | Set-Content -Path $otaMetadataPath
+                    Write-Success "Updated OTA metadata at $otaMetadataPath"
+                } catch {
+                    Write-WarningMessage ("Unable to update OTA metadata at {0}: {1}" -f $otaMetadataPath, $_.Exception.Message)
+                }
+            } else {
+                Write-WarningMessage "OTA metadata path not found: $otaMetadataPath"
+            }
+        } else {
+            Write-Host 'No OTA metadata path configured. Skipping OTA metadata update.'
+        }
     } else {
         Write-Host 'Release workflow aborted by user.'
     }

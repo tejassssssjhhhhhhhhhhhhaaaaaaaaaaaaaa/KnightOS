@@ -5,9 +5,10 @@
   "runAnalyze": true,
   "analyzeFailOnWarnings": false,
   "runTests": true,
-  "createGitHubRelease": false,
-  "uploadApk": false,
+  "createGitHubRelease": true,
+  "uploadApk": true,
   "createGitTag": false,
-  "gitAutomation": false,
+  "gitAutomation": true,
+  "otaMetadataPath": "",
   "flutterCommand": "flutter"
 }
