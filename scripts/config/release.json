@@ -1,5 +1,5 @@
 {
-  "githubRepository": "",
+  "githubRepository": "tejassssssjhhhhhhhhhhhhaaaaaaaaaaaaaa/KnightOS",
   "apkPath": "build/app/outputs/flutter-apk/app-release.apk",
   "defaultBranch": "main",
   "runAnalyze": true,
@@ -9,6 +9,6 @@
   "uploadApk": true,
   "createGitTag": false,
   "gitAutomation": true,
-  "otaMetadataPath": "",
+  "otaMetadataPath": "ota.json",
   "flutterCommand": "flutter"
 }
