@@ -1,0 +1,4 @@
+Flutter 3.44.7 • channel stable • https://github.com/flutter/flutter.git
+Framework • revision 84fc5cbb22 (7 days ago) • 2026-07-17 10:20:17 -0700
+Engine • hash 7076f47b1d1a3a0edfd8837b17dc15be6abab661 (revision 69c8c61792) (8 days ago) • 2026-07-15 20:46:58.000Z
+Tools • Dart 3.12.2 • DevTools 2.57.0

@@ -5,13 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../app/widgets/knight_page_scaffold.dart';
-import '../data/work_storage.dart';
 import '../domain/work_session.dart';
-
-final workSessionsProvider = FutureProvider<List<WorkSession>>((ref) async {
-  final storage = WorkStorage();
-  return storage.loadSessions();
-});
+import '../work_tracker_controller.dart';
 
 class WorkTrackerScreen extends ConsumerStatefulWidget {
   const WorkTrackerScreen({super.key});
@@ -21,7 +16,6 @@ class WorkTrackerScreen extends ConsumerStatefulWidget {
 }
 
 class _WorkTrackerScreenState extends ConsumerState<WorkTrackerScreen> {
-  final _storage = WorkStorage();
   final _uuid = const Uuid();
 
   final _dateController = TextEditingController();
@@ -39,7 +33,6 @@ class _WorkTrackerScreenState extends ConsumerState<WorkTrackerScreen> {
 
   String _searchQuery = '';
   String _selectedDateFilter = 'All';
-  List<WorkSession> _editingSessions = <WorkSession>[];
 
   @override
   void initState() {
@@ -193,7 +186,7 @@ class _WorkTrackerScreenState extends ConsumerState<WorkTrackerScreen> {
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
-            value: _selectedDateFilter,
+            initialValue: _selectedDateFilter,
             items: ['All', 'Today', 'Week', 'Month']
                 .map((value) => DropdownMenuItem(value: value, child: Text(value)))
                 .toList(),
@@ -291,8 +284,7 @@ class _WorkTrackerScreenState extends ConsumerState<WorkTrackerScreen> {
 
   Future<void> _saveSession() async {
     final session = _buildSession();
-    await _storage.saveSession(session);
-    ref.invalidate(workSessionsProvider);
+    await ref.read(workSessionsProvider.notifier).saveSession(session);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Work session saved.')));
     }
@@ -379,21 +371,20 @@ class _WorkTrackerScreenState extends ConsumerState<WorkTrackerScreen> {
   }
 
   Future<void> _deleteSession(String id) async {
-    await _storage.deleteSession(id);
-    ref.invalidate(workSessionsProvider);
+    await ref.read(workSessionsProvider.notifier).deleteSession(id);
   }
 
   double _averageValue(List<WorkSession> sessions, num Function(WorkSession) selector) {
     if (sessions.isEmpty) {
       return 0;
     }
-    final sum = sessions.fold<double>(0, (value, session) => value + selector(session));
+    final sum = sessions.fold<double>(0, (value, session) => value + selector(session).toDouble());
     return sum / sessions.length;
   }
 }
 
 class _MetricCard extends StatelessWidget {
-  const _MetricCard({required this.title, required this.value, required this.icon, super.key});
+  const _MetricCard({required this.title, required this.value, required this.icon});
 
   final String title;
   final String value;

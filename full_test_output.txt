@@ -1,0 +1,98 @@
+00:00 +0: loading C:/Users/tejas/knight_os/test/auth_flow_test.dart
+00:00 +0: C:/Users/tejas/knight_os/test/auth_flow_test.dart: (setUpAll)
+00:00 +0: C:/Users/tejas/knight_os/test/auth_flow_test.dart: sign in rejects unknown accounts with a clear message
+00:00 +1: C:/Users/tejas/knight_os/test/auth_flow_test.dart: sign in rejects incorrect passwords with a clear message
+00:00 +2: C:/Users/tejas/knight_os/test/auth_flow_test.dart: sign up creates an account and a session for future sign in
+00:00 +3: C:/Users/tejas/knight_os/test/auth_flow_test.dart: new profiles default to INR currency
+00:00 +4: C:/Users/tejas/knight_os/test/auth_flow_test.dart: (tearDownAll)
+00:00 +4: C:/Users/tejas/knight_os/test/core/engines/engines_test.dart: KnightScoreEngine creates a bounded score with a detailed breakdown
+00:00 +5: C:/Users/tejas/knight_os/test/core/engines/engines_test.dart: InsightEngine generates local insights for profile and work signals
+00:00 +6: C:/Users/tejas/knight_os/test/core/engines/engines_test.dart: RecommendationEngine returns actionable recommendations
+00:00 +7: C:/Users/tejas/knight_os/test/core/engines/engines_test.dart: MissionEngine builds a mission for the day
+00:00 +8: C:/Users/tejas/knight_os/test/core/engines/engines_test.dart: TimelineEngine builds a unified timeline from profile and work data
+00:00 +9: C:/Users/tejas/knight_os/test/core/engines/engines_test.dart: StreakEngine calculates streak metrics from active dates
+00:02 +10: C:/Users/tejas/knight_os/test/core/services/update_service_test.dart: GitHubReleaseUpdateProvider compares semantic versions numerically and ignores v/build metadata
+00:02 +11: C:/Users/tejas/knight_os/test/core/services/update_service_test.dart: GitHubReleaseUpdateProvider compares the installed app version with the v2.0.0 release correctly
+00:02 +12: C:/Users/tejas/knight_os/test/core/services/update_service_test.dart: GitHubReleaseUpdateProvider treats higher build metadata as newer when the semantic version is equal
+00:04 +13: C:/Users/tejas/knight_os/test/dashboard_screen_test.dart: Dashboard displays onboarding profile values from storage
+00:05 +14: C:/Users/tejas/knight_os/test/dashboard_screen_test.dart: Dashboard displays onboarding profile values from storage
+00:06 +15: C:/Users/tejas/knight_os/test/dashboard_screen_test.dart: Dashboard displays onboarding profile values from storage
+00:09 +16: C:/Users/tejas/knight_os/test/dashboard_screen_test.dart: Dashboard displays onboarding profile values from storage
+00:09 +17: C:/Users/tejas/knight_os/test/dashboard_screen_test.dart: Dashboard displays onboarding profile values from storage
+00:11 +18: C:/Users/tejas/knight_os/test/dashboard_screen_test.dart: Dashboard displays onboarding profile values from storage
+00:11 +19: C:/Users/tejas/knight_os/test/dashboard_screen_test.dart: Dashboard displays onboarding profile values from storage
+00:11 +20: C:/Users/tejas/knight_os/test/dashboard_screen_test.dart: Dashboard displays onboarding profile values from storage
+00:11 +21: C:/Users/tejas/knight_os/test/dashboard_screen_test.dart: Dashboard displays onboarding profile values from storage
+10:04 +21 -1: C:/Users/tejas/knight_os/test/settings_screen_test.dart: Settings screen loads and displays profile sections
+10:04 +21 -1: C:/Users/tejas/knight_os/test/dashboard_screen_test.dart: Dashboard displays onboarding profile values from storage [E]
+  TimeoutException after 0:10:00.000000: Test timed out after 10 minutes.
+  dart:isolate  _RawReceivePort._handleMessage
+  
+10:05 +22 -1: C:/Users/tejas/knight_os/test/settings_screen_test.dart: Settings screen loads and displays profile sections
+10:06 +23 -1: C:/Users/tejas/knight_os/test/settings_screen_test.dart: Settings screen loads and displays profile sections
+10:07 +23 -2: C:/Users/tejas/knight_os/test/settings_screen_test.dart: Settings screen loads and displays profile sections
+10:07 +23 -2: C:/Users/tejas/knight_os/test/storage/local_database_test.dart: LocalDatabase uses a platform app data directory instead of the working directory [E]
+  Binding has not yet been initialized.
+  The "instance" getter on the ServicesBinding binding mixin is only available once that binding has been initialized.
+  Typically, this is done by calling "WidgetsFlutterBinding.ensureInitialized()" or "runApp()" (the latter calls the former). Typically this call is done in the "void main()" method. The "ensureInitialized" method is idempotent; calling it multiple times is not harmful. After calling that method, the "instance" getter will return the binding.
+  In a test, one can call "TestWidgetsFlutterBinding.ensureInitialized()" as the first line in the test's "main()" method to initialize the binding.
+  If ServicesBinding is a custom binding mixin, there must also be a custom binding class, like WidgetsFlutterBinding, but that mixes in the selected binding, and that is the class that must be constructed before using the "instance" getter.
+  package:flutter/src/foundation/binding.dart 315:9                                     BindingBase.checkInstance.<fn>
+  package:flutter/src/foundation/binding.dart 402:6                                     BindingBase.checkInstance
+  package:flutter/src/services/binding.dart 73:54                                       ServicesBinding.instance
+  package:flutter/src/services/platform_channel.dart 178:25                             _findBinaryMessenger
+  package:flutter/src/services/platform_channel.dart 319:56                             MethodChannel.binaryMessenger
+  package:flutter/src/services/platform_channel.dart 359:17                             MethodChannel._invokeMethod
+  package:flutter/src/services/platform_channel.dart 539:12                             MethodChannel.invokeMethod
+  package:path_provider_platform_interface/src/method_channel_path_provider.dart 37:26  MethodChannelPathProvider.getApplicationSupportPath
+  package:path_provider/path_provider.dart 77:40                                        getApplicationSupportDirectory
+  package:knight_os/core/storage/local_database.dart 47:14                              LocalDatabase._appDataDirectory
+  package:knight_os/core/storage/local_database.dart 34:29                              LocalDatabase.fileFor
+  test\storage\local_database_test.dart 10:35                                           main.<fn>.<fn>
+  
+10:12 +23 -2: C:/Users/tejas/knight_os/test/widget_test.dart: KnightOS splash flow opens the welcome screen
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: exactly one matching candidate
+  Actual: _TextWidgetFinder:<Found 0 widgets with text "KnightOS": []>
+   Which: means none were found but one was expected
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///C:/Users/tejas/knight_os/test/widget_test.dart:11:5)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1952:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///C:/Users/tejas/knight_os/test/widget_test.dart line 11
+The test description was:
+  KnightOS splash flow opens the welcome screen
+════════════════════════════════════════════════════════════════════════════════════════════════════
+10:12 +23 -3: C:/Users/tejas/knight_os/test/settings_screen_test.dart: Settings screen loads and displays profile sections
+10:12 +23 -3: C:/Users/tejas/knight_os/test/widget_test.dart: KnightOS splash flow opens the welcome screen [E]
+  Test failed. See exception logs above.
+  The test description was: KnightOS splash flow opens the welcome screen
+  
+10:14 +23 -4: C:/Users/tejas/knight_os/test/widget_test.dart: Onboarding next and back buttons change the visible step
+10:14 +23 -4: C:/Users/tejas/knight_os/test/settings_screen_test.dart: Settings screen loads and displays profile sections [E]
+  TimeoutException after 0:10:00.000000: Test timed out after 10 minutes.
+  dart:isolate  _RawReceivePort._handleMessage
+  
+10:14 +24 -4: C:/Users/tejas/knight_os/test/widget_test.dart: Onboarding requires personal details before advancing
+10:15 +25 -4: C:/Users/tejas/knight_os/test/work_tracker_screen_test.dart: Work tracker shows summary cards and history section
+20:15 +25 -5: C:/Users/tejas/knight_os/test/work_tracker_screen_test.dart: Work tracker shows summary cards and history section [E]
+  TimeoutException after 0:10:00.000000: Test timed out after 10 minutes.
+  dart:isolate  _RawReceivePort._handleMessage
+  
+20:15 +25 -5: Some tests failed.
+
+Failing tests:
+  C:/Users/tejas/knight_os/test/dashboard_screen_test.dart: Dashboard displays onboarding profile values from storage
+  C:/Users/tejas/knight_os/test/settings_screen_test.dart: Settings screen loads and displays profile sections
+  C:/Users/tejas/knight_os/test/storage/local_database_test.dart: LocalDatabase uses a platform app data directory instead of the working directory
+  C:/Users/tejas/knight_os/test/widget_test.dart: KnightOS splash flow opens the welcome screen
+  C:/Users/tejas/knight_os/test/work_tracker_screen_test.dart: Work tracker shows summary cards and history section

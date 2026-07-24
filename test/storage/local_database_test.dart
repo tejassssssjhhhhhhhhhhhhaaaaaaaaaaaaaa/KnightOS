@@ -1,9 +1,37 @@
+import 'dart:io';
+
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'package:knight_os/core/storage/local_database.dart';
 
+const MethodChannel _pathProviderChannel = MethodChannel('plugins.flutter.io/path_provider');
+late Directory _tempDirectory;
+
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUpAll(() async {
+    _tempDirectory = await Directory.systemTemp.createTemp('knight_os_local_database_test');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+      _pathProviderChannel,
+      (call) async {
+        if (call.method == 'getApplicationSupportDirectory' || call.method == 'getApplicationDocumentsDirectory') {
+          return _tempDirectory.path;
+        }
+        return null;
+      },
+    );
+  });
+
+  tearDownAll(() async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(_pathProviderChannel, null);
+    if (await _tempDirectory.exists()) {
+      await _tempDirectory.delete(recursive: true);
+    }
+  });
+
   group('LocalDatabase', () {
     test('uses a platform app data directory instead of the working directory', () async {
       final database = LocalDatabase();

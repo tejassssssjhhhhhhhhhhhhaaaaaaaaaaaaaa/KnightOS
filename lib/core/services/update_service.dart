@@ -1,9 +1,19 @@
-import 'package:flutter/foundation.dart';
-
 abstract class UpdateService {
   Future<UpdateCheckResult> checkForUpdates();
 
-  Future<void> downloadUpdate();
+  Future<UpdateDownloadResult> downloadUpdate({void Function(int received, int total)? onProgress});
+}
+
+class UpdateRuntimeConfig {
+  const UpdateRuntimeConfig({
+    this.maxAttempts = 3,
+    this.baseDelay = const Duration(seconds: 2),
+    this.requestTimeout = const Duration(seconds: 15),
+  });
+
+  final int maxAttempts;
+  final Duration baseDelay;
+  final Duration requestTimeout;
 }
 
 enum UpdateStatus {
@@ -11,6 +21,13 @@ enum UpdateStatus {
   updateAvailable,
   checking,
   unavailable,
+  networkError,
+  apiError,
+  parsingError,
+  repositoryNotFound,
+  noReleasesFound,
+  apkAssetMissing,
+  versionUnavailable,
 }
 
 class UpdateCheckResult {
@@ -20,6 +37,7 @@ class UpdateCheckResult {
     required this.releaseDate,
     required this.status,
     this.updateInfo,
+    this.errorMessage,
   });
 
   final String currentVersion;
@@ -27,6 +45,7 @@ class UpdateCheckResult {
   final String releaseDate;
   final AppUpdateInfo? updateInfo;
   final UpdateStatus status;
+  final String? errorMessage;
 
   bool get hasUpdate => updateInfo != null;
 }
@@ -35,39 +54,19 @@ class AppUpdateInfo {
   const AppUpdateInfo({
     required this.version,
     required this.releaseNotes,
+    required this.downloadUrl,
     this.releaseDate,
   });
 
   final String version;
   final List<String> releaseNotes;
+  final String downloadUrl;
   final String? releaseDate;
 }
 
-class MockUpdateService implements UpdateService {
-  @override
-  Future<UpdateCheckResult> checkForUpdates() async {
-    await Future<void>.delayed(const Duration(milliseconds: 300));
+class UpdateDownloadResult {
+  const UpdateDownloadResult({required this.filePath, required this.bytes});
 
-    return const UpdateCheckResult(
-      currentVersion: 'v0.1.0',
-      buildNumber: '#1',
-      releaseDate: '2026-07-23',
-      status: UpdateStatus.updateAvailable,
-      updateInfo: AppUpdateInfo(
-        version: 'v0.2.0',
-        releaseNotes: [
-          'Improved welcome experience',
-          'Better login flow',
-          'Performance improvements',
-        ],
-        releaseDate: '2026-07-24',
-      ),
-    );
-  }
-
-  @override
-  Future<void> downloadUpdate() async {
-    await Future<void>.delayed(const Duration(milliseconds: 250));
-    debugPrint('Update download requested. Connect a real backend to continue.');
-  }
+  final String filePath;
+  final int bytes;
 }

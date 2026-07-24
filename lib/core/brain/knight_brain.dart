@@ -19,8 +19,7 @@ class KnightBrain {
     MemoryRepository? memoryRepository,
     VoiceRepository? voiceRepository,
     BackupRepository? backupRepository,
-  })  : _localDatabase = localDatabase ?? const LocalDatabase(),
-        _authenticationRepository = authenticationRepository ?? AuthenticationRepository(),
+  })  : _authenticationRepository = authenticationRepository ?? AuthenticationRepository(),
         _userRepository = userRepository ?? UserRepository(authenticationRepository: authenticationRepository ?? AuthenticationRepository()),
         _companionRepository = companionRepository ?? CompanionRepository(localDatabase: localDatabase),
         _journalRepository = journalRepository ?? JournalRepository(localDatabase: localDatabase),
@@ -29,7 +28,6 @@ class KnightBrain {
         _voiceRepository = voiceRepository ?? VoiceRepository(localDatabase: localDatabase),
         _backupRepository = backupRepository ?? BackupRepository(localDatabase: localDatabase);
 
-  final LocalDatabase _localDatabase;
   final AuthenticationRepository _authenticationRepository;
   final UserRepository _userRepository;
   final CompanionRepository _companionRepository;

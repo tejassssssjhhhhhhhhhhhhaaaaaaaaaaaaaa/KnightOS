@@ -71,6 +71,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       if (!mounted) return;
       final onboardingStorage = OnboardingStorage();
       final profile = await onboardingStorage.loadProfile();
+      if (!mounted) return;
       final onboardingComplete = profile != null && profile.completedSteps.isNotEmpty;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Welcome back, ${session.displayName}')),

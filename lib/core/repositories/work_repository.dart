@@ -15,7 +15,7 @@ class WorkRepository {
 
     return decoded
         .map((item) => WorkSession.fromJson(item as Map<String, Object?>))
-        .toList(growable: false);
+        .toList();
   }
 
   Future<void> saveSessions(List<WorkSession> sessions) async {

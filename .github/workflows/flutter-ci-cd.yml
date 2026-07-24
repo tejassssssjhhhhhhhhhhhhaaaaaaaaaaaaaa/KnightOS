@@ -1,0 +1,113 @@
+name: Flutter CI/CD
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+env:
+  FLUTTER_CHANNEL: stable
+  JAVA_VERSION: '17'
+  APK_OUTPUT_DIR: build/app/outputs/flutter-apk
+
+jobs:
+  test-and-build:
+    name: Analyze, test, and build APK
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      apk_name: ${{ steps.version.outputs.apk_name }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: ${{ env.FLUTTER_CHANNEL }}
+
+      - name: Cache Flutter SDK artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/flutter
+            ~/.pub-cache
+            .dart_tool
+          key: ${{ runner.os }}-flutter-${{ env.FLUTTER_CHANNEL }}-${{ hashFiles('pubspec.lock', 'pubspec.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-${{ env.FLUTTER_CHANNEL }}-
+
+      - name: Restore pub package cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('pubspec.lock', 'pubspec.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Analyze project
+        run: flutter analyze
+
+      - name: Run tests
+        run: flutter test
+
+      - name: Extract app version
+        id: version
+        shell: bash
+        run: |
+          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //')
+          APK_NAME="knight_os-${VERSION}.apk"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "apk_name=$APK_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Build release APK
+        run: |
+          flutter build apk --release
+          mkdir -p "$APK_OUTPUT_DIR"
+          cp build/app/outputs/flutter-apk/app-release.apk "$APK_OUTPUT_DIR/${{ steps.version.outputs.apk_name }}"
+          ls -la "$APK_OUTPUT_DIR"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk-${{ steps.version.outputs.version }}
+          path: ${{ env.APK_OUTPUT_DIR }}/${{ steps.version.outputs.apk_name }}
+
+  release:
+    name: Create GitHub Release
+    needs: test-and-build
+    if: startsWith(github.ref, 'refs/tags/v') && success()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download APK artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: release-apk-${{ needs.test-and-build.outputs.version }}
+          path: release-artifacts
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          generate_release_notes: true
+          files: release-artifacts/${{ needs.test-and-build.outputs.apk_name }}

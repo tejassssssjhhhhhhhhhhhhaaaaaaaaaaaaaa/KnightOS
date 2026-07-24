@@ -7,11 +7,13 @@ import 'package:knight_os/knight_os_app.dart';
 void main() {
   testWidgets('KnightOS splash flow opens the welcome screen', (tester) async {
     await tester.pumpWidget(const KnightOsApp());
+    await tester.pump();
+    await tester.pumpAndSettle(const Duration(milliseconds: 200), const Duration(seconds: 5));
 
     expect(find.text('KnightOS'), findsOneWidget);
 
     await tester.pump(const Duration(seconds: 2));
-    await tester.pump();
+    await tester.pumpAndSettle(const Duration(milliseconds: 200), const Duration(seconds: 5));
 
     expect(find.text('Welcome to KnightOS'), findsOneWidget);
   });

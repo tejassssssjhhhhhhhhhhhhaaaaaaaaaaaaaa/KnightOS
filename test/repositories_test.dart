@@ -44,7 +44,12 @@ void main() {
       await file.delete();
     }
 
-    final repository = UserRepository();
+    final repository = UserRepository(
+      authenticationRepository: AuthenticationRepository(
+        secureStorage: _InMemorySecureStorage(),
+        localDatabase: const LocalDatabase(),
+      ),
+    );
     final profile = const OnboardingProfile(completedSteps: ['personal'], fullName: 'Ada');
 
     await repository.saveProfile(profile);
@@ -125,10 +130,10 @@ class _InMemorySecureStorage extends FlutterSecureStorage {
   final Map<String, String> _values = <String, String>{};
 
   @override
-  Future<String?> read({required String key}) async => _values[key];
+  Future<String?> read({AndroidOptions? aOptions, AppleOptions? iOptions, required String key, LinuxOptions? lOptions, AppleOptions? mOptions, WindowsOptions? wOptions, WebOptions? webOptions}) async => _values[key];
 
   @override
-  Future<void> write({required String key, required String? value}) async {
+  Future<void> write({AndroidOptions? aOptions, AppleOptions? iOptions, required String key, LinuxOptions? lOptions, AppleOptions? mOptions, required String? value, WindowsOptions? wOptions, WebOptions? webOptions}) async {
     if (value == null) {
       _values.remove(key);
     } else {
@@ -137,10 +142,10 @@ class _InMemorySecureStorage extends FlutterSecureStorage {
   }
 
   @override
-  Future<void> delete({required String key}) async => _values.remove(key);
+  Future<void> delete({AndroidOptions? aOptions, AppleOptions? iOptions, required String key, LinuxOptions? lOptions, AppleOptions? mOptions, WindowsOptions? wOptions, WebOptions? webOptions}) async => _values.remove(key);
 
   @override
-  Future<void> deleteAll({List<String>? keys}) async {
+  Future<void> deleteAll({AndroidOptions? aOptions, AppleOptions? iOptions, LinuxOptions? lOptions, AppleOptions? mOptions, List<String>? keys, WindowsOptions? wOptions, WebOptions? webOptions}) async {
     if (keys == null) {
       _values.clear();
       return;

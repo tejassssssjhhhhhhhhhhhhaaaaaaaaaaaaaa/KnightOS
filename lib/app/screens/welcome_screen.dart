@@ -18,7 +18,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
   late final Animation<double> _contentOpacity;
   late final Animation<Offset> _contentOffset;
   late final Animation<double> _buttonOpacity;
-  late final Animation<Offset> _buttonOffset;
   late final Animation<double> _backgroundZoom;
   late final Animation<double> _backgroundShift;
   bool _isTransitioning = false;
@@ -34,9 +33,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
       CurvedAnimation(parent: _controller, curve: const Interval(0.0, 0.7, curve: Curves.easeOutCubic)),
     );
     _buttonOpacity = CurvedAnimation(parent: _controller, curve: const Interval(0.72, 1.0, curve: Curves.easeOutCubic));
-    _buttonOffset = Tween<Offset>(begin: const Offset(0, 0.04), end: Offset.zero).animate(
-      CurvedAnimation(parent: _controller, curve: const Interval(0.72, 1.0, curve: Curves.easeOutCubic)),
-    );
     _backgroundZoom = Tween<double>(begin: 1.0, end: 1.08).animate(CurvedAnimation(parent: _transitionController, curve: Curves.easeOutCubic));
     _backgroundShift = Tween<double>(begin: 0.0, end: 0.12).animate(CurvedAnimation(parent: _transitionController, curve: Curves.easeOutCubic));
 
@@ -130,7 +126,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                           top: 72 + shift * 120,
                           right: 48,
                           child: _DecorativeOrb(
-                            color: timeWindow == _TimeWindow.night ? Colors.white.withOpacity(0.18) : Colors.white.withOpacity(0.28),
+                            color: timeWindow == _TimeWindow.night ? Colors.white.withValues(alpha: 0.18) : Colors.white.withValues(alpha: 0.28),
                             size: timeWindow == _TimeWindow.night ? 120 : 140,
                           ),
                         ),
@@ -143,10 +139,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                             height: 220,
                             decoration: BoxDecoration(
                               borderRadius: const BorderRadius.vertical(top: Radius.circular(60)),
-                              color: theme.colorScheme.surface.withOpacity(timeWindow == _TimeWindow.night ? 0.14 : 0.18),
+                              color: theme.colorScheme.surface.withValues(alpha: timeWindow == _TimeWindow.night ? 0.14 : 0.18),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
+                                  color: Colors.black.withValues(alpha: 0.05),
                                   blurRadius: 24,
                                   offset: const Offset(0, -6),
                                 ),
@@ -174,7 +170,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                                     center: Alignment.topCenter,
                                     radius: 1.1,
                                     colors: [
-                                      Colors.white.withOpacity(0.16),
+                                      Colors.white.withValues(alpha: 0.16),
                                       Colors.transparent,
                                     ],
                                   ),
@@ -206,16 +202,16 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                                 decoration: BoxDecoration(
-                                  color: theme.colorScheme.surface.withOpacity(0.2),
+                                  color: theme.colorScheme.surface.withValues(alpha: 0.2),
                                   borderRadius: BorderRadius.circular(999),
-                                  border: Border.all(color: Colors.white.withOpacity(0.24)),
+                                  border: Border.all(color: Colors.white.withValues(alpha: 0.24)),
                                 ),
                                 child: Text(
                                   'KnightOS',
                                   style: theme.textTheme.labelLarge?.copyWith(
                                     letterSpacing: 1.8,
                                     fontWeight: FontWeight.w600,
-                                    color: Colors.white.withOpacity(0.9),
+                                    color: Colors.white.withValues(alpha: 0.9),
                                   ),
                                 ),
                               ),
@@ -262,7 +258,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                               child: Text(
                                 'Your AI-powered Life Operating System',
                                 style: theme.textTheme.titleMedium?.copyWith(
-                                  color: Colors.white.withOpacity(0.86),
+                                  color: Colors.white.withValues(alpha: 0.86),
                                   height: 1.5,
                                 ),
                               ),
@@ -286,10 +282,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                                       child: Ink(
                                         decoration: BoxDecoration(
                                           borderRadius: BorderRadius.circular(999),
-                                          color: Colors.white.withOpacity(0.95),
+                                          color: Colors.white.withValues(alpha: 0.95),
                                           boxShadow: [
                                             BoxShadow(
-                                              color: Colors.black.withOpacity(0.16),
+                                              color: Colors.black.withValues(alpha: 0.16),
                                               blurRadius: 24,
                                               offset: const Offset(0, 10),
                                             ),
@@ -347,7 +343,7 @@ class _DecorativeOrb extends StatelessWidget {
         color: color,
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.2),
+            color: color.withValues(alpha: 0.2),
             blurRadius: 30,
             spreadRadius: 8,
           ),
@@ -371,7 +367,7 @@ class _WelcomeBackgroundPainter extends CustomPainter {
 
     switch (timeWindow) {
       case _TimeWindow.morning:
-        paint.color = Colors.white.withOpacity(0.16);
+        paint.color = Colors.white.withValues(alpha: 0.16);
         canvas.drawCircle(center, size.height * 0.10 + progress * 4, paint);
         final wave = Path();
         wave.moveTo(0, size.height * 0.78);
@@ -382,11 +378,11 @@ class _WelcomeBackgroundPainter extends CustomPainter {
         wave.lineTo(size.width, size.height);
         wave.lineTo(0, size.height);
         wave.close();
-        paint.color = Colors.white.withOpacity(0.12);
+        paint.color = Colors.white.withValues(alpha: 0.12);
         canvas.drawPath(wave, paint);
         break;
       case _TimeWindow.afternoon:
-        paint.color = Colors.white.withOpacity(0.12);
+        paint.color = Colors.white.withValues(alpha: 0.12);
         canvas.drawCircle(center, size.height * 0.09, paint);
         final wave = Path();
         wave.moveTo(0, size.height * 0.79);
@@ -397,11 +393,11 @@ class _WelcomeBackgroundPainter extends CustomPainter {
         wave.lineTo(size.width, size.height);
         wave.lineTo(0, size.height);
         wave.close();
-        paint.color = Colors.white.withOpacity(0.10);
+        paint.color = Colors.white.withValues(alpha: 0.10);
         canvas.drawPath(wave, paint);
         break;
       case _TimeWindow.evening:
-        paint.color = Colors.white.withOpacity(0.12);
+        paint.color = Colors.white.withValues(alpha: 0.12);
         canvas.drawCircle(center, size.height * 0.08, paint);
         final wave = Path();
         wave.moveTo(0, size.height * 0.80);
@@ -412,17 +408,17 @@ class _WelcomeBackgroundPainter extends CustomPainter {
         wave.lineTo(size.width, size.height);
         wave.lineTo(0, size.height);
         wave.close();
-        paint.color = Colors.white.withOpacity(0.10);
+        paint.color = Colors.white.withValues(alpha: 0.10);
         canvas.drawPath(wave, paint);
         break;
       case _TimeWindow.night:
         for (var i = 0; i < 10; i++) {
           final x = (size.width / 10) * i + (progress * 12);
           final y = 90 + (i % 3) * 34;
-          paint.color = Colors.white.withOpacity(0.18);
+          paint.color = Colors.white.withValues(alpha: 0.18);
           canvas.drawCircle(Offset(x % size.width, y.toDouble()), 1.6, paint);
         }
-        paint.color = Colors.white.withOpacity(0.12);
+        paint.color = Colors.white.withValues(alpha: 0.12);
         canvas.drawCircle(Offset(size.width * 0.78, size.height * 0.2), 26, paint);
         final wave = Path();
         wave.moveTo(0, size.height * 0.81);
@@ -433,7 +429,7 @@ class _WelcomeBackgroundPainter extends CustomPainter {
         wave.lineTo(size.width, size.height);
         wave.lineTo(0, size.height);
         wave.close();
-        paint.color = Colors.white.withOpacity(0.08);
+        paint.color = Colors.white.withValues(alpha: 0.08);
         canvas.drawPath(wave, paint);
         break;
     }

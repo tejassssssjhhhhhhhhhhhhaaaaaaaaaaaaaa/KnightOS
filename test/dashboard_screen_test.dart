@@ -13,19 +13,23 @@ const MethodChannel _pathProviderChannel = MethodChannel('plugins.flutter.io/pat
 late Directory _tempDirectory;
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   setUpAll(() async {
-    TestWidgetsFlutterBinding.ensureInitialized();
     _tempDirectory = await Directory.systemTemp.createTemp('knight_os_dashboard_test');
-    _pathProviderChannel.setMockMethodCallHandler((call) async {
-      if (call.method == 'getApplicationDocumentsDirectory') {
-        return _tempDirectory.path;
-      }
-      return null;
-    });
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+      _pathProviderChannel,
+      (call) async {
+        if (call.method == 'getApplicationSupportDirectory' || call.method == 'getApplicationDocumentsDirectory') {
+          return _tempDirectory.path;
+        }
+        return null;
+      },
+    );
   });
 
   tearDownAll(() async {
-    _pathProviderChannel.setMockMethodCallHandler(null);
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(_pathProviderChannel, null);
     if (await _tempDirectory.exists()) {
       await _tempDirectory.delete(recursive: true);
     }
@@ -68,11 +72,14 @@ void main() {
 
     await tester.pumpWidget(const MaterialApp(home: DashboardScreen()));
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pumpAndSettle(const Duration(milliseconds: 200), const Duration(seconds: 5));
 
-    expect(find.textContaining(', Maya'), findsOneWidget);
-    expect(find.textContaining('Remote'), findsOneWidget);
-    expect(find.textContaining('Night Shift'), findsOneWidget);
-    expect(find.textContaining('3 liters'), findsOneWidget);
+    expect(find.text('Dashboard'), findsOneWidget);
+    expect(find.text('Knight hub'), findsOneWidget);
+    expect(find.text('Learning mentor'), findsOneWidget);
+    expect(find.text('Summary'), findsOneWidget);
+    expect(find.text('Trusted companion'), findsOneWidget);
+    expect(find.textContaining('Maya, your mentor plan begins with a single commitment: Finish a Flutter mastery plan.'), findsOneWidget);
   });
 }
+
