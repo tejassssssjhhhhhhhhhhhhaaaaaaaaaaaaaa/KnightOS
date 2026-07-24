@@ -6,6 +6,7 @@ import '../../app/screens/account_center_screen.dart';
 import '../../app/screens/app_updates_screen.dart';
 import '../../app/screens/auth_screen.dart';
 import '../../app/screens/dashboard_screen.dart';
+import '../../app/screens/premium_launch_screen.dart';
 import '../../app/screens/onboarding_screen.dart';
 import '../../app/screens/settings_screen.dart';
 import '../../app/screens/splash_screen.dart';
@@ -45,13 +46,13 @@ class AppRouter {
         }
         final profile = await OnboardingStorage().loadProfile();
         final onboardingComplete = profile != null && profile.completedSteps.isNotEmpty;
-        return onboardingComplete ? AppRoutes.dashboard : AppRoutes.onboarding;
+        return onboardingComplete ? AppRoutes.launch : AppRoutes.onboarding;
       }
 
       if (location == AppRoutes.onboarding) {
         final profile = await OnboardingStorage().loadProfile();
         if (profile != null && profile.completedSteps.isNotEmpty) {
-          return AppRoutes.dashboard;
+          return AppRoutes.launch;
         }
       }
 
@@ -74,6 +75,12 @@ class AppRouter {
         path: AppRoutes.onboarding,
         builder: (context, state) {
           return const OnboardingScreen();
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.launch,
+        builder: (context, state) {
+          return const PremiumLaunchScreen();
         },
       ),
       GoRoute(

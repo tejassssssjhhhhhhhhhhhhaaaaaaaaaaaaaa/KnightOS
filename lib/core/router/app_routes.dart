@@ -5,6 +5,7 @@ class AppRoutes {
   static const welcome = '/welcome';
   static const auth = '/auth';
   static const onboarding = '/onboarding';
+  static const launch = '/launch';
   static const dashboard = '/dashboard';
   static const account = '/account';
   static const voiceCapture = '/voice-capture';

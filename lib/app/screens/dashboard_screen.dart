@@ -73,8 +73,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
 
     try {
+      debugPrint('STEP 1');
       final profile = await _onboardingStorage.loadProfile();
+    debugPrint('STEP 2');
     final fitnessState = await _fitnessStorage.loadFitnessModuleState();
+    debugPrint('STEP 3');
     final travelState = await _travelStorage.loadTravelModuleState();
 
     final fitnessModule = FitnessFeatureModule(
@@ -82,12 +85,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
       catalog: FitnessEquipmentCatalog.items,
     );
     final travelModule = TravelFeatureModule(state: travelState);
+    debugPrint('STEP 4');
     final workState = await WorkStorage().loadWorkModuleState();
     final workModule = WorkFeatureModule(state: workState);
 
     final engine = KnightEngine();
+    debugPrint('STEP 5');
     await engine.registerFeatureModule(fitnessModule);
+    debugPrint('STEP 6');
     await engine.registerFeatureModule(travelModule);
+    debugPrint('STEP 7');
     await engine.registerFeatureModule(workModule);
 
     final scoringEngine = ScoringEngine();
@@ -105,11 +112,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
     recommendationEngine.registerProvider(travelModule.recommendationProvider!);
     recommendationEngine.registerProvider(workModule.recommendationProvider!);
 
+    debugPrint('STEP 8');
     final scores = await _requestScores(scoringEngine);
+    debugPrint('STEP 9');
     final analyticsSnapshots = await _requestAnalyticsSnapshots(analyticsEngine);
+    debugPrint('STEP 10');
     final recommendations = await _requestRecommendations(recommendationEngine, scores, analyticsSnapshots);
+    debugPrint('STEP 11');
     final metrics = await _requestMetrics(analyticsEngine);
 
+    debugPrint('STEP 12');
     final knightContextService = KnightContextService();
     final knightContext = knightContextService.buildContext(
       featureModules: <KnightFeatureModule>[fitnessModule, travelModule, workModule],
@@ -141,6 +153,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
 
+      debugPrint('STEP 13');
       if (!mounted) return;
       setState(() {
         _profile = profile;
@@ -156,6 +169,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _isRefreshing = false;
       });
     } catch (_) {
+      debugPrint('STEP 13');
       if (!mounted) return;
       setState(() {
         _isLoading = false;

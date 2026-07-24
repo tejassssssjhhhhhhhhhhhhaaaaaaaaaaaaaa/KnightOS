@@ -1,47 +1,72 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'package:knight_os/app/screens/dashboard_screen.dart';
+import 'package:knight_os/core/repositories/authentication_repository.dart';
 import 'package:knight_os/features/onboarding/domain/onboarding_profile.dart';
 
-const MethodChannel _pathProviderChannel = MethodChannel('plugins.flutter.io/path_provider');
+const MethodChannel _pathProviderChannel =
+    MethodChannel('plugins.flutter.io/path_provider');
+
 late Directory _tempDirectory;
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUpAll(() async {
-    _tempDirectory = await Directory.systemTemp.createTemp('knight_os_dashboard_test');
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+    print('DASHBOARD TEST: setUpAll start');
+    _tempDirectory =
+        await Directory.systemTemp.createTemp('knight_os_dashboard_test');
+
+    FlutterSecureStorage.setMockInitialValues({});
+
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
       _pathProviderChannel,
       (call) async {
-        if (call.method == 'getApplicationSupportDirectory' || call.method == 'getApplicationDocumentsDirectory') {
+        if (call.method == 'getApplicationSupportDirectory' ||
+            call.method == 'getApplicationDocumentsDirectory') {
           return _tempDirectory.path;
         }
         return null;
       },
     );
+    print('DASHBOARD TEST: setUpAll ready');
   });
 
   tearDownAll(() async {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(_pathProviderChannel, null);
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(_pathProviderChannel, null);
+
     if (await _tempDirectory.exists()) {
       await _tempDirectory.delete(recursive: true);
     }
   });
 
-  testWidgets('Dashboard displays onboarding profile values from storage', (tester) async {
+  testWidgets('Dashboard displays onboarding profile values from storage',
+      (WidgetTester tester) async {
     final directory = await getApplicationDocumentsDirectory();
+
     final file = File('${directory.path}/onboarding_profile.json');
+
+    print('DASHBOARD TEST: writing profile file');
     await file.writeAsString(
       jsonEncode(
         const OnboardingProfile(
-          completedSteps: ['personal', 'work', 'health', 'finance', 'goals', 'aiPreferences'],
+          completedSteps: [
+            'personal',
+            'work',
+            'health',
+            'finance',
+            'goals',
+            'aiPreferences',
+          ],
           fullName: 'Maya Chen',
           preferredName: 'Maya',
           occupation: 'Product Designer',
@@ -70,16 +95,35 @@ void main() {
       }
     });
 
-    await tester.pumpWidget(const MaterialApp(home: DashboardScreen()));
+    final authRepository = AuthenticationRepository();
+    print('DASHBOARD TEST: before isAuthenticated');
+    final authenticated = await authRepository.isAuthenticated();
+    print('DASHBOARD TEST: isAuthenticated => $authenticated');
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: DashboardScreen(),
+      ),
+    );
+
+    print('DASHBOARD TEST: widget pumped, starting pumpAndSettle');
     await tester.pump();
-    await tester.pumpAndSettle(const Duration(milliseconds: 200), const Duration(seconds: 5));
+
+    // Fixed: Compatible with all Flutter versions
+    await tester.pumpAndSettle();
+    print('DASHBOARD TEST: pumpAndSettle complete');
 
     expect(find.text('Dashboard'), findsOneWidget);
     expect(find.text('Knight hub'), findsOneWidget);
     expect(find.text('Learning mentor'), findsOneWidget);
     expect(find.text('Summary'), findsOneWidget);
     expect(find.text('Trusted companion'), findsOneWidget);
-    expect(find.textContaining('Maya, your mentor plan begins with a single commitment: Finish a Flutter mastery plan.'), findsOneWidget);
+
+    expect(
+      find.textContaining(
+        'Maya, your mentor plan begins with a single commitment: Finish a Flutter mastery plan.',
+      ),
+      findsOneWidget,
+    );
   });
 }
-

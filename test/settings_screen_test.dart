@@ -73,7 +73,7 @@ void main() {
       ),
     );
     await tester.pump();
-    await tester.pumpAndSettle(const Duration(milliseconds: 200), const Duration(seconds: 5));
+    await tester.pumpAndSettle(const Duration(milliseconds: 200));
 
     expect(find.text('Profile'), findsOneWidget);
     expect(find.text('App Settings'), findsOneWidget);

@@ -76,7 +76,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Welcome back, ${session.displayName}')),
       );
-      context.go(onboardingComplete ? AppRoutes.dashboard : AppRoutes.onboarding);
+      context.go(onboardingComplete ? AppRoutes.launch : AppRoutes.onboarding);
     } catch (error) {
       if (!mounted) return;
       setState(() => _error = _friendlyMessage(error));

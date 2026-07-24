@@ -12,6 +12,7 @@
 - Use a minor bump for backward-compatible feature additions.
 - Use a major bump for breaking changes.
 - Update the build number when a new artifact is generated for the same release line.
+- Use `scripts/release.ps1` to automate version bumping, validation, APK generation, and optional GitHub release workflows.
 
 ## 3. Release checklist
 - Confirm the target version in pubspec.yaml.

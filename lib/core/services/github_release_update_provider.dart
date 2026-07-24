@@ -294,7 +294,16 @@ class GitHubReleaseUpdateProvider implements UpdateService {
       throw HttpException('GitHub repository check returned status ${repositoryResponse.statusCode}.');
     }
     if (response.statusCode == HttpStatus.forbidden) {
-      throw const HttpException('GitHub API rate limit reached.');
+      final remaining = response.headers.value('x-ratelimit-remaining');
+      final reset = response.headers.value('x-ratelimit-reset');
+      if (remaining == '0' && reset != null) {
+        final resetEpoch = int.tryParse(reset);
+        if (resetEpoch != null) {
+          final resetTime = DateTime.fromMillisecondsSinceEpoch(resetEpoch * 1000, isUtc: true).toLocal();
+          throw HttpException('GitHub API rate limit reached. Limit resets at $resetTime.');
+        }
+      }
+      throw const HttpException('GitHub API returned 403 Forbidden.');
     }
     if (response.statusCode != HttpStatus.ok) {
       throw HttpException('GitHub API returned status ${response.statusCode}.');

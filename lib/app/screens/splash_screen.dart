@@ -22,7 +22,7 @@ class _SplashScreenState extends State<SplashScreen> {
         final authenticated = await authRepository.isAuthenticated();
         if (!mounted) return;
         if (authenticated) {
-          context.go(AppRoutes.dashboard);
+          context.go(AppRoutes.launch);
         } else {
           context.go(AppRoutes.welcome);
         }

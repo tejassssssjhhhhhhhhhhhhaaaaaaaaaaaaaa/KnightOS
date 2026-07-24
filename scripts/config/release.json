@@ -1,0 +1,13 @@
+{
+  "githubRepository": "",
+  "apkPath": "build/app/outputs/flutter-apk/app-release.apk",
+  "defaultBranch": "main",
+  "runAnalyze": true,
+  "analyzeFailOnWarnings": false,
+  "runTests": true,
+  "createGitHubRelease": false,
+  "uploadApk": false,
+  "createGitTag": false,
+  "gitAutomation": false,
+  "flutterCommand": "flutter"
+}

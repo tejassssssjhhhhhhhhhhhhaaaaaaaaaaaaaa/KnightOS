@@ -8,12 +8,12 @@ void main() {
   testWidgets('KnightOS splash flow opens the welcome screen', (tester) async {
     await tester.pumpWidget(const KnightOsApp());
     await tester.pump();
-    await tester.pumpAndSettle(const Duration(milliseconds: 200), const Duration(seconds: 5));
+    await tester.pumpAndSettle(const Duration(milliseconds: 200));
 
     expect(find.text('KnightOS'), findsOneWidget);
 
     await tester.pump(const Duration(seconds: 2));
-    await tester.pumpAndSettle(const Duration(milliseconds: 200), const Duration(seconds: 5));
+    await tester.pumpAndSettle(const Duration(milliseconds: 200));
 
     expect(find.text('Welcome to KnightOS'), findsOneWidget);
   });
