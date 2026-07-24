@@ -11,6 +11,7 @@ This directory contains the release automation toolkit for KnightOS.
 - automatically stages, commits, and pushes release changes when enabled
 - automatically creates or updates a GitHub release and uploads the APK asset when enabled
 - optionally updates OTA metadata if an OTA metadata file path is configured
+- runs the publish pipeline automatically after APK verification and reports each step clearly
 
 ## Quick start
 1. Open a PowerShell terminal from the repository root.
@@ -20,6 +21,7 @@ This directory contains the release automation toolkit for KnightOS.
    .\scripts\release.ps1
    ```
 4. Follow the prompts to choose patch/minor/major version bumps and optional steps.
+5. After the APK is verified, the publish pipeline runs automatically and prints a final summary with release, upload, and OTA status.
 
 ## Configuration
 Edit `scripts/config/release.json` to customize:
