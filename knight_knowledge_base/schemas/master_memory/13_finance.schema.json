@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://knight.os/schemas/master_memory/13_finance.schema.json",
+  "title": "Domain 13: Finance",
+  "type": "object",
+  "properties": {
+    "metadata": { "$ref": "../core/amu_metadata.schema.json" },
+    "content": {
+      "type": "object",
+      "properties": {
+        "metric": { "type": "string" },
+        "value": { "type": "number" },
+        "currency": { "type": "string" },
+        "accountType": { "type": "string" },
+        "category": { "type": "string" }
+      },
+      "required": ["metric", "value", "currency"]
+    }
+  },
+  "required": ["metadata", "content"]
+}

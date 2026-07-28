@@ -12,10 +12,12 @@ class WorkIntelligenceScreen extends ConsumerStatefulWidget {
   const WorkIntelligenceScreen({super.key});
 
   @override
-  ConsumerState<WorkIntelligenceScreen> createState() => _WorkIntelligenceScreenState();
+  ConsumerState<WorkIntelligenceScreen> createState() =>
+      _WorkIntelligenceScreenState();
 }
 
-class _WorkIntelligenceScreenState extends ConsumerState<WorkIntelligenceScreen> {
+class _WorkIntelligenceScreenState
+    extends ConsumerState<WorkIntelligenceScreen> {
   final _searchController = TextEditingController();
   String _searchQuery = '';
 
@@ -36,10 +38,19 @@ class _WorkIntelligenceScreenState extends ConsumerState<WorkIntelligenceScreen>
           final filteredSessions = _searchQuery.isEmpty
               ? sessions
               : sessions
-                  .where((session) => session.workDate.contains(_searchQuery) || session.shiftType.toLowerCase().contains(_searchQuery) || session.notes.toLowerCase().contains(_searchQuery))
-                  .toList();
+                    .where(
+                      (session) =>
+                          session.workDate.contains(_searchQuery) ||
+                          session.shiftType.toLowerCase().contains(
+                            _searchQuery,
+                          ) ||
+                          session.notes.toLowerCase().contains(_searchQuery),
+                    )
+                    .toList();
           final today = DateTime.now().toIso8601String().split('T').first;
-          final todaySessions = filteredSessions.where((session) => session.workDate == today).toList();
+          final todaySessions = filteredSessions
+              .where((session) => session.workDate == today)
+              .toList();
           final profile = moduleState.profile;
           return SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
@@ -60,7 +71,8 @@ class _WorkIntelligenceScreenState extends ConsumerState<WorkIntelligenceScreen>
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stackTrace) => Center(child: Text('Unable to load work intelligence: $error')),
+        error: (error, stackTrace) =>
+            Center(child: Text('Unable to load work intelligence: $error')),
       ),
     );
   }
@@ -73,18 +85,46 @@ class _WorkIntelligenceScreenState extends ConsumerState<WorkIntelligenceScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(profile.companyName.isEmpty ? 'No company configured yet' : profile.companyName, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+          Text(
+            profile.companyName.isEmpty
+                ? 'No company configured yet'
+                : profile.companyName,
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
           const SizedBox(height: 8),
-          Text(profile.jobTitle.isEmpty ? 'No job title set' : profile.jobTitle, style: theme.textTheme.bodyLarge),
+          Text(
+            profile.jobTitle.isEmpty ? 'No job title set' : profile.jobTitle,
+            style: theme.textTheme.bodyLarge,
+          ),
           const SizedBox(height: 12),
           Wrap(
             spacing: 12,
             runSpacing: 12,
             children: [
-              _buildInfoChip(context, 'Employment', profile.employmentType.isEmpty ? 'Not set' : profile.employmentType),
-              _buildInfoChip(context, 'Joined', profile.joiningDate.isEmpty ? 'Not set' : profile.joiningDate),
-              _buildInfoChip(context, 'Location', profile.workLocation.isEmpty ? 'Not set' : profile.workLocation),
-              _buildInfoChip(context, 'Shift', profile.shiftType.isEmpty ? 'Not set' : profile.shiftType),
+              _buildInfoChip(
+                context,
+                'Employment',
+                profile.employmentType.isEmpty
+                    ? 'Not set'
+                    : profile.employmentType,
+              ),
+              _buildInfoChip(
+                context,
+                'Joined',
+                profile.joiningDate.isEmpty ? 'Not set' : profile.joiningDate,
+              ),
+              _buildInfoChip(
+                context,
+                'Location',
+                profile.workLocation.isEmpty ? 'Not set' : profile.workLocation,
+              ),
+              _buildInfoChip(
+                context,
+                'Shift',
+                profile.shiftType.isEmpty ? 'Not set' : profile.shiftType,
+              ),
             ],
           ),
           if (profile.notes.isNotEmpty) ...[
@@ -108,12 +148,16 @@ class _WorkIntelligenceScreenState extends ConsumerState<WorkIntelligenceScreen>
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
           filled: true,
         ),
-        onChanged: (value) => setState(() => _searchQuery = value.trim().toLowerCase()),
+        onChanged: (value) =>
+            setState(() => _searchQuery = value.trim().toLowerCase()),
       ),
     );
   }
 
-  Widget _buildTodayWorkSection(BuildContext context, List<WorkSession> todaySessions) {
+  Widget _buildTodayWorkSection(
+    BuildContext context,
+    List<WorkSession> todaySessions,
+  ) {
     return DashboardSection(
       title: 'Today\'s Work',
       subtitle: 'Track today\'s shift and performance at a glance.',
@@ -132,7 +176,8 @@ class _WorkIntelligenceScreenState extends ConsumerState<WorkIntelligenceScreen>
                   width: 260,
                   child: DashboardStatCard(
                     label: '${session.startTime} — ${session.endTime}',
-                    value: '${session.totalHours.toStringAsFixed(1)}h • ${session.questionsCompleted} Q • ${session.callsHandled} C • ${session.chatsHandled} T',
+                    value:
+                        '${session.totalHours.toStringAsFixed(1)}h • ${session.questionsCompleted} Q • ${session.callsHandled} C • ${session.chatsHandled} T',
                     icon: Icons.work_outline_rounded,
                   ),
                 );
@@ -141,7 +186,10 @@ class _WorkIntelligenceScreenState extends ConsumerState<WorkIntelligenceScreen>
     );
   }
 
-  Widget _buildAnalyticsSection(BuildContext context, List<WorkSession> sessions) {
+  Widget _buildAnalyticsSection(
+    BuildContext context,
+    List<WorkSession> sessions,
+  ) {
     return DashboardSection(
       title: 'Work Analytics',
       subtitle: 'Placeholder metrics for work performance and productivity.',
@@ -151,35 +199,67 @@ class _WorkIntelligenceScreenState extends ConsumerState<WorkIntelligenceScreen>
         children: [
           SizedBox(
             width: 260,
-            child: DashboardStatCard(label: 'Productivity Trend', value: 'TODO', icon: Icons.trending_up_outlined),
+            child: DashboardStatCard(
+              label: 'Productivity Trend',
+              value: '--',
+              icon: Icons.trending_up_outlined,
+            ),
           ),
           SizedBox(
             width: 260,
-            child: DashboardStatCard(label: 'Weekly Summary', value: 'TODO', icon: Icons.calendar_view_week_outlined),
+            child: DashboardStatCard(
+              label: 'Weekly Summary',
+              value: 'Pending',
+              icon: Icons.calendar_view_week_outlined,
+            ),
           ),
           SizedBox(
             width: 260,
-            child: DashboardStatCard(label: 'Monthly Summary', value: 'TODO', icon: Icons.calendar_view_month_outlined),
+            child: DashboardStatCard(
+              label: 'Monthly Summary',
+              value: 'Pending',
+              icon: Icons.calendar_view_month_outlined,
+            ),
           ),
           SizedBox(
             width: 260,
-            child: DashboardStatCard(label: 'Work Streak', value: 'TODO', icon: Icons.local_fire_department_outlined),
+            child: DashboardStatCard(
+              label: 'Work Streak',
+              value: '0 days',
+              icon: Icons.local_fire_department_outlined,
+            ),
           ),
           SizedBox(
             width: 260,
-            child: DashboardStatCard(label: 'Goal Progress', value: 'TODO', icon: Icons.flag_outlined),
+            child: DashboardStatCard(
+              label: 'Goal Progress',
+              value: 'Initializing',
+              icon: Icons.flag_outlined,
+            ),
           ),
           SizedBox(
             width: 260,
-            child: DashboardStatCard(label: 'Average Questions', value: 'TODO', icon: Icons.question_answer_outlined),
+            child: DashboardStatCard(
+              label: 'Average Questions',
+              value: '--',
+              icon: Icons.question_answer_outlined,
+            ),
           ),
           SizedBox(
             width: 260,
-            child: DashboardStatCard(label: 'Average Calls', value: 'TODO', icon: Icons.call_outlined),
+            child: DashboardStatCard(
+              label: 'Average Calls',
+              value: '--',
+              icon: Icons.call_outlined,
+            ),
           ),
           SizedBox(
             width: 260,
-            child: DashboardStatCard(label: 'Average Chats', value: 'TODO', icon: Icons.chat_outlined),
+            child: DashboardStatCard(
+              label: 'Average Chats',
+              value: '--',
+              icon: Icons.chat_outlined,
+            ),
           ),
         ],
       ),
@@ -211,7 +291,12 @@ class _WorkIntelligenceScreenState extends ConsumerState<WorkIntelligenceScreen>
         children: [
           Text(label, style: Theme.of(context).textTheme.labelSmall),
           const SizedBox(height: 4),
-          Text(value, style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+          Text(
+            value,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+          ),
         ],
       ),
       backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
@@ -234,7 +319,9 @@ class _ActionCard extends StatelessWidget {
         onPressed: () {},
         style: FilledButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 20),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
         ),
         child: Column(
           children: [

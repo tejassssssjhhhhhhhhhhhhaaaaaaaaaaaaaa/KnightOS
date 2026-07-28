@@ -27,6 +27,6 @@ void main() {
     await tester.pumpWidget(const MaterialApp(home: SleepTrackerScreen()));
     await tester.pump();
 
-    expect(find.text('Sleep Tracker'), findsOneWidget);
+    expect(find.text('SLEEP TRACKER'), findsOneWidget);
   });
 }

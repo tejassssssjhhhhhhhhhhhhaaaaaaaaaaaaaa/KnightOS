@@ -25,6 +25,18 @@ class AppRoutes {
   static const work = '/work';
   static const finance = '/finance';
   static const fitness = '/fitness';
+  static const mission = '/mission';
   static const planner = '/planner';
   static const knight = '/knight';
+  static const lifeAtlas = '/life-atlas';
+  static const knowledgeVault = '/knowledge-vault';
+  static const knowledgeGraph = '/knowledge-graph';
+  static const myPlace = '/my-place';
+  static const myData = '/my-data';
+  static const documents = '/documents';
+  static const health = '/health';
+  static const importCenter = '/import-center';
+  static const connectors = '/connectors';
+  static const discovery = '/discovery';
+  static const intelligence = '/intelligence';
 }

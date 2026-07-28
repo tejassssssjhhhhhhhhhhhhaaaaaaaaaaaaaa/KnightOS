@@ -1,0 +1,58 @@
+[
+  {
+    "id": "B01-Q001",
+    "text": "What is your full legal name as it appears on official documents?",
+    "purpose": "Essential for legal and administrative tasks.",
+    "type": "string",
+    "domainId": 1,
+    "categoryId": 1,
+    "priority": "critical",
+    "dependencies": [],
+    "isDynamic": false
+  },
+  {
+    "id": "B01-Q002",
+    "text": "What is your date of birth?",
+    "purpose": "Foundations for age-related calculations and health risk assessment.",
+    "type": "date",
+    "domainId": 1,
+    "categoryId": 1,
+    "priority": "critical",
+    "dependencies": ["B01-Q001"],
+    "isDynamic": false
+  },
+  {
+    "id": "B01-Q021",
+    "text": "What are your top 5 non-negotiable personal values?",
+    "purpose": "The ultimate decision-making filter for Knight.",
+    "type": "list",
+    "domainId": 21,
+    "categoryId": 6,
+    "priority": "critical",
+    "dependencies": [],
+    "isDynamic": true
+  },
+  {
+    "id": "B01-Q043",
+    "text": "How do you prefer to receive feedback: Direct or Softened?",
+    "purpose": "Sets the 'Feedback Style' for Knight.",
+    "type": "options",
+    "options": ["Direct", "Softened", "Data-only"],
+    "domainId": 10,
+    "categoryId": 1,
+    "priority": "critical",
+    "dependencies": [],
+    "isDynamic": true
+  },
+  {
+    "id": "B02-Q005",
+    "text": "What made you choose your current career path?",
+    "purpose": "Deep alignment with long-term aspirations.",
+    "type": "string",
+    "domainId": 6,
+    "categoryId": 2,
+    "priority": "high",
+    "dependencies": [],
+    "isDynamic": false
+  }
+]

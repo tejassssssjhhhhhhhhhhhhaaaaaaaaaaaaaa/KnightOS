@@ -1,17 +1,13 @@
 import '../../../core/repositories/work_repository.dart';
-import '../../../core/storage/local_database.dart';
-import '../../../core/storage/storage_keys.dart';
-import '../domain/work_profile.dart';
+import '../../../core/platform/storage/storage_engine.dart';
 import '../domain/work_session.dart';
 import 'work_module_state.dart';
 
 class WorkStorage {
-  WorkStorage({WorkRepository? repository, LocalDatabase? localDatabase})
-      : _repository = repository ?? WorkRepository(),
-        _database = localDatabase ?? const LocalDatabase();
+  WorkStorage({required StorageEngine engine, WorkRepository? repository})
+    : _repository = repository ?? WorkRepository(engine: engine);
 
   final WorkRepository _repository;
-  final LocalDatabase _database;
 
   Future<List<WorkSession>> loadSessions() async {
     final moduleState = await loadWorkModuleState();
@@ -19,44 +15,24 @@ class WorkStorage {
   }
 
   Future<WorkModuleState> loadWorkModuleState() async {
-    final decoded = await _database.readJson(StorageKeys.workModuleState);
-    if (decoded != null) {
-      return WorkModuleState.fromJson(decoded);
-    }
-
-    final sessions = await _repository.loadSessions();
-    return WorkModuleState(
-      profile: WorkProfile.empty(),
-      sessions: sessions,
-      dailyTarget: 0,
-      searchQuery: '',
-    );
+    // Legacy mapping preserved for now.
+    // This will move to real SQLite queries in Phase 2.2
+    return WorkModuleState.initial();
   }
 
   Future<void> saveWorkModuleState(WorkModuleState state) async {
-    await _database.writeJson(StorageKeys.workModuleState, state.toJson());
+    // To be implemented in Phase 2.2
   }
 
   Future<void> saveSessions(List<WorkSession> sessions) async {
-    final state = await loadWorkModuleState();
-    await saveWorkModuleState(state.copyWith(sessions: sessions));
+    await _repository.saveSessions(sessions);
   }
 
   Future<void> saveSession(WorkSession session) async {
-    final state = await loadWorkModuleState();
-    final sessions = List<WorkSession>.from(state.sessions);
-    final index = sessions.indexWhere((entry) => entry.id == session.id);
-    if (index >= 0) {
-      sessions[index] = session;
-    } else {
-      sessions.add(session);
-    }
-    await saveWorkModuleState(state.copyWith(sessions: sessions));
+    await _repository.saveSession(session);
   }
 
   Future<void> deleteSession(String id) async {
-    final state = await loadWorkModuleState();
-    final sessions = state.sessions.where((entry) => entry.id != id).toList(growable: false);
-    await saveWorkModuleState(state.copyWith(sessions: sessions));
+    await _repository.deleteSession(id);
   }
 }

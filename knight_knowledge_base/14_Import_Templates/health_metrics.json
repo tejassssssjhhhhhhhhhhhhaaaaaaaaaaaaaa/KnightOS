@@ -1,0 +1,16 @@
+[
+  {
+    "timestamp": "2026-07-27T08:00:00Z",
+    "type": "heart_rate",
+    "value": 65,
+    "unit": "bpm",
+    "source": "SmartWatch_v2"
+  },
+  {
+    "timestamp": "2026-07-27T07:00:00Z",
+    "type": "weight",
+    "value": 80.5,
+    "unit": "kg",
+    "source": "SmartScale_v1"
+  }
+]

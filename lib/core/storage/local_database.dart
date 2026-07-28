@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -9,21 +10,22 @@ class LocalDatabase {
   const LocalDatabase();
 
   Future<String?> _readString(String fileName) async {
-    if (kIsWeb) {
-      try {
+    try {
+      if (kIsWeb) {
         final prefs = await SharedPreferences.getInstance();
         return prefs.getString(fileName);
-      } catch (error) {
-        debugPrint('Web storage read failed: $error');
+      }
+
+      debugPrint('Local storage reading $fileName');
+      final file = await fileFor(fileName);
+      if (!await file.exists()) {
         return null;
       }
-    }
-
-    final file = await fileFor(fileName);
-    if (!await file.exists()) {
+      return await file.readAsString();
+    } catch (error) {
+      debugPrint('Local storage read failed for $fileName: $error');
       return null;
     }
-    return file.readAsString();
   }
 
   Future<File> fileFor(String fileName) async {
@@ -40,12 +42,20 @@ class LocalDatabase {
   }
 
   Future<Directory> _appDataDirectory() async {
-    if (Platform.isAndroid || Platform.isIOS) {
-      return getApplicationSupportDirectory();
+    try {
+      if (Platform.isAndroid ||
+          Platform.isIOS ||
+          Platform.isWindows ||
+          Platform.isLinux ||
+          Platform.isMacOS) {
+        return await getApplicationSupportDirectory();
+      }
+    } catch (error) {
+      debugPrint(
+        'Application support directory lookup failed, using documents directory: $error',
+      );
     }
-    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-      return getApplicationSupportDirectory();
-    }
+
     return getApplicationDocumentsDirectory();
   }
 
@@ -70,64 +80,64 @@ class LocalDatabase {
   }
 
   Future<void> writeString(String fileName, String value) async {
-    if (kIsWeb) {
-      try {
+    try {
+      if (kIsWeb) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(fileName, value);
-      } catch (error) {
-        debugPrint('Web storage write failed: $error');
+        return;
       }
-      return;
-    }
 
-    final file = await fileFor(fileName);
-    await file.writeAsString(value);
+      final file = await fileFor(fileName);
+      await file.writeAsString(value);
+    } catch (error) {
+      debugPrint('Local storage write failed for $fileName: $error');
+    }
   }
 
   Future<void> writeJson(String fileName, Map<String, dynamic> value) async {
-    if (kIsWeb) {
-      try {
+    try {
+      if (kIsWeb) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(fileName, jsonEncode(value));
-      } catch (error) {
-        debugPrint('Web storage write failed: $error');
+        return;
       }
-      return;
-    }
 
-    final file = await fileFor(fileName);
-    await file.writeAsString(jsonEncode(value));
+      final file = await fileFor(fileName);
+      await file.writeAsString(jsonEncode(value));
+    } catch (error) {
+      debugPrint('Local storage write failed for $fileName: $error');
+    }
   }
 
   Future<void> writeJsonList(String fileName, List<dynamic> value) async {
-    if (kIsWeb) {
-      try {
+    try {
+      if (kIsWeb) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(fileName, jsonEncode(value));
-      } catch (error) {
-        debugPrint('Web storage write failed: $error');
+        return;
       }
-      return;
-    }
 
-    final file = await fileFor(fileName);
-    await file.writeAsString(jsonEncode(value));
+      final file = await fileFor(fileName);
+      await file.writeAsString(jsonEncode(value));
+    } catch (error) {
+      debugPrint('Local storage write failed for $fileName: $error');
+    }
   }
 
   Future<void> delete(String fileName) async {
-    if (kIsWeb) {
-      try {
+    try {
+      if (kIsWeb) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.remove(fileName);
-      } catch (error) {
-        debugPrint('Web storage delete failed: $error');
+        return;
       }
-      return;
-    }
 
-    final file = await fileFor(fileName);
-    if (await file.exists()) {
-      await file.delete();
+      final file = await fileFor(fileName);
+      if (await file.exists()) {
+        await file.delete();
+      }
+    } catch (error) {
+      debugPrint('Local storage delete failed for $fileName: $error');
     }
   }
 }

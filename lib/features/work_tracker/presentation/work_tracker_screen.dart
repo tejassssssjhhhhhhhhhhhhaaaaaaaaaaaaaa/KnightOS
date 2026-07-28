@@ -92,27 +92,60 @@ class _WorkTrackerScreenState extends ConsumerState<WorkTrackerScreen> {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stackTrace) => Center(child: Text('Unable to load work logs: $error')),
+        error: (error, stackTrace) =>
+            Center(child: Text('Unable to load work logs: $error')),
       ),
     );
   }
 
   Widget _buildSummaryCards(List<WorkSession> sessions) {
     final today = DateTime.now().toIso8601String().split('T').first;
-    final todaySession = sessions.where((session) => session.workDate == today).toList();
-    final totalHours = todaySession.fold<double>(0, (sum, item) => sum + item.totalHours);
-    final questions = todaySession.fold<int>(0, (sum, item) => sum + item.questionsCompleted);
-    final focus = todaySession.isEmpty ? 0 : todaySession.map((item) => item.focusRating).reduce((a, b) => a + b) / todaySession.length;
-    final productivity = todaySession.isEmpty ? 0 : todaySession.map((item) => item.productiveHours).reduce((a, b) => a + b) / todaySession.length;
+    final todaySession = sessions
+        .where((session) => session.workDate == today)
+        .toList();
+    final totalHours = todaySession.fold<double>(
+      0,
+      (sum, item) => sum + item.totalHours,
+    );
+    final questions = todaySession.fold<int>(
+      0,
+      (sum, item) => sum + item.questionsCompleted,
+    );
+    final focus = todaySession.isEmpty
+        ? 0
+        : todaySession.map((item) => item.focusRating).reduce((a, b) => a + b) /
+              todaySession.length;
+    final productivity = todaySession.isEmpty
+        ? 0
+        : todaySession
+                  .map((item) => item.productiveHours)
+                  .reduce((a, b) => a + b) /
+              todaySession.length;
 
     return Wrap(
       spacing: 12,
       runSpacing: 12,
       children: [
-        _MetricCard(title: 'Today\'s Questions', value: '$questions', icon: Icons.question_answer_outlined),
-        _MetricCard(title: 'Hours Worked', value: '${totalHours.toStringAsFixed(1)}h', icon: Icons.schedule_outlined),
-        _MetricCard(title: 'Current Productivity', value: '${productivity.toStringAsFixed(1)}h', icon: Icons.insights_outlined),
-        _MetricCard(title: 'Today\'s Focus', value: focus.toStringAsFixed(1), icon: Icons.center_focus_strong_outlined),
+        _MetricCard(
+          title: 'Today\'s Questions',
+          value: '$questions',
+          icon: Icons.question_answer_outlined,
+        ),
+        _MetricCard(
+          title: 'Hours Worked',
+          value: '${totalHours.toStringAsFixed(1)}h',
+          icon: Icons.schedule_outlined,
+        ),
+        _MetricCard(
+          title: 'Current Productivity',
+          value: '${productivity.toStringAsFixed(1)}h',
+          icon: Icons.insights_outlined,
+        ),
+        _MetricCard(
+          title: 'Today\'s Focus',
+          value: focus.toStringAsFixed(1),
+          icon: Icons.center_focus_strong_outlined,
+        ),
       ],
     );
   }
@@ -121,13 +154,20 @@ class _WorkTrackerScreenState extends ConsumerState<WorkTrackerScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.25),
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.25),
         borderRadius: BorderRadius.circular(24),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Log a session', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+          Text(
+            'Log a session',
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+          ),
           const SizedBox(height: 16),
           Wrap(
             spacing: 12,
@@ -137,13 +177,41 @@ class _WorkTrackerScreenState extends ConsumerState<WorkTrackerScreen> {
               _buildTextField('Start Time', _startTimeController),
               _buildTextField('End Time', _endTimeController),
               _buildTextField('Shift Type', _shiftController),
-              _buildTextField('Questions Completed', _questionsController, isNumber: true),
-              _buildTextField('Calls Handled', _callsController, isNumber: true),
-              _buildTextField('Chats Handled', _chatsController, isNumber: true),
-              _buildTextField('Break Duration', _breakController, isNumber: true),
-              _buildTextField('Focus Rating (1–10)', _focusController, isNumber: true),
-              _buildTextField('Stress Rating (1–10)', _stressController, isNumber: true),
-              _buildTextField('Energy Rating (1–10)', _energyController, isNumber: true),
+              _buildTextField(
+                'Questions Completed',
+                _questionsController,
+                isNumber: true,
+              ),
+              _buildTextField(
+                'Calls Handled',
+                _callsController,
+                isNumber: true,
+              ),
+              _buildTextField(
+                'Chats Handled',
+                _chatsController,
+                isNumber: true,
+              ),
+              _buildTextField(
+                'Break Duration',
+                _breakController,
+                isNumber: true,
+              ),
+              _buildTextField(
+                'Focus Rating (1–10)',
+                _focusController,
+                isNumber: true,
+              ),
+              _buildTextField(
+                'Stress Rating (1–10)',
+                _stressController,
+                isNumber: true,
+              ),
+              _buildTextField(
+                'Energy Rating (1–10)',
+                _energyController,
+                isNumber: true,
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -167,7 +235,9 @@ class _WorkTrackerScreenState extends ConsumerState<WorkTrackerScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.2),
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(24),
       ),
       child: Column(
@@ -175,41 +245,68 @@ class _WorkTrackerScreenState extends ConsumerState<WorkTrackerScreen> {
         children: [
           Row(
             children: [
-              Expanded(child: Text('History', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700))),
-              IconButton(onPressed: () {}, icon: const Icon(Icons.filter_list_outlined)),
+              Expanded(
+                child: Text(
+                  'History',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+                ),
+              ),
+              IconButton(
+                onPressed: () {},
+                icon: const Icon(Icons.filter_list_outlined),
+              ),
             ],
           ),
           const SizedBox(height: 12),
           TextField(
             decoration: const InputDecoration(labelText: 'Search sessions'),
-            onChanged: (value) => setState(() => _searchQuery = value.toLowerCase()),
+            onChanged: (value) =>
+                setState(() => _searchQuery = value.toLowerCase()),
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
             initialValue: _selectedDateFilter,
             items: ['All', 'Today', 'Week', 'Month']
-                .map((value) => DropdownMenuItem(value: value, child: Text(value)))
+                .map(
+                  (value) => DropdownMenuItem(value: value, child: Text(value)),
+                )
                 .toList(),
-            onChanged: (value) => setState(() => _selectedDateFilter = value ?? 'All'),
+            onChanged: (value) =>
+                setState(() => _selectedDateFilter = value ?? 'All'),
             decoration: const InputDecoration(labelText: 'Filter by date'),
           ),
           const SizedBox(height: 16),
           if (sessions.isEmpty)
-            Text('No sessions logged yet.', style: Theme.of(context).textTheme.bodyMedium)
+            Text(
+              'No sessions logged yet.',
+              style: Theme.of(context).textTheme.bodyMedium,
+            )
           else
-            ...sessions.map((session) => Card(
-                  child: ListTile(
-                    title: Text('${session.workDate} · ${session.shiftType}'),
-                    subtitle: Text('${session.totalHours.toStringAsFixed(1)}h • ${session.questionsCompleted} questions • ${session.focusRating}/10 focus'),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(icon: const Icon(Icons.edit_outlined), onPressed: () => _editSession(session)),
-                        IconButton(icon: const Icon(Icons.delete_outline), onPressed: () => _deleteSession(session.id)),
-                      ],
-                    ),
+            ...sessions.map(
+              (session) => Card(
+                child: ListTile(
+                  title: Text('${session.workDate} · ${session.shiftType}'),
+                  subtitle: Text(
+                    '${session.totalHours.toStringAsFixed(1)}h • ${session.questionsCompleted} questions • ${session.focusRating}/10 focus',
                   ),
-                )),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit_outlined),
+                        onPressed: () => _editSession(session),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline),
+                        onPressed: () => _deleteSession(session.id),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -219,23 +316,65 @@ class _WorkTrackerScreenState extends ConsumerState<WorkTrackerScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.18),
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.18),
         borderRadius: BorderRadius.circular(24),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Analytics', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+          Text(
+            'Analytics',
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+          ),
           const SizedBox(height: 16),
           Wrap(
             spacing: 12,
             runSpacing: 12,
             children: [
-              _MetricCard(title: 'Questions per Day', value: _averageValue(sessions, (session) => session.questionsCompleted).toStringAsFixed(1), icon: Icons.bar_chart_outlined),
-              _MetricCard(title: 'Hours Worked', value: _averageValue(sessions, (session) => session.totalHours).toStringAsFixed(1), icon: Icons.timeline_outlined),
-              _MetricCard(title: 'Focus Trend', value: _averageValue(sessions, (session) => session.focusRating).toStringAsFixed(1), icon: Icons.trending_up_outlined),
-              _MetricCard(title: 'Stress Trend', value: _averageValue(sessions, (session) => session.stressRating).toStringAsFixed(1), icon: Icons.trending_down_outlined),
-              _MetricCard(title: 'Weekly Productivity', value: _averageValue(sessions, (session) => session.productiveHours).toStringAsFixed(1), icon: Icons.auto_graph_outlined),
+              _MetricCard(
+                title: 'Questions per Day',
+                value: _averageValue(
+                  sessions,
+                  (session) => session.questionsCompleted,
+                ).toStringAsFixed(1),
+                icon: Icons.bar_chart_outlined,
+              ),
+              _MetricCard(
+                title: 'Hours Worked',
+                value: _averageValue(
+                  sessions,
+                  (session) => session.totalHours,
+                ).toStringAsFixed(1),
+                icon: Icons.timeline_outlined,
+              ),
+              _MetricCard(
+                title: 'Focus Trend',
+                value: _averageValue(
+                  sessions,
+                  (session) => session.focusRating,
+                ).toStringAsFixed(1),
+                icon: Icons.trending_up_outlined,
+              ),
+              _MetricCard(
+                title: 'Stress Trend',
+                value: _averageValue(
+                  sessions,
+                  (session) => session.stressRating,
+                ).toStringAsFixed(1),
+                icon: Icons.trending_down_outlined,
+              ),
+              _MetricCard(
+                title: 'Weekly Productivity',
+                value: _averageValue(
+                  sessions,
+                  (session) => session.productiveHours,
+                ).toStringAsFixed(1),
+                icon: Icons.auto_graph_outlined,
+              ),
             ],
           ),
         ],
@@ -243,7 +382,11 @@ class _WorkTrackerScreenState extends ConsumerState<WorkTrackerScreen> {
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller, {bool isNumber = false}) {
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller, {
+    bool isNumber = false,
+  }) {
     return SizedBox(
       width: 240,
       child: TextField(
@@ -256,7 +399,8 @@ class _WorkTrackerScreenState extends ConsumerState<WorkTrackerScreen> {
 
   List<WorkSession> _filterSessions(List<WorkSession> sessions) {
     var filtered = sessions.where((session) {
-      final matchesQuery = session.notes.toLowerCase().contains(_searchQuery) ||
+      final matchesQuery =
+          session.notes.toLowerCase().contains(_searchQuery) ||
           session.shiftType.toLowerCase().contains(_searchQuery) ||
           session.workDate.contains(_searchQuery);
       return matchesQuery;
@@ -264,7 +408,9 @@ class _WorkTrackerScreenState extends ConsumerState<WorkTrackerScreen> {
 
     if (_selectedDateFilter == 'Today') {
       final today = DateTime.now().toIso8601String().split('T').first;
-      filtered = filtered.where((session) => session.workDate == today).toList();
+      filtered = filtered
+          .where((session) => session.workDate == today)
+          .toList();
     } else if (_selectedDateFilter == 'Week') {
       final now = DateTime.now();
       final weekStart = now.subtract(Duration(days: now.weekday - 1));
@@ -286,7 +432,9 @@ class _WorkTrackerScreenState extends ConsumerState<WorkTrackerScreen> {
     final session = _buildSession();
     await ref.read(workSessionsProvider.notifier).saveSession(session);
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Work session saved.')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Work session saved.')));
     }
   }
 
@@ -297,8 +445,12 @@ class _WorkTrackerScreenState extends ConsumerState<WorkTrackerScreen> {
     final chats = int.tryParse(_chatsController.text) ?? 0;
     final questions = int.tryParse(_questionsController.text) ?? 0;
     final totalInteractions = calls + chats;
-    final callsPercentage = totalInteractions == 0 ? 0.0 : (calls / totalInteractions) * 100;
-    final chatsPercentage = totalInteractions == 0 ? 0.0 : (chats / totalInteractions) * 100;
+    final callsPercentage = totalInteractions == 0
+        ? 0.0
+        : (calls / totalInteractions) * 100;
+    final chatsPercentage = totalInteractions == 0
+        ? 0.0
+        : (chats / totalInteractions) * 100;
     final questionsPerHour = totalHours == 0 ? 0.0 : questions / totalHours;
     final weeklyAverage = questions.toDouble();
     final monthlyAverage = questions.toDouble();
@@ -374,17 +526,27 @@ class _WorkTrackerScreenState extends ConsumerState<WorkTrackerScreen> {
     await ref.read(workSessionsProvider.notifier).deleteSession(id);
   }
 
-  double _averageValue(List<WorkSession> sessions, num Function(WorkSession) selector) {
+  double _averageValue(
+    List<WorkSession> sessions,
+    num Function(WorkSession) selector,
+  ) {
     if (sessions.isEmpty) {
       return 0;
     }
-    final sum = sessions.fold<double>(0, (value, session) => value + selector(session).toDouble());
+    final sum = sessions.fold<double>(
+      0,
+      (value, session) => value + selector(session).toDouble(),
+    );
     return sum / sessions.length;
   }
 }
 
 class _MetricCard extends StatelessWidget {
-  const _MetricCard({required this.title, required this.value, required this.icon});
+  const _MetricCard({
+    required this.title,
+    required this.value,
+    required this.icon,
+  });
 
   final String title;
   final String value;
@@ -406,9 +568,19 @@ class _MetricCard extends StatelessWidget {
           children: [
             Icon(icon, color: theme.colorScheme.primary),
             const SizedBox(height: 12),
-            Text(title, style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+            Text(
+              title,
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
             const SizedBox(height: 6),
-            Text(value, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+            Text(
+              value,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ],
         ),
       ),

@@ -13,21 +13,30 @@ class AndroidUpdateInstaller {
 
     final exists = await File(filePath).exists();
     if (!exists) {
-      debugPrint('APK installer skipped because the file does not exist: $filePath');
+      debugPrint(
+        'APK installer skipped because the file does not exist: $filePath',
+      );
       return false;
     }
 
     final fileSize = await File(filePath).length();
     if (fileSize < 4096) {
-      debugPrint('APK installer skipped because the file is too small: $fileSize bytes');
+      debugPrint(
+        'APK installer skipped because the file is too small: $fileSize bytes',
+      );
       return false;
     }
 
     try {
-      final result = await OpenFilex.open(filePath, type: 'application/vnd.android.package-archive');
+      final result = await OpenFilex.open(
+        filePath,
+        type: 'application/vnd.android.package-archive',
+      );
       final launched = result.type == ResultType.done;
       if (!launched) {
-        debugPrint('APK installer returned a non-success result: ${result.type}');
+        debugPrint(
+          'APK installer returned a non-success result: ${result.type}',
+        );
       }
       return launched;
     } catch (error) {

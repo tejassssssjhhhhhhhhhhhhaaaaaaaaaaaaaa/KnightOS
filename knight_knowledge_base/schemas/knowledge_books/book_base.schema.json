@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://knight.os/schemas/knowledge_books/book_base.schema.json",
+  "title": "Knowledge Book Base",
+  "type": "object",
+  "properties": {
+    "bookId": { "type": "integer", "minimum": 1, "maximum": 11 },
+    "title": { "type": "string" },
+    "version": { "type": "string" },
+    "lastSynthesis": { "type": "string", "format": "date-time" },
+    "integrityScore": { "type": "number", "minimum": 0, "maximum": 1 },
+    "executiveSummary": { "type": "string" },
+    "chapters": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "chapterTitle": { "type": "string" },
+          "questions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "questionId": { "type": "string", "pattern": "^B\\d{2}-Q\\d{3}$" },
+                "questionText": { "type": "string" },
+                "answer": { "type": "string" },
+                "confidence": { "type": "number" },
+                "sourceLinks": { "type": "array", "items": { "type": "string" } }
+              },
+              "required": ["questionId", "answer", "confidence"]
+            }
+          }
+        },
+        "required": ["chapterTitle", "questions"]
+      }
+    }
+  },
+  "required": ["bookId", "title", "version", "lastSynthesis", "chapters"]
+}

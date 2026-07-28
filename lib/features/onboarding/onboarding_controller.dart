@@ -1,32 +1,34 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import 'data/onboarding_storage.dart';
+import '../../core/providers/storage_providers.dart';
 import 'domain/onboarding_profile.dart';
 
-final onboardingProfileProvider = AsyncNotifierProvider<OnboardingNotifier, OnboardingProfile?>(
-  OnboardingNotifier.new,
-);
+final onboardingProfileProvider =
+    AsyncNotifierProvider<OnboardingNotifier, UserProfile?>(
+      OnboardingNotifier.new,
+    );
 
-class OnboardingNotifier extends AsyncNotifier<OnboardingProfile?> {
-  late final OnboardingStorage _storage;
-
+class OnboardingNotifier extends AsyncNotifier<UserProfile?> {
   @override
-  Future<OnboardingProfile?> build() async {
-    _storage = OnboardingStorage();
-    return _storage.loadProfile();
+  Future<UserProfile?> build() async {
+    final repository = ref.watch(userRepositoryProvider);
+    return repository.loadProfile();
   }
 
-  Future<void> saveProfile(OnboardingProfile profile) async {
+  Future<void> saveProfile(UserProfile profile) async {
+    final repository = ref.watch(userRepositoryProvider);
+    state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
-      await _storage.saveProfile(profile);
-      return _storage.loadProfile();
+      await repository.saveProfile(profile);
+      return repository.loadProfile();
     });
   }
 
   Future<void> clearProfile() async {
+    final repository = ref.watch(userRepositoryProvider);
+    state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
-      await _storage.clearProfile();
-      return _storage.loadProfile();
+      await repository.clearProfile();
+      return repository.loadProfile();
     });
   }
 }

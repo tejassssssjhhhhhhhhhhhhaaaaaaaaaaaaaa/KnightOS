@@ -1,5 +1,5 @@
-import '../engine/feature_interfaces.dart';
-import '../engine/scoring_models.dart';
+import '../platform/engine/feature_interfaces.dart';
+import '../platform/engine/scoring_models.dart';
 
 /// Immutable context summary for an individual feature module.
 class KnightModuleContext {

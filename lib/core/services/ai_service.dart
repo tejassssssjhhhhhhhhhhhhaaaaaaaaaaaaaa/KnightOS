@@ -1,7 +1,19 @@
 import 'package:flutter/material.dart';
+import '../intelligence/engines/ai_provider.dart';
+import '../intelligence/engines/context_engine.dart';
 
+/// Facade for the intelligence layer in the presentation layer.
 class AiService {
-  const AiService();
+  AiService({required this.contextEngine, KnightAiProvider? provider})
+    : provider = provider ?? MockAiProvider();
+
+  final ContextEngine contextEngine;
+  final KnightAiProvider provider;
+
+  Future<String> getResponse(String userPrompt) async {
+    final context = await contextEngine.buildActiveContext(query: userPrompt);
+    return provider.chat(context: context, prompt: userPrompt);
+  }
 
   String buildDailyInsight({required String name, required int knightScore}) {
     if (knightScore >= 80) {

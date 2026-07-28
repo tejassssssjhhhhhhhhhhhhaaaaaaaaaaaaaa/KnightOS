@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://knight.os/schemas/master_memory/12_daily_routine.schema.json",
+  "title": "Domain 12: Daily Routine",
+  "type": "object",
+  "properties": {
+    "metadata": { "$ref": "../core/amu_metadata.schema.json" },
+    "content": {
+      "type": "object",
+      "properties": {
+        "timeBlock": { "type": "string" },
+        "startTime": { "type": "string", "pattern": "^([01]\\d|2[0-3]):([0-5]\\d)$" },
+        "endTime": { "type": "string", "pattern": "^([01]\\d|2[0-3]):([0-5]\\d)$" },
+        "activity": { "type": "string" },
+        "priority": { "type": "string", "enum": ["low", "medium", "high", "critical"] }
+      },
+      "required": ["timeBlock", "startTime", "activity"]
+    }
+  },
+  "required": ["metadata", "content"]
+}

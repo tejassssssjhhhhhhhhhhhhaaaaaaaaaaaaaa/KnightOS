@@ -18,14 +18,14 @@ class WorkProfile {
   final String notes;
 
   factory WorkProfile.empty() => const WorkProfile(
-        companyName: '',
-        jobTitle: '',
-        employmentType: '',
-        joiningDate: '',
-        workLocation: '',
-        shiftType: '',
-        notes: '',
-      );
+    companyName: '',
+    jobTitle: '',
+    employmentType: '',
+    joiningDate: '',
+    workLocation: '',
+    shiftType: '',
+    notes: '',
+  );
 
   WorkProfile copyWith({
     String? companyName,

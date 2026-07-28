@@ -8,23 +8,33 @@ import 'package:knight_os/features/onboarding/domain/onboarding_profile.dart';
 import 'package:knight_os/core/storage/local_database.dart';
 import 'package:knight_os/core/storage/storage_keys.dart';
 
-const MethodChannel _pathProviderChannel = MethodChannel('plugins.flutter.io/path_provider');
+const MethodChannel _pathProviderChannel = MethodChannel(
+  'plugins.flutter.io/path_provider',
+);
 late Directory _authTestDirectory;
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUpAll(() async {
-    _authTestDirectory = await Directory.systemTemp.createTemp('knight_os_auth_test');
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
-      _pathProviderChannel,
-      (call) async => call.method == 'getApplicationSupportDirectory' ? _authTestDirectory.path : null,
+    _authTestDirectory = await Directory.systemTemp.createTemp(
+      'knight_os_auth_test',
     );
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+          _pathProviderChannel,
+          (call) async => call.method == 'getApplicationSupportDirectory'
+              ? _authTestDirectory.path
+              : null,
+        );
   });
 
   tearDownAll(() async {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(_pathProviderChannel, null);
-    if (await _authTestDirectory.exists()) await _authTestDirectory.delete(recursive: true);
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(_pathProviderChannel, null);
+    if (await _authTestDirectory.exists()) {
+      await _authTestDirectory.delete(recursive: true);
+    }
   });
 
   setUp(() async {
@@ -38,33 +48,56 @@ void main() {
 
     await expectLater(
       repository.signIn(email: 'missing@example.com', password: 'Password123'),
-      throwsA(isA<ArgumentError>().having((error) => error.message, 'message', 'No account exists with this email.')),
+      throwsA(
+        isA<ArgumentError>().having(
+          (error) => error.message,
+          'message',
+          'No account exists with this email.',
+        ),
+      ),
     );
   });
 
   test('sign in rejects incorrect passwords with a clear message', () async {
     final repository = AuthenticationRepository();
-    await repository.signUp(email: 'user@example.com', password: 'Password123', displayName: 'Knight User');
+    await repository.signUp(
+      email: 'user@example.com',
+      password: 'Password123',
+      displayName: 'Knight User',
+    );
 
     await expectLater(
       repository.signIn(email: 'user@example.com', password: 'wrong-password'),
-      throwsA(isA<ArgumentError>().having((error) => error.message, 'message', 'Incorrect email or password.')),
+      throwsA(
+        isA<ArgumentError>().having(
+          (error) => error.message,
+          'message',
+          'Incorrect email or password.',
+        ),
+      ),
     );
   });
 
   test('sign up creates an account and a session for future sign in', () async {
     final repository = AuthenticationRepository();
 
-    final session = await repository.signUp(email: 'new@example.com', password: 'Password123', displayName: 'New User');
+    final session = await repository.signUp(
+      email: 'new@example.com',
+      password: 'Password123',
+      displayName: 'New User',
+    );
     expect(session.email, 'new@example.com');
 
-    final restored = await repository.signIn(email: 'new@example.com', password: 'Password123');
+    final restored = await repository.signIn(
+      email: 'new@example.com',
+      password: 'Password123',
+    );
     expect(restored.displayName, 'New User');
     expect(await repository.isAuthenticated(), isTrue);
   });
 
   test('new profiles default to INR currency', () {
-    const profile = OnboardingProfile(completedSteps: []);
+    final profile = UserProfile(completedSteps: const []);
 
     expect(profile.currency, 'INR');
   });

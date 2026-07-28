@@ -1,99 +1,51 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/widgets/knight_page_scaffold.dart';
 import '../../../core/router/app_routes.dart';
 import '../../voice/voice_controller.dart';
-import '../data/onboarding_storage.dart';
 import '../domain/onboarding_profile.dart';
 import '../domain/onboarding_step.dart';
+import '../onboarding_controller.dart';
 import 'widgets/onboarding_choice_chips.dart';
 import 'widgets/onboarding_input_card.dart';
 import 'widgets/onboarding_text_field.dart';
 
-class OnboardingFlowScreen extends StatefulWidget {
+class OnboardingFlowScreen extends ConsumerStatefulWidget {
   const OnboardingFlowScreen({super.key});
 
   @override
-  State<OnboardingFlowScreen> createState() => _OnboardingFlowScreenState();
+  ConsumerState<OnboardingFlowScreen> createState() =>
+      _OnboardingFlowScreenState();
 }
 
-class _OnboardingFlowScreenState extends State<OnboardingFlowScreen> {
-  final OnboardingStorage _storage = OnboardingStorage();
+class _OnboardingFlowScreenState extends ConsumerState<OnboardingFlowScreen> {
   final VoiceController _voiceController = VoiceController();
   final List<OnboardingStep> _steps = OnboardingStep.values;
   int _currentIndex = 0;
-  OnboardingProfile _profile = const OnboardingProfile(
-    completedSteps: [],
-    name: '',
-    role: '',
-    focusArea: 'Focus',
-    workStyle: 'Deep work',
-    healthGoal: 'Sleep',
-    financeGoal: 'Save more',
-    goalText: '',
-    aiTone: 'Balanced',
-    aiDepth: 'Medium',
-    fullName: '',
-    preferredName: '',
-    dateOfBirth: '',
-    gender: '',
-    height: '',
-    weight: '',
-    country: '',
-    timeZone: '',
-    occupation: '',
-    company: '',
-    workType: '',
-    shiftType: '',
-    workHours: '',
-    sleepGoal: '',
-    waterGoal: '',
-    exerciseFrequency: '',
-    fitnessLevel: '',
-    healthGoals: [],
-    currency: 'INR',
-    monthlyIncome: '',
-    monthlyBudget: '',
-    savingsGoal: '',
-    financialPriorities: [],
-    lifeGoals: '',
-    learningGoals: '',
-    focusAreas: '',
-    reminderPreference: '',
-    aiPersonality: 'Professional',
-    notificationPreference: '',
-    themePreference: '',
-    privacyPreference: '',
-  );
+
+  UserProfile _profile = UserProfile(completedSteps: const []);
 
   @override
   void initState() {
     super.initState();
-    _loadSavedProfile();
+    // Profile is loaded via the provider in the build method.
   }
 
-  Future<void> _loadSavedProfile() async {
-    try {
-      final saved = await _storage.loadProfile();
-      if (!mounted) return;
-      if (saved != null) {
-        setState(() {
-          _profile = saved;
-          final lastStep = saved.completedSteps.isEmpty
-              ? 0
-              : _steps.indexWhere((step) => step.name == saved.completedSteps.last);
-          _currentIndex = lastStep >= 0 ? lastStep : 0;
-        });
-      }
-    } catch (_) {
-      if (!mounted) return;
+  void _updateProfileState(UserProfile? saved) {
+    if (saved != null && _profile.completedSteps.isEmpty) {
+      _profile = saved;
+      final lastStep = saved.completedSteps.isEmpty
+          ? 0
+          : _steps.indexWhere((step) => step.name == saved.completedSteps.last);
+      _currentIndex = lastStep >= 0 ? lastStep : 0;
     }
   }
 
-  OnboardingProfile _copyProfile({
+  UserProfile _copyProfile({
     String? name,
     String? role,
     String? focusArea,
@@ -136,48 +88,48 @@ class _OnboardingFlowScreenState extends State<OnboardingFlowScreen> {
     String? themePreference,
     String? privacyPreference,
   }) {
-    return OnboardingProfile(
-      completedSteps: completedSteps ?? _profile.completedSteps,
-      name: name ?? _profile.name,
-      role: role ?? _profile.role,
-      focusArea: focusArea ?? _profile.focusArea,
-      workStyle: workStyle ?? _profile.workStyle,
-      healthGoal: healthGoal ?? _profile.healthGoal,
-      financeGoal: financeGoal ?? _profile.financeGoal,
-      goalText: goalText ?? _profile.goalText,
-      aiTone: aiTone ?? _profile.aiTone,
-      aiDepth: aiDepth ?? _profile.aiDepth,
-      fullName: fullName ?? _profile.fullName,
-      preferredName: preferredName ?? _profile.preferredName,
-      dateOfBirth: dateOfBirth ?? _profile.dateOfBirth,
-      gender: gender ?? _profile.gender,
-      height: height ?? _profile.height,
-      weight: weight ?? _profile.weight,
-      country: country ?? _profile.country,
-      timeZone: timeZone ?? _profile.timeZone,
-      occupation: occupation ?? _profile.occupation,
-      company: company ?? _profile.company,
-      workType: workType ?? _profile.workType,
-      shiftType: shiftType ?? _profile.shiftType,
-      workHours: workHours ?? _profile.workHours,
-      sleepGoal: sleepGoal ?? _profile.sleepGoal,
-      waterGoal: waterGoal ?? _profile.waterGoal,
-      exerciseFrequency: exerciseFrequency ?? _profile.exerciseFrequency,
-      fitnessLevel: fitnessLevel ?? _profile.fitnessLevel,
-      healthGoals: healthGoals ?? _profile.healthGoals,
-      currency: currency ?? _profile.currency,
-      monthlyIncome: monthlyIncome ?? _profile.monthlyIncome,
-      monthlyBudget: monthlyBudget ?? _profile.monthlyBudget,
-      savingsGoal: savingsGoal ?? _profile.savingsGoal,
-      financialPriorities: financialPriorities ?? _profile.financialPriorities,
-      lifeGoals: lifeGoals ?? _profile.lifeGoals,
-      learningGoals: learningGoals ?? _profile.learningGoals,
-      focusAreas: focusAreas ?? _profile.focusAreas,
-      reminderPreference: reminderPreference ?? _profile.reminderPreference,
-      aiPersonality: aiPersonality ?? _profile.aiPersonality,
-      notificationPreference: notificationPreference ?? _profile.notificationPreference,
-      themePreference: themePreference ?? _profile.themePreference,
-      privacyPreference: privacyPreference ?? _profile.privacyPreference,
+    return _profile.copyWith(
+      completedSteps: completedSteps,
+      name: name,
+      role: role,
+      focusArea: focusArea,
+      workStyle: workStyle,
+      healthGoal: healthGoal,
+      financeGoal: financeGoal,
+      goalText: goalText,
+      aiTone: aiTone,
+      aiDepth: aiDepth,
+      fullName: fullName,
+      preferredName: preferredName,
+      dateOfBirth: dateOfBirth,
+      gender: gender,
+      height: height,
+      weight: weight,
+      country: country,
+      timeZone: timeZone,
+      occupation: occupation,
+      company: company,
+      workType: workType,
+      shiftType: shiftType,
+      workHours: workHours,
+      sleepGoal: sleepGoal,
+      waterGoal: waterGoal,
+      exerciseFrequency: exerciseFrequency,
+      fitnessLevel: fitnessLevel,
+      healthGoals: healthGoals,
+      currency: currency,
+      monthlyIncome: monthlyIncome,
+      monthlyBudget: monthlyBudget,
+      savingsGoal: savingsGoal,
+      financialPriorities: financialPriorities,
+      lifeGoals: lifeGoals,
+      learningGoals: learningGoals,
+      focusAreas: focusAreas,
+      reminderPreference: reminderPreference,
+      aiPersonality: aiPersonality,
+      notificationPreference: notificationPreference,
+      themePreference: themePreference,
+      privacyPreference: privacyPreference,
     );
   }
 
@@ -317,10 +269,10 @@ class _OnboardingFlowScreenState extends State<OnboardingFlowScreen> {
         case 'Mindfulness':
         case 'Mobility':
         case 'Stress Support':
-          _profile = _copyProfile(healthGoals: nextValues);
+          _profile = _profile.copyWith(healthGoals: nextValues);
           break;
         default:
-          _profile = _copyProfile(financialPriorities: nextValues);
+          _profile = _profile.copyWith(financialPriorities: nextValues);
       }
     });
   }
@@ -373,12 +325,12 @@ class _OnboardingFlowScreenState extends State<OnboardingFlowScreen> {
     if (!completedSteps.contains(stepName)) {
       completedSteps.add(stepName);
     }
-    final updatedProfile = _copyProfile(completedSteps: completedSteps);
+    final updatedProfile = _profile.copyWith(completedSteps: completedSteps);
     if (!mounted) return;
     setState(() => _profile = updatedProfile);
-    unawaited(
-      _storage.saveProfile(updatedProfile).catchError((_) {}),
-    );
+    await ref
+        .read(onboardingProfileProvider.notifier)
+        .saveProfile(updatedProfile);
   }
 
   void _goToPage(int index) {
@@ -397,14 +349,16 @@ class _OnboardingFlowScreenState extends State<OnboardingFlowScreen> {
     } else {
       await _markCompleted();
       if (!mounted) return;
-      context.go(AppRoutes.dashboard);
+      context.go(AppRoutes.home);
     }
   }
 
   Future<void> _skipStep() async {
-    await _markCompleted();
+    final allSteps = _steps.map((s) => s.name).toList();
+    final updatedProfile = _profile.copyWith(completedSteps: allSteps);
+    await ref.read(onboardingProfileProvider.notifier).saveProfile(updatedProfile);
     if (!mounted) return;
-    context.go(AppRoutes.dashboard);
+    context.go(AppRoutes.home);
   }
 
   Future<void> _captureVoiceAnswer() async {
@@ -415,7 +369,7 @@ class _OnboardingFlowScreenState extends State<OnboardingFlowScreen> {
     }
     if (!mounted) return;
     setState(() {
-      _profile = _copyProfile(goalText: transcript);
+      _profile = _profile.copyWith(goalText: transcript);
     });
   }
 
@@ -597,7 +551,8 @@ class _OnboardingFlowScreenState extends State<OnboardingFlowScreen> {
                 OnboardingTextField(
                   label: 'Exercise frequency',
                   value: _profile.exerciseFrequency,
-                  onChanged: (value) => _updateProfile('exerciseFrequency', value),
+                  onChanged: (value) =>
+                      _updateProfile('exerciseFrequency', value),
                   hintText: 'e.g. 4x per week',
                 ),
                 const SizedBox(height: 12),
@@ -610,7 +565,14 @@ class _OnboardingFlowScreenState extends State<OnboardingFlowScreen> {
                 const SizedBox(height: 12),
                 _buildMultiSelectSection(
                   label: 'Health goals',
-                  options: const ['Sleep', 'Recovery', 'Strength', 'Mindfulness', 'Mobility', 'Stress Support'],
+                  options: const [
+                    'Sleep',
+                    'Recovery',
+                    'Strength',
+                    'Mindfulness',
+                    'Mobility',
+                    'Stress Support',
+                  ],
                   selectedValues: _profile.healthGoals,
                   onToggle: _toggleHealthGoal,
                 ),
@@ -655,7 +617,14 @@ class _OnboardingFlowScreenState extends State<OnboardingFlowScreen> {
                 const SizedBox(height: 12),
                 _buildMultiSelectSection(
                   label: 'Financial priorities',
-                  options: const ['Emergency fund', 'Debt payoff', 'Investing', 'Travel', 'Home', 'Family'],
+                  options: const [
+                    'Emergency fund',
+                    'Debt payoff',
+                    'Investing',
+                    'Travel',
+                    'Home',
+                    'Family',
+                  ],
                   selectedValues: _profile.financialPriorities,
                   onToggle: _toggleFinancialPriority,
                 ),
@@ -693,9 +662,15 @@ class _OnboardingFlowScreenState extends State<OnboardingFlowScreen> {
                 const SizedBox(height: 12),
                 OnboardingChoiceChips(
                   label: 'Reminder preference',
-                  options: const ['Daily', 'Weekly', 'Focus mode', 'Smart nudges'],
+                  options: const [
+                    'Daily',
+                    'Weekly',
+                    'Focus mode',
+                    'Smart nudges',
+                  ],
                   selection: _profile.reminderPreference,
-                  onSelected: (value) => _updateProfile('reminderPreference', value),
+                  onSelected: (value) =>
+                      _updateProfile('reminderPreference', value),
                 ),
               ],
             ),
@@ -710,7 +685,12 @@ class _OnboardingFlowScreenState extends State<OnboardingFlowScreen> {
               children: [
                 OnboardingChoiceChips(
                   label: 'AI personality',
-                  options: const ['Professional', 'Friendly', 'Motivational', 'Minimal'],
+                  options: const [
+                    'Professional',
+                    'Friendly',
+                    'Motivational',
+                    'Minimal',
+                  ],
                   selection: _profile.aiPersonality,
                   onSelected: (value) => _updateProfile('aiPersonality', value),
                 ),
@@ -719,21 +699,24 @@ class _OnboardingFlowScreenState extends State<OnboardingFlowScreen> {
                   label: 'Notification preference',
                   options: const ['Quiet', 'Balanced', 'Frequent'],
                   selection: _profile.notificationPreference,
-                  onSelected: (value) => _updateProfile('notificationPreference', value),
+                  onSelected: (value) =>
+                      _updateProfile('notificationPreference', value),
                 ),
                 const SizedBox(height: 12),
                 OnboardingChoiceChips(
                   label: 'Theme preference',
                   options: const ['Dark', 'Light', 'Adaptive'],
                   selection: _profile.themePreference,
-                  onSelected: (value) => _updateProfile('themePreference', value),
+                  onSelected: (value) =>
+                      _updateProfile('themePreference', value),
                 ),
                 const SizedBox(height: 12),
                 OnboardingChoiceChips(
                   label: 'Privacy preference',
                   options: const ['Standard', 'Private', 'Strict'],
                   selection: _profile.privacyPreference,
-                  onSelected: (value) => _updateProfile('privacyPreference', value),
+                  onSelected: (value) =>
+                      _updateProfile('privacyPreference', value),
                 ),
               ],
             ),
@@ -745,6 +728,9 @@ class _OnboardingFlowScreenState extends State<OnboardingFlowScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final profileAsync = ref.watch(onboardingProfileProvider);
+
+    _updateProfileState(profileAsync.asData?.value);
 
     return KnightPageScaffold(
       title: 'Onboarding',
@@ -756,7 +742,9 @@ class _OnboardingFlowScreenState extends State<OnboardingFlowScreen> {
               Expanded(
                 child: Text(
                   'Set up your KnightOS profile',
-                  style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
               Chip(label: Text('${_currentIndex + 1}/${_steps.length}')),
@@ -797,7 +785,9 @@ class _OnboardingFlowScreenState extends State<OnboardingFlowScreen> {
           if (!_canProceed())
             Text(
               'Complete the required fields to continue',
-              style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
           const SizedBox(height: 8),
           Row(
@@ -811,14 +801,13 @@ class _OnboardingFlowScreenState extends State<OnboardingFlowScreen> {
               else
                 const SizedBox.shrink(),
               const Spacer(),
-              OutlinedButton(
-                onPressed: _skipStep,
-                child: const Text('Skip'),
-              ),
+              OutlinedButton(onPressed: _skipStep, child: const Text('Skip')),
               const SizedBox(width: 10),
               FilledButton(
                 onPressed: _canProceed() ? _nextStep : null,
-                child: Text(_currentIndex == _steps.length - 1 ? 'Finish' : 'Next'),
+                child: Text(
+                  _currentIndex == _steps.length - 1 ? 'Finish' : 'Next',
+                ),
               ),
             ],
           ),

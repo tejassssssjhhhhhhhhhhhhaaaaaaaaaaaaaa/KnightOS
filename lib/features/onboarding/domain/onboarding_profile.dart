@@ -1,5 +1,15 @@
-class UserProfile {
-  const UserProfile({
+import '../../../core/platform/storage/knight_entity.dart';
+
+class UserProfile extends KnightEntity {
+  UserProfile({
+    super.id,
+    super.createdAt,
+    super.updatedAt,
+    super.version,
+    super.isDeleted,
+    super.deletedAt,
+    super.syncStatus,
+    super.deviceId,
     required this.completedSteps,
     this.name = '',
     this.role = '',
@@ -91,8 +101,19 @@ class UserProfile {
   final String themePreference;
   final String privacyPreference;
 
-  Map<String, Object> toJson() {
+  bool get isCompleted => completedSteps.length >= 6;
+
+  @override
+  Map<String, dynamic> toJson() {
     return {
+      'id': id,
+      'createdAt': createdAt.toIso8601String(),
+      'updatedAt': updatedAt.toIso8601String(),
+      'version': version,
+      'isDeleted': isDeleted,
+      'deletedAt': deletedAt?.toIso8601String(),
+      'syncStatus': syncStatus,
+      'deviceId': deviceId,
       'name': name,
       'role': role,
       'focusArea': focusArea,
@@ -139,6 +160,20 @@ class UserProfile {
 
   factory UserProfile.fromJson(Map<String, Object?> json) {
     return UserProfile(
+      id: json['id'] as String?,
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'] as String)
+          : null,
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'] as String)
+          : null,
+      version: json['version'] as int? ?? 1,
+      isDeleted: json['isDeleted'] as bool? ?? false,
+      deletedAt: json['deletedAt'] != null
+          ? DateTime.parse(json['deletedAt'] as String)
+          : null,
+      syncStatus: json['syncStatus'] as String? ?? 'pending',
+      deviceId: json['deviceId'] as String?,
       name: json['name'] as String? ?? '',
       role: json['role'] as String? ?? '',
       focusArea: json['focusArea'] as String? ?? 'Focus',
@@ -148,7 +183,9 @@ class UserProfile {
       goalText: json['goalText'] as String? ?? '',
       aiTone: json['aiTone'] as String? ?? 'Balanced',
       aiDepth: json['aiDepth'] as String? ?? 'Medium',
-      completedSteps: List<String>.from(json['completedSteps'] as List? ?? const []),
+      completedSteps: List<String>.from(
+        json['completedSteps'] as List? ?? const [],
+      ),
       fullName: json['fullName'] as String? ?? '',
       preferredName: json['preferredName'] as String? ?? '',
       dateOfBirth: json['dateOfBirth'] as String? ?? '',
@@ -171,7 +208,9 @@ class UserProfile {
       monthlyIncome: json['monthlyIncome'] as String? ?? '',
       monthlyBudget: json['monthlyBudget'] as String? ?? '',
       savingsGoal: json['savingsGoal'] as String? ?? '',
-      financialPriorities: List<String>.from(json['financialPriorities'] as List? ?? const []),
+      financialPriorities: List<String>.from(
+        json['financialPriorities'] as List? ?? const [],
+      ),
       lifeGoals: json['lifeGoals'] as String? ?? '',
       learningGoals: json['learningGoals'] as String? ?? '',
       focusAreas: json['focusAreas'] as String? ?? '',
@@ -180,6 +219,111 @@ class UserProfile {
       notificationPreference: json['notificationPreference'] as String? ?? '',
       themePreference: json['themePreference'] as String? ?? '',
       privacyPreference: json['privacyPreference'] as String? ?? '',
+    );
+  }
+
+  UserProfile copyWith({
+    String? id,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    int? version,
+    bool? isDeleted,
+    DateTime? deletedAt,
+    String? syncStatus,
+    String? deviceId,
+    String? name,
+    String? role,
+    String? focusArea,
+    String? workStyle,
+    String? healthGoal,
+    String? financeGoal,
+    String? goalText,
+    String? aiTone,
+    String? aiDepth,
+    List<String>? completedSteps,
+    String? fullName,
+    String? preferredName,
+    String? dateOfBirth,
+    String? gender,
+    String? height,
+    String? weight,
+    String? country,
+    String? timeZone,
+    String? occupation,
+    String? company,
+    String? workType,
+    String? shiftType,
+    String? workHours,
+    String? sleepGoal,
+    String? waterGoal,
+    String? exerciseFrequency,
+    String? fitnessLevel,
+    List<String>? healthGoals,
+    String? currency,
+    String? monthlyIncome,
+    String? monthlyBudget,
+    String? savingsGoal,
+    List<String>? financialPriorities,
+    String? lifeGoals,
+    String? learningGoals,
+    String? focusAreas,
+    String? reminderPreference,
+    String? aiPersonality,
+    String? notificationPreference,
+    String? themePreference,
+    String? privacyPreference,
+  }) {
+    return UserProfile(
+      id: id ?? this.id,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      version: version ?? this.version,
+      isDeleted: isDeleted ?? this.isDeleted,
+      deletedAt: deletedAt ?? this.deletedAt,
+      syncStatus: syncStatus ?? this.syncStatus,
+      deviceId: deviceId ?? this.deviceId,
+      name: name ?? this.name,
+      role: role ?? this.role,
+      focusArea: focusArea ?? this.focusArea,
+      workStyle: workStyle ?? this.workStyle,
+      healthGoal: healthGoal ?? this.healthGoal,
+      financeGoal: financeGoal ?? this.financeGoal,
+      goalText: goalText ?? this.goalText,
+      aiTone: aiTone ?? this.aiTone,
+      aiDepth: aiDepth ?? this.aiDepth,
+      completedSteps: completedSteps ?? this.completedSteps,
+      fullName: fullName ?? this.fullName,
+      preferredName: preferredName ?? this.preferredName,
+      dateOfBirth: dateOfBirth ?? this.dateOfBirth,
+      gender: gender ?? this.gender,
+      height: height ?? this.height,
+      weight: weight ?? this.weight,
+      country: country ?? this.country,
+      timeZone: timeZone ?? this.timeZone,
+      occupation: occupation ?? this.occupation,
+      company: company ?? this.company,
+      workType: workType ?? this.workType,
+      shiftType: shiftType ?? this.shiftType,
+      workHours: workHours ?? this.workHours,
+      sleepGoal: sleepGoal ?? this.sleepGoal,
+      waterGoal: waterGoal ?? this.waterGoal,
+      exerciseFrequency: exerciseFrequency ?? this.exerciseFrequency,
+      fitnessLevel: fitnessLevel ?? this.fitnessLevel,
+      healthGoals: healthGoals ?? this.healthGoals,
+      currency: currency ?? this.currency,
+      monthlyIncome: monthlyIncome ?? this.monthlyIncome,
+      monthlyBudget: monthlyBudget ?? this.monthlyBudget,
+      savingsGoal: savingsGoal ?? this.savingsGoal,
+      financialPriorities: financialPriorities ?? this.financialPriorities,
+      lifeGoals: lifeGoals ?? this.lifeGoals,
+      learningGoals: learningGoals ?? this.learningGoals,
+      focusAreas: focusAreas ?? this.focusAreas,
+      reminderPreference: reminderPreference ?? this.reminderPreference,
+      aiPersonality: aiPersonality ?? this.aiPersonality,
+      notificationPreference:
+          notificationPreference ?? this.notificationPreference,
+      themePreference: themePreference ?? this.themePreference,
+      privacyPreference: privacyPreference ?? this.privacyPreference,
     );
   }
 }

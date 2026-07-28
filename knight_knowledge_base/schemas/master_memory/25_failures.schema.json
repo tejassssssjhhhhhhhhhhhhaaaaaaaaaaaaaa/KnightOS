@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://knight.os/schemas/master_memory/25_failures.schema.json",
+  "title": "Domain 25: Failures",
+  "type": "object",
+  "properties": {
+    "metadata": { "$ref": "../core/amu_metadata.schema.json" },
+    "content": {
+      "type": "object",
+      "properties": {
+        "incident": { "type": "string" },
+        "rootCause": { "type": "string" },
+        "cost": { "type": "string" },
+        "date": { "type": "string", "format": "date" }
+      },
+      "required": ["incident", "date"]
+    }
+  },
+  "required": ["metadata", "content"]
+}

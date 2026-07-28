@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/voice/voice_controller.dart';
+import '../../core/intelligence/providers/intelligence_providers.dart';
 import '../widgets/knight_page_scaffold.dart';
 
 class VoiceCaptureScreen extends ConsumerStatefulWidget {
@@ -44,26 +45,35 @@ class _VoiceCaptureScreenState extends ConsumerState<VoiceCaptureScreen> {
           children: [
             Text(
               'Capture your thoughts naturally',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 8),
             Text(
               'Speak naturally and save a voice memory. Future AI extraction will turn this into structured context.',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 24),
             FilledButton.icon(
               onPressed: () async {
                 await controller.captureSpeech(prompt: '');
                 if (!context.mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Voice memory captured.')));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Voice memory captured.')),
+                );
               },
               icon: const Icon(Icons.mic_rounded),
               label: const Text('Capture voice'),
             ),
             const SizedBox(height: 24),
             if (session != null) ...[
-              Text('Transcript', style: Theme.of(context).textTheme.titleMedium),
+              Text(
+                'Transcript',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
               const SizedBox(height: 8),
               TextField(
                 controller: _controller,
@@ -76,18 +86,29 @@ class _VoiceCaptureScreenState extends ConsumerState<VoiceCaptureScreen> {
               const SizedBox(height: 12),
               FilledButton.icon(
                 onPressed: () async {
-                  await controller.updateTranscript(_controller.text);
+                  final text = _controller.text;
+                  await controller.updateTranscript(text);
                   if (!context.mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Transcript saved.')));
+                  
+                  // Trigger Cognition for "Voice Assistant" effect
+                  ref.read(knightCognitionProvider).processRequest(text);
+                  
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Cognition engine processing voice input...')),
+                  );
+                  Navigator.of(context).pop();
                 },
-                icon: const Icon(Icons.save_rounded),
-                label: const Text('Save transcript'),
+                icon: const Icon(Icons.psychology_rounded),
+                label: const Text('Process with Knight'),
               ),
             ] else
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
-                  child: Text('No transcript yet. Press the microphone to begin.', style: Theme.of(context).textTheme.bodyMedium),
+                  child: Text(
+                    'No transcript yet. Press the microphone to begin.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
                 ),
               ),
           ],

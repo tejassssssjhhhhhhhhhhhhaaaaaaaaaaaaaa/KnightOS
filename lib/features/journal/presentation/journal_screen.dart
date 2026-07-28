@@ -17,11 +17,21 @@ class JournalScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Emotional journal', style: Theme.of(context).textTheme.titleMedium),
+                  Text(
+                    'Emotional journal',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                   const SizedBox(height: 8),
-                  Text('Type, speak, or attach a reflection. Mood is optional and is only captured if you choose to share it.', style: Theme.of(context).textTheme.bodyMedium),
+                  Text(
+                    'Type, speak, or attach a reflection. Mood is optional and is only captured if you choose to share it.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
                   const SizedBox(height: 12),
-                  FilledButton.icon(onPressed: () {}, icon: const Icon(Icons.edit_rounded), label: const Text('Start writing')),
+                  FilledButton.icon(
+                    onPressed: () {},
+                    icon: const Icon(Icons.edit_rounded),
+                    label: const Text('Start writing'),
+                  ),
                 ],
               ),
             ),

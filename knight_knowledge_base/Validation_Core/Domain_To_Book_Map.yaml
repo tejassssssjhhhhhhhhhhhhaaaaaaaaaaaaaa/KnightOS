@@ -1,0 +1,200 @@
+# Domain to Book Mapping Matrix (Canonical Routing Table)
+# Version: 1.0.0
+# Description: This file defines the formal routing of Master Memory Domains to Knowledge Books.
+# Every Atomic Memory Unit (AMU) from the 30 Domains must have a Primary Owner Book.
+
+# Mapping Logic:
+# - primary_owner: The book where the synthesized answer for this domain resides.
+# - secondary_references: Books that consume this data to provide context or cross-links.
+# - cascade_propagation: Defines if updates in this domain trigger re-synthesis of specific books.
+
+mappings:
+  - domain: "1. Identity"
+    primary_owner: "Book I: Identity"
+    secondary_references: ["Book II", "Book V", "Book VI", "Book X"]
+    cascade_propagation: ["ALL"] # Identity changes affect every other book.
+    reasoning: "Core legal and biological identity is the foundation for all personal context."
+
+  - domain: "2. Biography"
+    primary_owner: "Book VIII: History & Archives"
+    secondary_references: ["Book I", "Book II"]
+    cascade_propagation: ["Book I", "Book VIII"]
+    reasoning: "Life events are stored chronologically in History but define current Identity."
+
+  - domain: "3. Family"
+    primary_owner: "Book V: Social & Relationships"
+    secondary_references: ["Book III", "Book VIII"]
+    cascade_propagation: ["Book V", "Book III"] # Genetic risks from family affect Health.
+    reasoning: "Family members are a subset of the Social graph but carry unique Health weights."
+
+  - domain: "4. Relationships"
+    primary_owner: "Book V: Social & Relationships"
+    secondary_references: ["Book II", "Book VIII"]
+    cascade_propagation: ["Book V"]
+    reasoning: "Social capital and network dynamics are central to Relationships."
+
+  - domain: "5. Education"
+    primary_owner: "Book VII: Skills & Expertise"
+    secondary_references: ["Book II", "Book VIII"]
+    cascade_propagation: ["Book VII", "Book II"]
+    reasoning: "Formal learning outcomes translate directly to Skills and Career credentials."
+
+  - domain: "6. Career"
+    primary_owner: "Book II: Career & Mission"
+    secondary_references: ["Book IV", "Book VII", "Book X"]
+    cascade_propagation: ["Book II", "Book IV"]
+    reasoning: "Professional trajectory drives Finance and fulfills Mission/Ambition."
+
+  - domain: "7. Skills"
+    primary_owner: "Book VII: Skills & Expertise"
+    secondary_references: ["Book II", "Book IX"]
+    cascade_propagation: ["Book VII", "Book II"]
+    reasoning: "The technical toolbelt enables Career progress and dictates Preferences in tools."
+
+  - domain: "8. Health"
+    primary_owner: "Book III: Health & Vitality"
+    secondary_references: ["Book IX", "Book X"]
+    cascade_propagation: ["Book III", "Book X"]
+    reasoning: "Bio-metrics and medical state are the physical constraints on Ambition."
+
+  - domain: "9. Mental Models"
+    primary_owner: "Book VI: Philosophy & Ethics"
+    secondary_references: ["Book VII", "Book XI"]
+    cascade_propagation: ["Book VI", "Book VII"]
+    reasoning: "Thinking tools are a bridge between Philosophy and applied Skills."
+
+  - domain: "10. Personality"
+    primary_owner: "Book I: Identity"
+    secondary_references: ["Book V", "Book IX"]
+    cascade_propagation: ["Book I", "Book V", "Book IX"]
+    reasoning: "Temperament and traits are core Identity parameters."
+
+  - domain: "11. Habits"
+    primary_owner: "Book IX: Preferences & Tastes" # Habits manifest as routine preferences.
+    secondary_references: ["Book III", "Book IV"]
+    cascade_propagation: ["Book III", "Book IX"]
+    reasoning: "Habits are automated behaviors that directly impact Health and Lifestyle."
+
+  - domain: "12. Daily Routine"
+    primary_owner: "Book IX: Preferences & Tastes"
+    secondary_references: ["Book III", "Book VII"]
+    cascade_propagation: ["Book IX"]
+    reasoning: "The structure of the day is an environmental and lifestyle preference."
+
+  - domain: "13. Finance"
+    primary_owner: "Book IV: Finance & Resources"
+    secondary_references: ["Book II", "Book X"]
+    cascade_propagation: ["Book IV", "Book X"]
+    reasoning: "Cash flow and net worth are the fuel for all life ambitions."
+
+  - domain: "14. Assets"
+    primary_owner: "Book IV: Finance & Resources"
+    secondary_references: ["Book IX", "Book XV"]
+    cascade_propagation: ["Book IV"]
+    reasoning: "Stored value in physical or digital forms is a financial resource."
+
+  - domain: "15. Devices"
+    primary_owner: "Book VII: Skills & Expertise" # Devices are tools of the trade.
+    secondary_references: ["Book IV", "Book IX"]
+    cascade_propagation: ["Book VII", "Book IX"]
+    reasoning: "Hardware mapping belongs with the technical toolbelt and Preferences."
+
+  - domain: "16. Preferences"
+    primary_owner: "Book IX: Preferences & Tastes"
+    secondary_references: ["Book I", "Book VIII"]
+    cascade_propagation: ["Book IX"]
+    reasoning: "Settings for life comfort and environmental style."
+
+  - domain: "17. Entertainment"
+    primary_owner: "Book IX: Preferences & Tastes"
+    secondary_references: ["Book VI", "Book VIII"]
+    cascade_propagation: ["Book IX"]
+    reasoning: "Media consumption reflects aesthetic Tastes and Philosophy."
+
+  - domain: "18. Travel"
+    primary_owner: "Book VIII: History & Archives"
+    secondary_references: ["Book IV", "Book IX"]
+    cascade_propagation: ["Book VIII"]
+    reasoning: "Trips and movements are primarily historical records of growth."
+
+  - domain: "19. Projects"
+    primary_owner: "Book II: Career & Mission"
+    secondary_references: ["Book VII", "Book X"]
+    cascade_propagation: ["Book II", "Book VII"]
+    reasoning: "Units of focused work that build Skills and advance Career."
+
+  - domain: "20. Goals"
+    primary_owner: "Book X: Ambitions & Future"
+    secondary_references: ["Book II", "Book IV"]
+    cascade_propagation: ["Book X", "Book II", "Book IV"]
+    reasoning: "The targets for the desired future state."
+
+  - domain: "21. Values"
+    primary_owner: "Book I: Identity"
+    secondary_references: ["Book VI", "Book X"]
+    cascade_propagation: ["ALL"]
+    reasoning: "Foundational moral pillars that guide every decision."
+
+  - domain: "22. Beliefs"
+    primary_owner: "Book VI: Philosophy & Ethics"
+    secondary_references: ["Book I", "Book XI"]
+    cascade_propagation: ["Book VI", "Book XI"]
+    reasoning: "Subjective truths that filter reality and contribute to the Worldview."
+
+  - domain: "23. Decision History"
+    primary_owner: "Book VI: Philosophy & Ethics"
+    secondary_references: ["Book II", "Book IV", "Book VIII"]
+    cascade_propagation: ["Book VI", "Book VIII"]
+    reasoning: "The logic used in choices is a reflection of Ethics and Mental Models."
+
+  - domain: "24. Achievements"
+    primary_owner: "Book VIII: History & Archives"
+    secondary_references: ["Book II", "Book X"]
+    cascade_propagation: ["Book VIII", "Book II"]
+    reasoning: "Milestones of success are preserved as historical highlights."
+
+  - domain: "25. Failures"
+    primary_owner: "Book VIII: History & Archives"
+    secondary_references: ["Book VI", "Book XI"]
+    cascade_propagation: ["Book VIII", "Book VI"]
+    reasoning: "Adverse events are stored chronologically to extract Lessons."
+
+  - domain: "26. Lessons Learned"
+    primary_owner: "Book VI: Philosophy & Ethics"
+    secondary_references: ["Book VII", "Book VIII"]
+    cascade_propagation: ["Book VI", "Book VII"]
+    reasoning: "Wisdom extracted from history becomes part of the Compass."
+
+  - domain: "27. Memories"
+    primary_owner: "Book VIII: History & Archives"
+    secondary_references: ["Book I", "Book IX"]
+    cascade_propagation: ["Book VIII"]
+    reasoning: "High-impact episodic memories that define the personal narrative."
+
+  - domain: "28. Documents"
+    primary_owner: "Evidence Engine" # Meta-domain
+    secondary_references: ["ALL"]
+    cascade_propagation: ["NONE"] # Documents are evidence, not facts themselves.
+    reasoning: "Indices of files that serve as proof for AMUs across all books."
+
+  - domain: "29. Knowledge"
+    primary_owner: "Book VII: Skills & Expertise"
+    secondary_references: ["Book VI", "Book XI"]
+    cascade_propagation: ["Book VII"]
+    reasoning: "The intellectual database that feeds Proficiency and Mastery."
+
+  - domain: "30. Unknowns"
+    primary_owner: "Book XI: The Unknown & Mystery"
+    secondary_references: ["ALL"]
+    cascade_propagation: ["Book XI"]
+    reasoning: "Tracking gaps in the Knowledge Base across all domains."
+
+# Validation Rules:
+# 1. No AMU can exist without a Domain ID.
+# 2. Every Domain ID must map to a primary_owner in this file.
+# 3. If primary_owner is updated, trigger_regeneration(primary_owner).
+# 4. If cascade_propagation contains "ALL", trigger_integrity_check(Global).
+
+# Cross-Reference Rules:
+# - AMUs in Domain 8 (Health) must check Domain 11 (Habits) for causal links.
+# - AMUs in Domain 13 (Finance) must check Domain 20 (Goals) for alignment.

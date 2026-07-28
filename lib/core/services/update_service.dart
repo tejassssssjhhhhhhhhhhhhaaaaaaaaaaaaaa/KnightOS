@@ -1,7 +1,9 @@
 abstract class UpdateService {
   Future<UpdateCheckResult> checkForUpdates();
 
-  Future<UpdateDownloadResult> downloadUpdate({void Function(int received, int total)? onProgress});
+  Future<UpdateDownloadResult> downloadUpdate({
+    void Function(int received, int total)? onProgress,
+  });
 }
 
 class UpdateRuntimeConfig {

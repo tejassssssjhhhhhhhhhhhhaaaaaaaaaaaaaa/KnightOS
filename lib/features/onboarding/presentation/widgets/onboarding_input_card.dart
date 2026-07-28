@@ -32,7 +32,9 @@ class OnboardingInputCard extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                     if (description != null) ...[
                       const SizedBox(height: 8),

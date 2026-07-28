@@ -1,24 +1,28 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/providers/storage_providers.dart';
 
 import 'data/work_module_state.dart';
 import 'data/work_storage.dart';
 import 'domain/work_profile.dart';
 import 'domain/work_session.dart';
 
-final workSessionsProvider = AsyncNotifierProvider<WorkSessionsNotifier, List<WorkSession>>(
-  WorkSessionsNotifier.new,
-);
+final workSessionsProvider =
+    AsyncNotifierProvider<WorkSessionsNotifier, List<WorkSession>>(
+      WorkSessionsNotifier.new,
+    );
 
-final workModuleStateProvider = AsyncNotifierProvider<WorkModuleStateNotifier, WorkModuleState>(
-  WorkModuleStateNotifier.new,
-);
+final workModuleStateProvider =
+    AsyncNotifierProvider<WorkModuleStateNotifier, WorkModuleState>(
+      WorkModuleStateNotifier.new,
+    );
 
 class WorkSessionsNotifier extends AsyncNotifier<List<WorkSession>> {
   late final WorkStorage _storage;
 
   @override
   Future<List<WorkSession>> build() async {
-    _storage = WorkStorage();
+    final engine = ref.watch(storageEngineProvider);
+    _storage = WorkStorage(engine: engine);
     final moduleState = await _storage.loadWorkModuleState();
     return moduleState.sessions;
   }
@@ -45,7 +49,8 @@ class WorkModuleStateNotifier extends AsyncNotifier<WorkModuleState> {
 
   @override
   Future<WorkModuleState> build() async {
-    _storage = WorkStorage();
+    final engine = ref.watch(storageEngineProvider);
+    _storage = WorkStorage(engine: engine);
     return _storage.loadWorkModuleState();
   }
 

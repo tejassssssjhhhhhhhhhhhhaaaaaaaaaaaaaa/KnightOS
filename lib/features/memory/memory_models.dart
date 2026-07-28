@@ -53,11 +53,15 @@ class MemoryItem {
       userId: json['userId'] as String? ?? 'local-user',
       title: json['title'] as String? ?? 'Memory',
       body: json['body'] as String? ?? '',
-      createdAt: DateTime.tryParse(json['createdAt'] as String? ?? '') ?? DateTime.now(),
+      createdAt:
+          DateTime.tryParse(json['createdAt'] as String? ?? '') ??
+          DateTime.now(),
       source: json['source'] as String? ?? 'chat',
       category: json['category'] as String? ?? 'general',
       permission: json['permission'] as String? ?? 'conversation_only',
-      tags: (json['tags'] as List?)?.whereType<String>().toList() ?? const <String>[],
+      tags:
+          (json['tags'] as List?)?.whereType<String>().toList() ??
+          const <String>[],
       confidence: (json['confidence'] as num?)?.toDouble() ?? 0.6,
       importance: (json['importance'] as num?)?.toDouble() ?? 0.5,
       editable: json['editable'] as bool? ?? true,

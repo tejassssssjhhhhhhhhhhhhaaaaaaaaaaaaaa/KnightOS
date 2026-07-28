@@ -67,10 +67,10 @@ class TravelPlace {
       type: typeValue == 'state'
           ? TravelPlaceType.state
           : typeValue == 'city'
-              ? TravelPlaceType.city
-              : typeValue == 'touristPlace'
-                  ? TravelPlaceType.touristPlace
-                  : TravelPlaceType.country,
+          ? TravelPlaceType.city
+          : typeValue == 'touristPlace'
+          ? TravelPlaceType.touristPlace
+          : TravelPlaceType.country,
       country: json['country'] as String? ?? '',
       state: json['state'] as String? ?? '',
       city: json['city'] as String? ?? '',
@@ -78,8 +78,8 @@ class TravelPlace {
       status: statusValue == 'wishlist'
           ? TravelPlaceStatus.wishlist
           : statusValue == 'planned'
-              ? TravelPlaceStatus.planned
-              : TravelPlaceStatus.visited,
+          ? TravelPlaceStatus.planned
+          : TravelPlaceStatus.visited,
       visitDate: json['visitDate'] as String?,
       notes: json['notes'] as String? ?? '',
       rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
@@ -105,12 +105,7 @@ class TravelPlace {
   }
 }
 
-enum TravelPlaceType {
-  country,
-  state,
-  city,
-  touristPlace,
-}
+enum TravelPlaceType { country, state, city, touristPlace }
 
 extension TravelPlaceTypeLabel on TravelPlaceType {
   String get label {
@@ -127,11 +122,7 @@ extension TravelPlaceTypeLabel on TravelPlaceType {
   }
 }
 
-enum TravelPlaceStatus {
-  visited,
-  wishlist,
-  planned,
-}
+enum TravelPlaceStatus { visited, wishlist, planned }
 
 extension TravelPlaceStatusLabel on TravelPlaceStatus {
   String get label {

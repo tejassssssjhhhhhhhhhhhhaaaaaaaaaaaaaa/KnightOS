@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../core/design_system/design_constants.dart';
 import '../core/router/app_routes.dart';
+import 'widgets/knight_orb.dart';
 
 class KnightShell extends StatelessWidget {
   const KnightShell({required this.child, super.key});
@@ -10,94 +12,113 @@ class KnightShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final selectedIndex = _selectedIndex(context);
-    final destinations = <NavigationDestination>[
-      const NavigationDestination(icon: Icon(Icons.dashboard_outlined), selectedIcon: Icon(Icons.dashboard_rounded), label: 'Dashboard'),
-      const NavigationDestination(icon: Icon(Icons.auto_awesome_outlined), selectedIcon: Icon(Icons.auto_awesome_rounded), label: 'Knight'),
-      const NavigationDestination(icon: Icon(Icons.school_outlined), selectedIcon: Icon(Icons.school_rounded), label: 'Learning'),
-      const NavigationDestination(icon: Icon(Icons.memory_outlined), selectedIcon: Icon(Icons.memory_rounded), label: 'Memory'),
-      const NavigationDestination(icon: Icon(Icons.book_outlined), selectedIcon: Icon(Icons.book_rounded), label: 'Journal'),
-      const NavigationDestination(icon: Icon(Icons.account_balance_wallet_outlined), selectedIcon: Icon(Icons.account_balance_wallet_rounded), label: 'Finance'),
-      const NavigationDestination(icon: Icon(Icons.settings_outlined), selectedIcon: Icon(Icons.settings_rounded), label: 'Settings'),
-    ];
+    final location = GoRouterState.of(context).matchedLocation;
 
     return Scaffold(
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            if (constraints.maxWidth < 840) {
-              return Column(
-                children: [
-                  Expanded(child: child),
-                  NavigationBar(
-                    selectedIndex: selectedIndex,
-                    onDestinationSelected: (index) => _handleTap(context, index),
-                    destinations: destinations,
-                  ),
-                ],
-              );
-            }
+      body: Stack(
+        children: [
+          // 1. Screen Content
+          Positioned.fill(child: child),
 
-            return Row(
-              children: [
-                NavigationRail(
-                  selectedIndex: selectedIndex,
-                  onDestinationSelected: (index) => _handleTap(context, index),
-                  labelType: NavigationRailLabelType.all,
-                  destinations: const [
-                    NavigationRailDestination(icon: Icon(Icons.dashboard_outlined), selectedIcon: Icon(Icons.dashboard_rounded), label: Text('Dashboard')),
-                    NavigationRailDestination(icon: Icon(Icons.auto_awesome_outlined), selectedIcon: Icon(Icons.auto_awesome_rounded), label: Text('Knight')),
-                    NavigationRailDestination(icon: Icon(Icons.school_outlined), selectedIcon: Icon(Icons.school_rounded), label: Text('Learning')),
-                    NavigationRailDestination(icon: Icon(Icons.memory_outlined), selectedIcon: Icon(Icons.memory_rounded), label: Text('Memory')),
-                    NavigationRailDestination(icon: Icon(Icons.book_outlined), selectedIcon: Icon(Icons.book_rounded), label: Text('Journal')),
-                    NavigationRailDestination(icon: Icon(Icons.account_balance_wallet_outlined), selectedIcon: Icon(Icons.account_balance_wallet_rounded), label: Text('Finance')),
-                    NavigationRailDestination(icon: Icon(Icons.settings_outlined), selectedIcon: Icon(Icons.settings_rounded), label: Text('Settings')),
-                  ],
-                ),
-                Expanded(child: child),
-              ],
-            );
-          },
-        ),
+          // 2. Global Knight AI FAB (Center Bottom)
+          const Positioned(
+            left: 0,
+            right: 0,
+            bottom: DesignSpacing.l,
+            child: Center(
+              child: KnightOrb(),
+            ),
+          ),
+
+          // 3. Consolidated Bottom Navigation (Home, Personal Hub, Settings)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: _buildNavigation(context, location),
+          ),
+        ],
       ),
     );
   }
 
-  int _selectedIndex(BuildContext context) {
-    final location = GoRouterState.of(context).matchedLocation;
-    if (location.startsWith(AppRoutes.knight)) return 1;
-    if (location.startsWith(AppRoutes.learning)) return 2;
-    if (location.startsWith(AppRoutes.memory)) return 3;
-    if (location.startsWith(AppRoutes.journal)) return 4;
-    if (location.startsWith(AppRoutes.finance)) return 5;
-    if (location.startsWith(AppRoutes.settings)) return 6;
-    return 0;
+  Widget _buildNavigation(BuildContext context, String location) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(DesignSpacing.xl, 0, DesignSpacing.xl, DesignSpacing.l),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        decoration: BoxDecoration(
+          color: DesignColors.surface.withValues(alpha: 0.9),
+          borderRadius: DesignRadius.pill,
+          border: Border.all(color: DesignColors.white05),
+          boxShadow: DesignShadows.subtle,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _NavItem(
+              icon: Icons.home_rounded,
+              label: 'Home',
+              isActive: location == AppRoutes.home || location == AppRoutes.dashboard,
+              onTap: () => context.go(AppRoutes.home),
+            ),
+            const SizedBox(width: 60), // Space for Central AI FAB
+            _NavItem(
+              icon: Icons.grid_view_rounded,
+              label: 'My Place',
+              isActive: location.startsWith(AppRoutes.myPlace),
+              onTap: () => context.go(AppRoutes.myPlace),
+            ),
+            _NavItem(
+              icon: Icons.settings_rounded,
+              label: 'Settings',
+              isActive: location.startsWith(AppRoutes.settings),
+              onTap: () => context.go(AppRoutes.settings),
+            ),
+          ],
+        ),
+      ),
+    );
   }
+}
 
-  void _handleTap(BuildContext context, int index) {
-    switch (index) {
-      case 1:
-        context.go(AppRoutes.knight);
-        break;
-      case 2:
-        context.go(AppRoutes.learning);
-        break;
-      case 3:
-        context.go(AppRoutes.memory);
-        break;
-      case 4:
-        context.go(AppRoutes.journal);
-        break;
-      case 5:
-        context.go(AppRoutes.finance);
-        break;
-      case 6:
-        context.go(AppRoutes.settings);
-        break;
-      case 0:
-      default:
-        context.go(AppRoutes.dashboard);
-        break;
-    }
+class _NavItem extends StatelessWidget {
+  const _NavItem({
+    required this.icon,
+    required this.label,
+    required this.isActive,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 24,
+            color: isActive ? DesignColors.accentBlue : Colors.white24,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: isActive ? Colors.white : Colors.white24,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

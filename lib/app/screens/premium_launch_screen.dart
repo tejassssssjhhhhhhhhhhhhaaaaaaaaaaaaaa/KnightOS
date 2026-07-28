@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/repositories/authentication_repository.dart';
 import '../../core/router/app_routes.dart';
+import '../../core/services/launch_experience_service.dart';
 
 class PremiumLaunchScreen extends StatefulWidget {
   const PremiumLaunchScreen({super.key});
@@ -22,9 +23,14 @@ class _PremiumLaunchScreenState extends State<PremiumLaunchScreen>
   late final Animation<double> _logoOpacityAnimation;
   late final Animation<double> _greetingOpacityAnimation;
   late final Animation<double> _greetingSlideAnimation;
+  late final Animation<double> _logoSweepAnimation;
 
   bool _showGreeting = false;
   bool _buttonEnabled = false;
+  bool _useShortExperience = false;
+
+  final LaunchExperienceService _launchExperienceService =
+      LaunchExperienceService();
   String _displayName = 'Knight User';
   String _greeting = 'Welcome back,';
   LaunchInsight _insight = LaunchInsight('Ready for tonight\'s shift?', '');
@@ -43,10 +49,7 @@ class _PremiumLaunchScreenState extends State<PremiumLaunchScreen>
     );
 
     _logoScaleAnimation = Tween<double>(begin: 0.86, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _bootController,
-        curve: Curves.easeOutBack,
-      ),
+      CurvedAnimation(parent: _bootController, curve: Curves.easeOutBack),
     );
     _logoOpacityAnimation = CurvedAnimation(
       parent: _bootController,
@@ -62,6 +65,12 @@ class _PremiumLaunchScreenState extends State<PremiumLaunchScreen>
         curve: const Interval(0.45, 1.0, curve: Curves.easeOut),
       ),
     );
+    _logoSweepAnimation = Tween<double>(begin: -0.9, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _backgroundController,
+        curve: Curves.easeInOutSine,
+      ),
+    );
 
     _initializeLaunchSequence();
   }
@@ -74,16 +83,42 @@ class _PremiumLaunchScreenState extends State<PremiumLaunchScreen>
   }
 
   Future<void> _initializeLaunchSequence() async {
-    _bootController.forward();
+    final shouldPlayFullExperience = await _launchExperienceService
+        .shouldPlayFullExperience();
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _useShortExperience = !shouldPlayFullExperience;
+    });
+
+    if (shouldPlayFullExperience) {
+      await _launchExperienceService.markLaunchSeen();
+      _bootController.forward();
+    } else {
+      _bootController.value = 1.0;
+    }
+
     final session = await AuthenticationRepository().getCurrentSession();
     if (!mounted) {
       return;
     }
 
     final displayName = session?.displayName.trim();
-    _displayName = displayName?.isNotEmpty == true ? displayName! : 'Knight User';
+    _displayName = displayName?.isNotEmpty == true
+        ? displayName!
+        : 'Knight User';
     _greeting = _buildGreeting();
     _insight = _selectInsight();
+
+    if (_useShortExperience) {
+      setState(() {
+        _showGreeting = true;
+        _buttonEnabled = true;
+      });
+      return;
+    }
 
     await Future<void>.delayed(const Duration(milliseconds: 1800));
     if (!mounted) {
@@ -138,12 +173,16 @@ class _PremiumLaunchScreenState extends State<PremiumLaunchScreen>
     return Color.lerp(a, b, progress) ?? a;
   }
 
-  void _goToDashboard() {
+  Future<void> _goToNextScreen() async {
     if (!_buttonEnabled) {
       return;
     }
     HapticFeedback.lightImpact();
-    context.go(AppRoutes.dashboard);
+    final isAuthenticated = await AuthenticationRepository().isAuthenticated();
+    if (!mounted) {
+      return;
+    }
+    context.go(isAuthenticated ? AppRoutes.dashboard : AppRoutes.auth);
   }
 
   @override
@@ -214,9 +253,12 @@ class _PremiumLaunchScreenState extends State<PremiumLaunchScreen>
                             width: 128,
                             height: 128,
                             decoration: BoxDecoration(
-                              color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 56),
+                              color: theme.colorScheme.surfaceContainerHighest
+                                  .withValues(alpha: 56),
                               border: Border.all(
-                                color: theme.colorScheme.primary.withValues(alpha: 46),
+                                color: theme.colorScheme.primary.withValues(
+                                  alpha: 46,
+                                ),
                                 width: 1.4,
                               ),
                               boxShadow: const [
@@ -227,12 +269,50 @@ class _PremiumLaunchScreenState extends State<PremiumLaunchScreen>
                                 ),
                               ],
                             ),
-                            child: Center(
-                              child: Icon(
-                                Icons.auto_awesome_rounded,
-                                size: 60,
-                                color: theme.colorScheme.primary,
-                              ),
+                            child: Stack(
+                              children: [
+                                Center(
+                                  child: Icon(
+                                    Icons.auto_awesome_rounded,
+                                    size: 60,
+                                    color: theme.colorScheme.primary,
+                                  ),
+                                ),
+                                AnimatedBuilder(
+                                  animation: _backgroundController,
+                                  builder: (context, _) {
+                                    return Positioned.fill(
+                                      child: Transform.translate(
+                                        offset: Offset(
+                                          _logoSweepAnimation.value * 140,
+                                          0,
+                                        ),
+                                        child: Container(
+                                          width: 80,
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              begin: Alignment.centerLeft,
+                                              end: Alignment.centerRight,
+                                              colors: [
+                                                Colors.white.withValues(
+                                                  alpha: 0,
+                                                ),
+                                                Colors.white.withValues(
+                                                  alpha: 0.18,
+                                                ),
+                                                Colors.white.withValues(
+                                                  alpha: 0,
+                                                ),
+                                              ],
+                                              stops: const [0.0, 0.5, 1.0],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
                             ),
                           ),
                         ),
@@ -270,29 +350,37 @@ class _PremiumLaunchScreenState extends State<PremiumLaunchScreen>
                               key: const ValueKey('greeting'),
                               opacity: _greetingOpacityAnimation.value,
                               child: Transform.translate(
-                                offset: Offset(0, _greetingSlideAnimation.value),
+                                offset: Offset(
+                                  0,
+                                  _greetingSlideAnimation.value,
+                                ),
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Text(
                                       _greeting,
-                                      style: theme.textTheme.headlineSmall?.copyWith(
-                                        fontWeight: FontWeight.w700,
-                                      ),
+                                      style: theme.textTheme.headlineSmall
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w700,
+                                          ),
                                     ),
                                     const SizedBox(height: 8),
                                     Text(
                                       'Welcome back,',
-                                      style: theme.textTheme.titleMedium?.copyWith(
-                                        color: theme.colorScheme.onSurfaceVariant,
-                                      ),
+                                      style: theme.textTheme.titleMedium
+                                          ?.copyWith(
+                                            color: theme
+                                                .colorScheme
+                                                .onSurfaceVariant,
+                                          ),
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
                                       _displayName,
-                                      style: theme.textTheme.headlineSmall?.copyWith(
-                                        fontWeight: FontWeight.w700,
-                                      ),
+                                      style: theme.textTheme.headlineSmall
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w700,
+                                          ),
                                     ),
                                     const SizedBox(height: 18),
                                     Container(
@@ -301,16 +389,21 @@ class _PremiumLaunchScreenState extends State<PremiumLaunchScreen>
                                         vertical: 14,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 46),
+                                        color: theme
+                                            .colorScheme
+                                            .surfaceContainerHighest
+                                            .withValues(alpha: 46),
                                         borderRadius: BorderRadius.circular(20),
                                       ),
                                       child: Text(
                                         _insight.title,
                                         textAlign: TextAlign.center,
-                                        style: theme.textTheme.bodyLarge?.copyWith(
-                                          color: theme.colorScheme.onSurface,
-                                          fontWeight: FontWeight.w600,
-                                        ),
+                                        style: theme.textTheme.bodyLarge
+                                            ?.copyWith(
+                                              color:
+                                                  theme.colorScheme.onSurface,
+                                              fontWeight: FontWeight.w600,
+                                            ),
                                       ),
                                     ),
                                     const SizedBox(height: 32),
@@ -319,16 +412,23 @@ class _PremiumLaunchScreenState extends State<PremiumLaunchScreen>
                                       child: FilledButton(
                                         style: FilledButton.styleFrom(
                                           shape: const StadiumBorder(),
-                                          padding: const EdgeInsets.symmetric(vertical: 16),
-                                          backgroundColor: theme.colorScheme.primary,
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 16,
+                                          ),
+                                          backgroundColor:
+                                              theme.colorScheme.primary,
                                         ),
-                                        onPressed: _buttonEnabled ? _goToDashboard : null,
+                                        onPressed: _buttonEnabled
+                                            ? _goToNextScreen
+                                            : null,
                                         child: Text(
                                           '⚔ Get Started',
-                                          style: theme.textTheme.labelLarge?.copyWith(
-                                            color: theme.colorScheme.onPrimary,
-                                            fontWeight: FontWeight.w700,
-                                          ),
+                                          style: theme.textTheme.labelLarge
+                                              ?.copyWith(
+                                                color:
+                                                    theme.colorScheme.onPrimary,
+                                                fontWeight: FontWeight.w700,
+                                              ),
                                         ),
                                       ),
                                     ),

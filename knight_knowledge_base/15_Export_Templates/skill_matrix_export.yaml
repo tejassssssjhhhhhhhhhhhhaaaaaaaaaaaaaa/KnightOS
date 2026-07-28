@@ -1,0 +1,10 @@
+owner: "{{owner_name}}"
+date_generated: "{{current_date}}"
+skills:
+  - name: "{{skill_name}}"
+    level: "{{skill_level}}"
+    projects:
+      - "{{project_name}}"
+    certifications:
+      - "{{cert_name}}"
+    last_used: "{{last_used_date}}"

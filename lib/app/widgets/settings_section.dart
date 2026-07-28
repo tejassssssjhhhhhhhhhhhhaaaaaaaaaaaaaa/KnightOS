@@ -14,14 +14,23 @@ class SettingsSection extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.25),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(
+          alpha: 0.25,
+        ),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.35)),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.35),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+          Text(
+            title,
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
           const SizedBox(height: 16),
           child,
         ],

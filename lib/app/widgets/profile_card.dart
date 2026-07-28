@@ -27,11 +27,26 @@ class ProfileCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Profile', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+          Text(
+            'Profile',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
           const SizedBox(height: 8),
-          Text(name, style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700)),
+          Text(
+            name,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
           const SizedBox(height: 6),
-          Text(subtitle, style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+          Text(
+            subtitle,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
         ],
       ),
     );

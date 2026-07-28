@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://knight.os/schemas/core/confidence_object.schema.json",
+  "title": "Confidence Object",
+  "description": "Detailed breakdown of a confidence score calculation.",
+  "type": "object",
+  "properties": {
+    "score": { "type": "number", "minimum": 0, "maximum": 1 },
+    "sourceWeight": { "type": "number", "minimum": 0, "maximum": 1 },
+    "consistencyWeight": { "type": "number", "minimum": 0, "maximum": 1 },
+    "temporalWeight": { "type": "number", "minimum": 0, "maximum": 1 },
+    "verifiedBy": {
+      "type": "array",
+      "items": { "type": "string", "format": "uuid" },
+      "description": "List of other AMUs that support this fact."
+    }
+  },
+  "required": ["score"]
+}

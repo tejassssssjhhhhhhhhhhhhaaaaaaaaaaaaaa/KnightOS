@@ -6,8 +6,8 @@ import 'voice_service.dart';
 
 class VoiceController extends Notifier<VoiceSession?> {
   VoiceController({VoiceRepository? repository, VoiceService? service})
-      : _repository = repository ?? VoiceRepository(),
-        _service = service ?? const VoiceService();
+    : _repository = repository ?? VoiceRepository(),
+      _service = service ?? const VoiceService();
 
   final VoiceRepository _repository;
   final VoiceService _service;
@@ -50,4 +50,5 @@ class VoiceController extends Notifier<VoiceSession?> {
   }
 }
 
-final voiceControllerProvider = NotifierProvider<VoiceController, VoiceSession?>(VoiceController.new);
+final voiceControllerProvider =
+    NotifierProvider<VoiceController, VoiceSession?>(VoiceController.new);

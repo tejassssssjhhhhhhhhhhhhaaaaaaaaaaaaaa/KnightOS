@@ -28,13 +28,12 @@ class MissionCard extends StatelessWidget {
         children: [
           Text(
             'Today\'s Mission',
-            style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
           ),
           const SizedBox(height: 16),
-          Text(
-            mission,
-            style: theme.textTheme.bodyLarge,
-          ),
+          Text(mission, style: theme.textTheme.bodyLarge),
           const SizedBox(height: 24),
           Row(
             children: [
@@ -74,12 +73,16 @@ class _MissionStat extends StatelessWidget {
         children: [
           Text(
             label,
-            style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            style: theme.textTheme.labelLarge?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 6),
           Text(
             value,
-            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ],
       ),

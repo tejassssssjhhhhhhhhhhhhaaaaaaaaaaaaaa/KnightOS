@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://knight.os/schemas/master_memory/18_travel.schema.json",
+  "title": "Domain 18: Travel",
+  "type": "object",
+  "properties": {
+    "metadata": { "$ref": "../core/amu_metadata.schema.json" },
+    "content": {
+      "type": "object",
+      "properties": {
+        "destination": { "type": "string" },
+        "purpose": { "type": "string" },
+        "startDate": { "type": "string", "format": "date" },
+        "endDate": { "type": "string", "format": "date" },
+        "keyExperiences": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["destination", "startDate"]
+    }
+  },
+  "required": ["metadata", "content"]
+}

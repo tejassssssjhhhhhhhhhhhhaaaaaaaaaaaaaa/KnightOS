@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:knight_os/core/engines/insight_engine.dart';
-import 'package:knight_os/core/engines/knight_score_engine.dart';
-import 'package:knight_os/core/engines/mission_engine.dart';
-import 'package:knight_os/core/engines/recommendation_engine.dart';
-import 'package:knight_os/core/engines/streak_engine.dart';
-import 'package:knight_os/core/engines/timeline_engine.dart';
+import 'package:knight_os/core/logic/engine/insight_engine.dart';
+import 'package:knight_os/core/logic/engine/knight_score_engine.dart';
+import 'package:knight_os/core/logic/engine/mission_engine.dart';
+import 'package:knight_os/core/logic/engine/recommendation_engine.dart';
+import 'package:knight_os/core/logic/engine/streak_engine.dart';
+import 'package:knight_os/core/logic/engine/timeline_engine.dart';
 import 'package:knight_os/features/onboarding/domain/onboarding_profile.dart';
 import 'package:knight_os/features/work_tracker/domain/work_session.dart';
 
@@ -13,9 +13,9 @@ void main() {
     test('creates a bounded score with a detailed breakdown', () {
       final engine = KnightScoreEngine();
       final result = engine.calculateScore(
-        profile: const OnboardingProfile(completedSteps: ['profile', 'health']),
+        profile: UserProfile(completedSteps: const ['profile', 'health']),
         sessions: [
-          const WorkSession(
+          WorkSession(
             id: '1',
             workDate: '2026-07-23',
             startTime: '09:00',
@@ -43,7 +43,10 @@ void main() {
       expect(result.score, inInclusiveRange(0, 100));
       expect(result.scoreLabel, isNotEmpty);
       expect(result.scoreColor, isNotEmpty);
-      expect(result.scoreBreakdown.keys, containsAll(['Work Productivity', 'Profile Completion']));
+      expect(
+        result.scoreBreakdown.keys,
+        containsAll(['Work Productivity', 'Profile Completion']),
+      );
     });
   });
 
@@ -51,9 +54,9 @@ void main() {
     test('generates local insights for profile and work signals', () {
       final engine = InsightEngine();
       final insights = engine.generateInsights(
-        profile: const OnboardingProfile(completedSteps: ['profile']),
+        profile: UserProfile(completedSteps: const ['profile']),
         sessions: [
-          const WorkSession(
+          WorkSession(
             id: '1',
             workDate: '2026-07-23',
             startTime: '09:00',
@@ -90,12 +93,20 @@ void main() {
       final engine = RecommendationEngine();
       final recommendations = engine.generateRecommendations(
         score: 64,
-        profile: const OnboardingProfile(completedSteps: ['profile']),
+        profile: UserProfile(completedSteps: const ['profile']),
         sessions: const [],
       );
 
       expect(recommendations, isNotEmpty);
-      expect(recommendations.any((item) => item.contains('break') || item.contains('profile') || item.contains('workout')), isTrue);
+      expect(
+        recommendations.any(
+          (item) =>
+              item.contains('break') ||
+              item.contains('profile') ||
+              item.contains('workout'),
+        ),
+        isTrue,
+      );
     });
   });
 
@@ -103,7 +114,7 @@ void main() {
     test('builds a mission for the day', () {
       final engine = MissionEngine();
       final mission = engine.generateMission(
-        profile: const OnboardingProfile(completedSteps: ['profile', 'health']),
+        profile: UserProfile(completedSteps: const ['profile', 'health']),
         sessions: const [],
       );
 
@@ -116,9 +127,9 @@ void main() {
     test('builds a unified timeline from profile and work data', () {
       final engine = TimelineEngine();
       final timeline = engine.buildTimeline(
-        profile: const OnboardingProfile(completedSteps: ['profile', 'health']),
+        profile: UserProfile(completedSteps: const ['profile', 'health']),
         sessions: [
-          const WorkSession(
+          WorkSession(
             id: '1',
             workDate: '2026-07-23',
             startTime: '09:00',

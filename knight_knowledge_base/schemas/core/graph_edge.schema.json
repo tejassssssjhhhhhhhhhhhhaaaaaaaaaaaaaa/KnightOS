@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://knight.os/schemas/core/graph_edge.schema.json",
+  "title": "Knowledge Graph Edge",
+  "description": "A semantic relationship between two memory nodes.",
+  "type": "object",
+  "properties": {
+    "edgeId": { "type": "string", "format": "uuid" },
+    "sourceId": { "type": "string", "format": "uuid", "description": "MemoryID of the source node." },
+    "targetId": { "type": "string", "format": "uuid", "description": "MemoryID of the target node." },
+    "type": {
+      "type": "string",
+      "enum": ["influences", "causes", "part_of", "contradicts", "precedes", "replaces"]
+    },
+    "direction": { "type": "string", "enum": ["unidirectional", "bidirectional"] },
+    "strength": { "type": "number", "minimum": 0, "maximum": 1 },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "latency": {
+      "type": "string",
+      "description": "Expected delay for the influence to manifest (e.g., '24h', '30d')."
+    }
+  },
+  "required": ["edgeId", "sourceId", "targetId", "type", "strength", "confidence"]
+}

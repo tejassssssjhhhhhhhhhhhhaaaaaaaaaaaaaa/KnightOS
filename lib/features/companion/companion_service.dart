@@ -11,7 +11,11 @@ class CompanionService {
     return 'You shared: "$text". I can help you reflect on this, turn it into a note, or keep it private.';
   }
 
-  CompanionEntry createEntry({required String title, required String body, String permission = 'conversation_only'}) {
+  CompanionEntry createEntry({
+    required String title,
+    required String body,
+    String permission = 'conversation_only',
+  }) {
     return CompanionEntry(
       id: DateTime.now().microsecondsSinceEpoch.toString(),
       title: title.isEmpty ? 'Companion note' : title,

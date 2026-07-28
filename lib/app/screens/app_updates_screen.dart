@@ -17,7 +17,8 @@ class AppUpdatesScreen extends StatefulWidget {
   State<AppUpdatesScreen> createState() => _AppUpdatesScreenState();
 }
 
-class _AppUpdatesScreenState extends State<AppUpdatesScreen> with WidgetsBindingObserver {
+class _AppUpdatesScreenState extends State<AppUpdatesScreen>
+    with WidgetsBindingObserver {
   UpdateService? _service;
   late final AndroidUpdateInstaller _installer;
   UpdateCheckResult? _result;
@@ -50,7 +51,11 @@ class _AppUpdatesScreenState extends State<AppUpdatesScreen> with WidgetsBinding
   }
 
   UpdateService _buildService() {
-    return widget.updateService ?? GitHubReleaseUpdateProvider(owner: 'tejassssssjhhhhhhhhhhhhaaaaaaaaaaaaaa', repo: 'KnightOS');
+    return widget.updateService ??
+        GitHubReleaseUpdateProvider(
+          owner: 'tejassssssjhhhhhhhhhhhhaaaaaaaaaaaaaa',
+          repo: 'KnightOS',
+        );
   }
 
   Future<void> _refreshUpdates({bool showLoading = true}) async {
@@ -88,16 +93,27 @@ class _AppUpdatesScreenState extends State<AppUpdatesScreen> with WidgetsBinding
     try {
       final packageInfo = await PackageInfo.fromPlatform();
       debugPrint('LOG 1: PackageInfo version = ${packageInfo.version}');
-      debugPrint('LOG 2: PackageInfo build number = ${packageInfo.buildNumber}');
+      debugPrint(
+        'LOG 2: PackageInfo build number = ${packageInfo.buildNumber}',
+      );
 
       final result = await _service!.checkForUpdates();
       if (!mounted) return;
 
       final normalizedInstalled = _normalizeVersion(packageInfo.version);
-      final normalizedGitHub = _normalizeVersion(result.updateInfo?.version ?? result.currentVersion);
-      final comparison = _compareVersions(normalizedInstalled, normalizedGitHub);
-      debugPrint('Update status resolved: ${result.status.name} (comparison=$comparison)');
-      debugPrint('LOG 3: GitHub tag = ${result.updateInfo?.version ?? result.currentVersion}');
+      final normalizedGitHub = _normalizeVersion(
+        result.updateInfo?.version ?? result.currentVersion,
+      );
+      final comparison = _compareVersions(
+        normalizedInstalled,
+        normalizedGitHub,
+      );
+      debugPrint(
+        'Update status resolved: ${result.status.name} (comparison=$comparison)',
+      );
+      debugPrint(
+        'LOG 3: GitHub tag = ${result.updateInfo?.version ?? result.currentVersion}',
+      );
       debugPrint('LOG 4: Normalized installed version = $normalizedInstalled');
       debugPrint('LOG 5: Normalized GitHub version = $normalizedGitHub');
       debugPrint('LOG 6: Comparison result = $comparison');
@@ -137,23 +153,31 @@ class _AppUpdatesScreenState extends State<AppUpdatesScreen> with WidgetsBinding
     });
     try {
       final service = _service ?? _buildService();
-      final download = await service.downloadUpdate(onProgress: (received, total) {
-        if (!mounted) return;
-        setState(() {
-          _downloadedBytes = received;
-          _downloadTotalBytes = total;
-        });
-      });
+      final download = await service.downloadUpdate(
+        onProgress: (received, total) {
+          if (!mounted) return;
+          setState(() {
+            _downloadedBytes = received;
+            _downloadTotalBytes = total;
+          });
+        },
+      );
       if (!mounted) return;
       final launched = await _installer.installApk(download.filePath);
       if (!mounted) return;
       if (!launched) {
-        throw StateError('Android could not open the downloaded APK installer.');
+        throw StateError(
+          'Android could not open the downloaded APK installer.',
+        );
       }
       await _refreshUpdates(showLoading: false);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('APK downloaded. Confirm installation in the Android installer.')),
+        const SnackBar(
+          content: Text(
+            'APK downloaded. Confirm installation in the Android installer.',
+          ),
+        ),
       );
     } catch (error, stackTrace) {
       if (!mounted) return;
@@ -162,7 +186,11 @@ class _AppUpdatesScreenState extends State<AppUpdatesScreen> with WidgetsBinding
         _errorMessage = error.toString();
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to start update: ${_formatErrorMessage(error)}')),
+        SnackBar(
+          content: Text(
+            'Unable to start update: ${_formatErrorMessage(error)}',
+          ),
+        ),
       );
     } finally {
       if (mounted) {
@@ -193,7 +221,9 @@ class _AppUpdatesScreenState extends State<AppUpdatesScreen> with WidgetsBinding
               children: [
                 if (_isLoading)
                   _buildCheckingCard(theme)
-                else if (_errorMessage != null && _result != null && _shouldShowError(_result!))
+                else if (_errorMessage != null &&
+                    _result != null &&
+                    _shouldShowError(_result!))
                   _buildErrorCard(theme)
                 else if (_result != null) ...[
                   _buildStatusCard(theme),
@@ -208,7 +238,9 @@ class _AppUpdatesScreenState extends State<AppUpdatesScreen> with WidgetsBinding
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton.icon(
-                      onPressed: _isUpdating ? null : () => unawaited(_refreshUpdates()),
+                      onPressed: _isUpdating
+                          ? null
+                          : () => unawaited(_refreshUpdates()),
                       icon: const Icon(Icons.sync_outlined),
                       label: const Text('Check for Updates'),
                     ),
@@ -241,9 +273,19 @@ class _AppUpdatesScreenState extends State<AppUpdatesScreen> with WidgetsBinding
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Checking for updates', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                  Text(
+                    'Checking for updates',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                   const SizedBox(height: 4),
-                  Text('Contacting GitHub Releases and validating the latest package.', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                  Text(
+                    'Contacting GitHub Releases and validating the latest package.',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -265,25 +307,53 @@ class _AppUpdatesScreenState extends State<AppUpdatesScreen> with WidgetsBinding
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Current Version', style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+            Text(
+              'Current Version',
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
             const SizedBox(height: 8),
-            Text(result.currentVersion, style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700)),
+            Text(
+              result.currentVersion,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
             const SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
-                  child: _infoChip('Latest Version', result.updateInfo?.version ?? result.currentVersion),
+                  child: _infoChip(
+                    'Latest Version',
+                    result.updateInfo?.version ?? result.currentVersion,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: _infoChip('Release Date', result.releaseDate.isNotEmpty ? result.releaseDate : 'Unavailable'),
+                  child: _infoChip(
+                    'Release Date',
+                    result.releaseDate.isNotEmpty
+                        ? result.releaseDate
+                        : 'Unavailable',
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            Text('Status', style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+            Text(
+              'Status',
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
             const SizedBox(height: 8),
-            Text(_statusLabel(result.status), style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600)),
+            Text(
+              _statusLabel(result.status),
+              style: theme.textTheme.bodyLarge?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ],
         ),
       ),
@@ -302,12 +372,18 @@ class _AppUpdatesScreenState extends State<AppUpdatesScreen> with WidgetsBinding
           children: [
             Row(
               children: [
-                Icon(Icons.error_outline, color: theme.colorScheme.error, size: 28),
+                Icon(
+                  Icons.error_outline,
+                  color: theme.colorScheme.error,
+                  size: 28,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     _statusLabel(_result!.status),
-                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ],
@@ -315,7 +391,9 @@ class _AppUpdatesScreenState extends State<AppUpdatesScreen> with WidgetsBinding
             const SizedBox(height: 12),
             Text(
               _result!.errorMessage ?? 'An update check error occurred.',
-              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onErrorContainer),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onErrorContainer,
+              ),
             ),
           ],
         ),
@@ -334,12 +412,18 @@ class _AppUpdatesScreenState extends State<AppUpdatesScreen> with WidgetsBinding
           children: [
             Row(
               children: [
-                Icon(Icons.check_circle_outline, color: theme.colorScheme.primary, size: 28),
+                Icon(
+                  Icons.check_circle_outline,
+                  color: theme.colorScheme.primary,
+                  size: 28,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     'Up to date',
-                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ],
@@ -347,7 +431,9 @@ class _AppUpdatesScreenState extends State<AppUpdatesScreen> with WidgetsBinding
             const SizedBox(height: 12),
             Text(
               'KnightOS will check GitHub Releases for the latest build and prompt you when an update is available.',
-              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
@@ -367,32 +453,58 @@ class _AppUpdatesScreenState extends State<AppUpdatesScreen> with WidgetsBinding
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('KnightOS Update Available', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
-            const SizedBox(height: 12),
-            Text('Version', style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-            const SizedBox(height: 4),
-            Text(updateInfo.version, style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700)),
-            const SizedBox(height: 16),
-            Text('Release Notes', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
-            const SizedBox(height: 8),
-            ...updateInfo.releaseNotes.map((note) => Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.only(top: 4),
-                    child: Icon(Icons.circle, size: 8),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(child: Text(note, style: theme.textTheme.bodyMedium)),
-                ],
+            Text(
+              'KnightOS Update Available',
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w700,
               ),
-            )),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Version',
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              updateInfo.version,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Release Notes',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            ...updateInfo.releaseNotes.map(
+              (note) => Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(top: 4),
+                      child: Icon(Icons.circle, size: 8),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(note, style: theme.textTheme.bodyMedium),
+                    ),
+                  ],
+                ),
+              ),
+            ),
             const SizedBox(height: 16),
             if (_isUpdating) ...[
               LinearProgressIndicator(
-                value: _downloadTotalBytes > 0 ? _downloadedBytes / _downloadTotalBytes : null,
+                value: _downloadTotalBytes > 0
+                    ? _downloadedBytes / _downloadTotalBytes
+                    : null,
               ),
               const SizedBox(height: 8),
               Text(
@@ -440,16 +552,27 @@ class _AppUpdatesScreenState extends State<AppUpdatesScreen> with WidgetsBinding
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+          Text(
+            label,
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
           const SizedBox(height: 4),
-          Text(value, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+          Text(
+            value,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ],
       ),
     );
   }
 
   bool _shouldShowError(UpdateCheckResult result) {
-    return result.status != UpdateStatus.latest && result.status != UpdateStatus.updateAvailable;
+    return result.status != UpdateStatus.latest &&
+        result.status != UpdateStatus.updateAvailable;
   }
 
   String _statusLabel(UpdateStatus status) {
@@ -494,13 +617,23 @@ class _AppUpdatesScreenState extends State<AppUpdatesScreen> with WidgetsBinding
   }
 
   int _compareVersions(String installed, String latest) {
-    final installedParts = _normalizeVersion(installed).split('.').map(int.tryParse).toList();
-    final latestParts = _normalizeVersion(latest).split('.').map(int.tryParse).toList();
-    final max = installedParts.length > latestParts.length ? installedParts.length : latestParts.length;
+    final installedParts = _normalizeVersion(
+      installed,
+    ).split('.').map(int.tryParse).toList();
+    final latestParts = _normalizeVersion(
+      latest,
+    ).split('.').map(int.tryParse).toList();
+    final max = installedParts.length > latestParts.length
+        ? installedParts.length
+        : latestParts.length;
 
     for (var index = 0; index < max; index++) {
-      final installedValue = index < installedParts.length ? (installedParts[index] ?? 0) : 0;
-      final latestValue = index < latestParts.length ? (latestParts[index] ?? 0) : 0;
+      final installedValue = index < installedParts.length
+          ? (installedParts[index] ?? 0)
+          : 0;
+      final latestValue = index < latestParts.length
+          ? (latestParts[index] ?? 0)
+          : 0;
       if (installedValue < latestValue) {
         return -1;
       }

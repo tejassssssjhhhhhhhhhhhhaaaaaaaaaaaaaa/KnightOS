@@ -20,7 +20,9 @@ class ProfileSummaryCard extends StatelessWidget {
         children: [
           Text(
             'Profile Summary',
-            style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
           ),
           const SizedBox(height: 16),
           Wrap(
@@ -30,11 +32,16 @@ class ProfileSummaryCard extends StatelessWidget {
                 .where((item) => item.value.trim().isNotEmpty)
                 .map(
                   (item) => ConstrainedBox(
-                    constraints: const BoxConstraints(minWidth: 220, maxWidth: 280),
+                    constraints: const BoxConstraints(
+                      minWidth: 220,
+                      maxWidth: 280,
+                    ),
                     child: Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.surface.withValues(alpha: 0.85),
+                        color: theme.colorScheme.surface.withValues(
+                          alpha: 0.85,
+                        ),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Column(
@@ -49,7 +56,9 @@ class ProfileSummaryCard extends StatelessWidget {
                           const SizedBox(height: 4),
                           Text(
                             item.value,
-                            style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ],
                       ),

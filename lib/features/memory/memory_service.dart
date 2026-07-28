@@ -1,26 +1,24 @@
-import 'memory_models.dart';
+import '../../core/intelligence/engines/memory_engine.dart';
+import '../../core/intelligence/domain/knight_memory.dart';
+import '../../core/intelligence/domain/memory_category.dart';
+import '../../core/intelligence/domain/memory_domain.dart';
 
+/// Client-side service for the Memory module, backed by the Unified Memory Engine.
 class MemoryService {
-  const MemoryService();
+  const MemoryService({required this.memoryEngine});
 
-  MemoryItem createMemory({
-    required String userId,
-    required String title,
-    required String body,
-    required String source,
-    required String category,
-    String permission = 'conversation_only',
-  }) {
-    return MemoryItem(
-      id: DateTime.now().microsecondsSinceEpoch.toString(),
-      userId: userId,
-      title: title,
-      body: body,
-      createdAt: DateTime.now(),
-      source: source,
-      category: category,
-      permission: permission,
-      tags: <String>[category, source],
+  final MemoryEngine memoryEngine;
+
+  Future<void> saveQuickNote(String title, String body) async {
+    final memory = KnightMemory.create(
+      memoryId: 'note-${DateTime.now().millisecondsSinceEpoch}',
+      category: BookCategory.history,
+      domain: MemoryDomain.memories,
+      content: {'title': title, 'body': body},
+      summary: title,
+      source: MemorySource.manual,
+      importance: 0.5,
     );
+    await memoryEngine.save(memory);
   }
 }

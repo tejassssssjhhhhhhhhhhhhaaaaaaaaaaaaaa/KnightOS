@@ -2,7 +2,8 @@ import 'authentication_repository.dart';
 
 class SessionManager {
   SessionManager({AuthenticationRepository? authenticationRepository})
-      : _authenticationRepository = authenticationRepository ?? AuthenticationRepository();
+    : _authenticationRepository =
+          authenticationRepository ?? AuthenticationRepository();
 
   final AuthenticationRepository _authenticationRepository;
 

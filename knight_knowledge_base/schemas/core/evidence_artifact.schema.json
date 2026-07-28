@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://knight.os/schemas/core/evidence_artifact.schema.json",
+  "title": "Evidence Artifact",
+  "description": "Metadata for a stored proof artifact in the Evidence Vault.",
+  "type": "object",
+  "properties": {
+    "caid": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "SHA-256 hash of the file content."
+    },
+    "originalName": { "type": "string" },
+    "mimeType": { "type": "string" },
+    "fileSize": { "type": "integer" },
+    "ingestedAt": { "type": "string", "format": "date-time" },
+    "storagePath": { "type": "string" },
+    "extractionData": {
+      "type": "object",
+      "properties": {
+        "ocrText": { "type": "string" },
+        "exif": { "type": "object" },
+        "entities": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  },
+  "required": ["caid", "ingestedAt", "storagePath"]
+}

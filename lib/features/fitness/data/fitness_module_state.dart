@@ -1,4 +1,4 @@
-import '../../../core/engine/feature_interfaces.dart';
+import '../../../core/platform/engine/feature_interfaces.dart';
 import '../domain/gym_profile.dart';
 
 /// Immutable persisted state for the fitness module.
@@ -14,10 +14,10 @@ class FitnessModuleState {
   final String searchQuery;
 
   factory FitnessModuleState.initial() => const FitnessModuleState(
-        gymProfile: GymProfile(name: '', type: GymProfileType.home),
-        availableEquipmentIds: <String>[],
-        searchQuery: '',
-      );
+    gymProfile: GymProfile(name: '', type: GymProfileType.home),
+    availableEquipmentIds: <String>[],
+    searchQuery: '',
+  );
 
   FitnessModuleState copyWith({
     GymProfile? gymProfile,
@@ -26,7 +26,8 @@ class FitnessModuleState {
   }) {
     return FitnessModuleState(
       gymProfile: gymProfile ?? this.gymProfile,
-      availableEquipmentIds: availableEquipmentIds ?? this.availableEquipmentIds,
+      availableEquipmentIds:
+          availableEquipmentIds ?? this.availableEquipmentIds,
       searchQuery: searchQuery ?? this.searchQuery,
     );
   }

@@ -3,7 +3,8 @@ import '../storage/local_database.dart';
 import '../storage/storage_keys.dart';
 
 class SleepRepository {
-  SleepRepository({LocalDatabase? localDatabase}) : _database = localDatabase ?? const LocalDatabase();
+  SleepRepository({LocalDatabase? localDatabase})
+    : _database = localDatabase ?? const LocalDatabase();
 
   final LocalDatabase _database;
 

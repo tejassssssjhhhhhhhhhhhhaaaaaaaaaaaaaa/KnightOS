@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://knight.os/schemas/master_memory/20_goals.schema.json",
+  "title": "Domain 20: Goals",
+  "type": "object",
+  "properties": {
+    "metadata": { "$ref": "../core/amu_metadata.schema.json" },
+    "content": {
+      "type": "object",
+      "properties": {
+        "goalDescription": { "type": "string" },
+        "horizon": { "type": "string", "enum": ["short", "medium", "long", "moonshot"] },
+        "targetDate": { "type": "string", "format": "date" },
+        "successMetric": { "type": "string" }
+      },
+      "required": ["goalDescription", "horizon"]
+    }
+  },
+  "required": ["metadata", "content"]
+}

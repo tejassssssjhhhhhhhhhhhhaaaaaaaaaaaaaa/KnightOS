@@ -6,8 +6,8 @@ import 'fitness_module_state.dart';
 
 class FitnessStorage {
   FitnessStorage({FitnessRepository? repository, LocalDatabase? localDatabase})
-      : _repository = repository ?? FitnessRepository(),
-        _database = localDatabase ?? const LocalDatabase();
+    : _repository = repository ?? FitnessRepository(),
+      _database = localDatabase ?? const LocalDatabase();
 
   final FitnessRepository _repository;
   final LocalDatabase _database;
@@ -15,9 +15,11 @@ class FitnessStorage {
 
   Future<List<WorkoutSession>> loadSessions() => _repository.loadSessions();
 
-  Future<void> saveSessions(List<WorkoutSession> sessions) => _repository.saveSessions(sessions);
+  Future<void> saveSessions(List<WorkoutSession> sessions) =>
+      _repository.saveSessions(sessions);
 
-  Future<void> saveSession(WorkoutSession session) => _repository.saveSession(session);
+  Future<void> saveSession(WorkoutSession session) =>
+      _repository.saveSession(session);
 
   Future<void> deleteSession(String id) => _repository.deleteSession(id);
 
@@ -45,7 +47,9 @@ class FitnessStorage {
     return FitnessModuleState(
       gymProfile: gymProfile,
       availableEquipmentIds: availableEquipmentIds,
-      searchQuery: decoded['searchQuery'] is String ? decoded['searchQuery'] as String : '',
+      searchQuery: decoded['searchQuery'] is String
+          ? decoded['searchQuery'] as String
+          : '',
     );
   }
 

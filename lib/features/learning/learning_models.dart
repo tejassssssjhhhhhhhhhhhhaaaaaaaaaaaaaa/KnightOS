@@ -40,7 +40,9 @@ class LearningGoal {
       id: json['id'] as String? ?? '',
       title: json['title'] as String? ?? 'Learning goal',
       reason: json['reason'] as String? ?? '',
-      createdAt: DateTime.tryParse(json['createdAt'] as String? ?? '') ?? DateTime.now(),
+      createdAt:
+          DateTime.tryParse(json['createdAt'] as String? ?? '') ??
+          DateTime.now(),
       targetCompletion: json['targetCompletion'] as String?,
       dailyTime: json['dailyTime'] as String?,
       level: json['level'] as String? ?? 'beginner',

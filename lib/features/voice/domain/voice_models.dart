@@ -27,7 +27,9 @@ class VoiceSession {
     return VoiceSession(
       id: json['id'] as String? ?? '',
       transcript: json['transcript'] as String? ?? '',
-      createdAt: DateTime.tryParse(json['createdAt'] as String? ?? '') ?? DateTime.now(),
+      createdAt:
+          DateTime.tryParse(json['createdAt'] as String? ?? '') ??
+          DateTime.now(),
       isEdited: json['isEdited'] as bool? ?? false,
       status: json['status'] as String? ?? 'captured',
     );
@@ -63,7 +65,9 @@ class VoiceMemory {
     return VoiceMemory(
       id: json['id'] as String? ?? '',
       transcript: json['transcript'] as String? ?? '',
-      createdAt: DateTime.tryParse(json['createdAt'] as String? ?? '') ?? DateTime.now(),
+      createdAt:
+          DateTime.tryParse(json['createdAt'] as String? ?? '') ??
+          DateTime.now(),
       source: json['source'] as String? ?? 'voice',
       summary: json['summary'] as String? ?? 'Stored locally for later review.',
     );

@@ -22,7 +22,9 @@ class DashboardStatCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.colorScheme.surface.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.35)),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.35),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -46,7 +48,9 @@ class DashboardStatCard extends StatelessWidget {
           const SizedBox(height: 10),
           Text(
             value,
-            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ],
       ),

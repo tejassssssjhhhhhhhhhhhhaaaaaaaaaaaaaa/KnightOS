@@ -6,7 +6,9 @@ import 'core/router/app_routes.dart';
 import 'core/theme/app_theme.dart';
 
 class KnightOsApp extends StatefulWidget {
-  const KnightOsApp({super.key});
+  const KnightOsApp({super.key, this.theme});
+
+  final ThemeData? theme;
 
   @override
   State<KnightOsApp> createState() => _KnightOsAppState();
@@ -32,7 +34,8 @@ class _KnightOsAppState extends State<KnightOsApp> with WidgetsBindingObserver {
     final router = AppRouter.router;
     final currentLocation = router.routerDelegate.currentConfiguration.fullPath;
 
-    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
       if (currentLocation.isNotEmpty && currentLocation != '/') {
         _lastRoute = currentLocation;
       }
@@ -40,7 +43,9 @@ class _KnightOsAppState extends State<KnightOsApp> with WidgetsBindingObserver {
     }
 
     if (state == AppLifecycleState.resumed) {
-      final targetRoute = _lastRoute.isNotEmpty && _lastRoute != '/' ? _lastRoute : AppRoutes.dashboard;
+      final targetRoute = _lastRoute.isNotEmpty && _lastRoute != '/'
+          ? _lastRoute
+          : AppRoutes.dashboard;
       if (currentLocation != targetRoute) {
         router.go(targetRoute);
       }
@@ -53,7 +58,7 @@ class _KnightOsAppState extends State<KnightOsApp> with WidgetsBindingObserver {
       child: MaterialApp.router(
         title: 'KnightOS',
         debugShowCheckedModeBanner: false,
-        theme: AppTheme.darkTheme(),
+        theme: widget.theme ?? AppTheme.darkTheme(),
         routerConfig: AppRouter.router,
       ),
     );

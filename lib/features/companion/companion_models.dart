@@ -37,10 +37,14 @@ class CompanionEntry {
       id: json['id'] as String? ?? '',
       title: json['title'] as String? ?? 'Entry',
       body: json['body'] as String? ?? '',
-      createdAt: DateTime.tryParse(json['createdAt'] as String? ?? '') ?? DateTime.now(),
+      createdAt:
+          DateTime.tryParse(json['createdAt'] as String? ?? '') ??
+          DateTime.now(),
       kind: json['kind'] as String? ?? 'reflection',
       permission: json['permission'] as String? ?? 'conversation_only',
-      tags: (json['tags'] as List?)?.whereType<String>().toList() ?? const <String>[],
+      tags:
+          (json['tags'] as List?)?.whereType<String>().toList() ??
+          const <String>[],
       source: json['source'] as String? ?? 'chat',
     );
   }

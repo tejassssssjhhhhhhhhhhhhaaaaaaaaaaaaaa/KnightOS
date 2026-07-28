@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:knight_os/features/finance/domain/finance_transaction.dart';
 import 'package:knight_os/features/finance/presentation/finance_tracker_screen.dart';
@@ -30,7 +31,10 @@ void main() {
       notes: '',
     );
 
-    final metrics = FinanceTransactionMetrics.fromTransactions([income, expense]);
+    final metrics = FinanceTransactionMetrics.fromTransactions([
+      income,
+      expense,
+    ]);
 
     expect(metrics.totalIncome, 5000);
     expect(metrics.totalExpense, 1200);
@@ -42,9 +46,13 @@ void main() {
   });
 
   testWidgets('finance tracker screen renders the main form', (tester) async {
-    await tester.pumpWidget(const MaterialApp(home: FinanceTrackerScreen()));
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: MaterialApp(home: FinanceTrackerScreen()),
+      ),
+    );
     await tester.pump();
 
-    expect(find.text('Finance Tracker'), findsOneWidget);
+    expect(find.text('Finance'), findsOneWidget);
   });
 }

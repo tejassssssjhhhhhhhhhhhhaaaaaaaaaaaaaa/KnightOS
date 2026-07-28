@@ -1,11 +1,4 @@
-enum OnboardingStep {
-  personal,
-  work,
-  health,
-  finance,
-  goals,
-  aiPreferences,
-}
+enum OnboardingStep { personal, work, health, finance, goals, aiPreferences }
 
 extension OnboardingStepX on OnboardingStep {
   String get title {

@@ -56,7 +56,8 @@ class GitHubReleaseUpdateProvider implements UpdateService {
         return _result(
           packageInfo,
           UpdateStatus.versionUnavailable,
-          errorMessage: 'GitHub release tag "$rawLatestVersion" is not a supported semantic version.',
+          errorMessage:
+              'GitHub release tag "$rawLatestVersion" is not a supported semantic version.',
         );
       }
       final notes = _parseReleaseNotes(release);
@@ -64,7 +65,10 @@ class GitHubReleaseUpdateProvider implements UpdateService {
       final apkUrl = _parseApkAssetUrl(release);
       final comparison = compareVersions(installedVersion, latestVersion);
       final isUpToDate = comparison >= 0;
-      final buildNumberComparison = _compareBuildNumber(packageInfo.buildNumber, release['target_commitish']?.toString());
+      final buildNumberComparison = _compareBuildNumber(
+        packageInfo.buildNumber,
+        release['target_commitish']?.toString(),
+      );
 
       debugPrint('Parsed release: ${jsonEncode(release)}');
       debugPrint('Installed Version : $installedVersion');
@@ -78,8 +82,14 @@ class GitHubReleaseUpdateProvider implements UpdateService {
           packageInfo,
           UpdateStatus.apkAssetMissing,
           releaseDate: publishedDate ?? '',
-          errorMessage: 'Release $latestVersion does not include a downloadable APK asset.',
-          updateInfo: AppUpdateInfo(version: latestVersion, releaseNotes: notes, downloadUrl: '', releaseDate: publishedDate),
+          errorMessage:
+              'Release $latestVersion does not include a downloadable APK asset.',
+          updateInfo: AppUpdateInfo(
+            version: latestVersion,
+            releaseNotes: notes,
+            downloadUrl: '',
+            releaseDate: publishedDate,
+          ),
         );
       }
 
@@ -104,7 +114,8 @@ class GitHubReleaseUpdateProvider implements UpdateService {
         buildNumber: packageInfo.buildNumber,
         releaseDate: '',
         status: UpdateStatus.networkError,
-        errorMessage: 'Unable to reach GitHub right now. ${_formatError(error)}',
+        errorMessage:
+            'Unable to reach GitHub right now. ${_formatError(error)}',
       );
     } on HttpException catch (error) {
       final packageInfo = await PackageInfo.fromPlatform();
@@ -112,8 +123,8 @@ class GitHubReleaseUpdateProvider implements UpdateService {
       final status = message == 'Repository not found.'
           ? UpdateStatus.repositoryNotFound
           : message == 'No releases found for this repository.'
-              ? UpdateStatus.noReleasesFound
-              : UpdateStatus.apiError;
+          ? UpdateStatus.noReleasesFound
+          : UpdateStatus.apiError;
       return UpdateCheckResult(
         currentVersion: 'v${packageInfo.version}',
         buildNumber: packageInfo.buildNumber,
@@ -128,7 +139,8 @@ class GitHubReleaseUpdateProvider implements UpdateService {
         buildNumber: packageInfo.buildNumber,
         releaseDate: '',
         status: UpdateStatus.parsingError,
-        errorMessage: 'Unable to parse GitHub release data: ${_formatError(error)}',
+        errorMessage:
+            'Unable to parse GitHub release data: ${_formatError(error)}',
       );
     } catch (error, stackTrace) {
       final packageInfo = await PackageInfo.fromPlatform();
@@ -144,11 +156,15 @@ class GitHubReleaseUpdateProvider implements UpdateService {
   }
 
   @override
-  Future<UpdateDownloadResult> downloadUpdate({void Function(int received, int total)? onProgress}) async {
+  Future<UpdateDownloadResult> downloadUpdate({
+    void Function(int received, int total)? onProgress,
+  }) async {
     final release = await _fetchLatestReleaseWithRetry();
     final apkUrl = _parseApkAssetUrl(release ?? {});
     if (apkUrl == null || apkUrl.isEmpty) {
-      throw const HttpException('The latest release does not contain a downloadable APK asset.');
+      throw const HttpException(
+        'The latest release does not contain a downloadable APK asset.',
+      );
     }
 
     debugPrint('Download URL: $apkUrl');
@@ -168,18 +184,29 @@ class GitHubReleaseUpdateProvider implements UpdateService {
         request.headers.set('Accept', 'application/octet-stream');
         request.headers.set('User-Agent', 'KnightOS-App');
         request.cookies.clear();
-        final response = await request.close().timeout(runtimeConfig.requestTimeout, onTimeout: () {
-          throw TimeoutException('Timed out while downloading the APK update.', runtimeConfig.requestTimeout);
-        });
-        if (response.statusCode == HttpStatus.tooManyRequests || response.statusCode >= 500) {
+        final response = await request.close().timeout(
+          runtimeConfig.requestTimeout,
+          onTimeout: () {
+            throw TimeoutException(
+              'Timed out while downloading the APK update.',
+              runtimeConfig.requestTimeout,
+            );
+          },
+        );
+        if (response.statusCode == HttpStatus.tooManyRequests ||
+            response.statusCode >= 500) {
           if (attempt < runtimeConfig.maxAttempts) {
             await Future<void>.delayed(runtimeConfig.baseDelay * attempt);
             continue;
           }
-          throw HttpException('APK download returned status ${response.statusCode}.');
+          throw HttpException(
+            'APK download returned status ${response.statusCode}.',
+          );
         }
         if (response.statusCode != HttpStatus.ok) {
-          throw HttpException('APK download returned status ${response.statusCode}.');
+          throw HttpException(
+            'APK download returned status ${response.statusCode}.',
+          );
         }
 
         final sink = file.openWrite();
@@ -196,10 +223,14 @@ class GitHubReleaseUpdateProvider implements UpdateService {
         if (received < _minimumDownloadBytes || !await file.exists()) {
           throw const FormatException('Downloaded APK is empty or incomplete.');
         }
-        final header = await file.openRead(0, 2).fold<List<int>>(<int>[], (bytes, chunk) => bytes..addAll(chunk));
+        final header = await file
+            .openRead(0, 2)
+            .fold<List<int>>(<int>[], (bytes, chunk) => bytes..addAll(chunk));
         if (header.length < 2 || header[0] != 0x50 || header[1] != 0x4b) {
           await file.delete();
-          throw const FormatException('Downloaded file is not a valid APK archive.');
+          throw const FormatException(
+            'Downloaded file is not a valid APK archive.',
+          );
         }
         debugPrint('Downloaded APK: ${file.path} ($received bytes)');
         return UpdateDownloadResult(filePath: file.path, bytes: received);
@@ -222,13 +253,13 @@ class GitHubReleaseUpdateProvider implements UpdateService {
     String? errorMessage,
     AppUpdateInfo? updateInfo,
   }) => UpdateCheckResult(
-        currentVersion: 'v${packageInfo.version}',
-        buildNumber: packageInfo.buildNumber,
-        releaseDate: releaseDate,
-        status: status,
-        errorMessage: errorMessage,
-        updateInfo: updateInfo,
-      );
+    currentVersion: 'v${packageInfo.version}',
+    buildNumber: packageInfo.buildNumber,
+    releaseDate: releaseDate,
+    status: status,
+    errorMessage: errorMessage,
+    updateInfo: updateInfo,
+  );
 
   Future<Map<String, dynamic>?> _fetchLatestReleaseWithRetry() async {
     Object? lastError;
@@ -240,7 +271,9 @@ class GitHubReleaseUpdateProvider implements UpdateService {
         if (!_shouldRetry(error, attempt)) {
           rethrow;
         }
-        debugPrint('Retrying GitHub release check after transient failure ($attempt/${runtimeConfig.maxAttempts}): $error');
+        debugPrint(
+          'Retrying GitHub release check after transient failure ($attempt/${runtimeConfig.maxAttempts}): $error',
+        );
         if (attempt < runtimeConfig.maxAttempts) {
           await Future<void>.delayed(runtimeConfig.baseDelay * attempt);
         }
@@ -258,14 +291,19 @@ class GitHubReleaseUpdateProvider implements UpdateService {
     }
     if (error is HttpException) {
       final message = error.message.toLowerCase();
-      return message.contains('rate limit') || message.contains('status 429') || message.contains('status 5');
+      return message.contains('rate limit') ||
+          message.contains('status 429') ||
+          message.contains('status 5');
     }
     return false;
   }
 
   Future<Map<String, dynamic>?> _fetchLatestRelease() async {
     final client = httpClient ?? HttpClient();
-    final apiUrl = Uri.https(_apiBaseUrl, '/repos/$owner/$repo/releases/latest');
+    final apiUrl = Uri.https(
+      _apiBaseUrl,
+      '/repos/$owner/$repo/releases/latest',
+    );
     debugPrint('Repository: $repository');
     debugPrint('API URL: $apiUrl');
 
@@ -273,15 +311,25 @@ class GitHubReleaseUpdateProvider implements UpdateService {
     request.headers.set('Accept', 'application/vnd.github+json');
     request.headers.set('User-Agent', 'KnightOS-App');
 
-    final response = await request.close().timeout(runtimeConfig.requestTimeout, onTimeout: () {
-      throw TimeoutException('Timed out while contacting GitHub Releases.', runtimeConfig.requestTimeout);
-    });
+    final response = await request.close().timeout(
+      runtimeConfig.requestTimeout,
+      onTimeout: () {
+        throw TimeoutException(
+          'Timed out while contacting GitHub Releases.',
+          runtimeConfig.requestTimeout,
+        );
+      },
+    );
     final responseBody = await response.transform(utf8.decoder).join();
     debugPrint('HTTP status: ${response.statusCode}');
-    debugPrint('Response: ${responseBody.substring(0, responseBody.length > 500 ? 500 : responseBody.length)}');
+    debugPrint(
+      'Response: ${responseBody.substring(0, responseBody.length > 500 ? 500 : responseBody.length)}',
+    );
 
     if (response.statusCode == HttpStatus.notFound) {
-      final repositoryRequest = await client.getUrl(Uri.https(_apiBaseUrl, '/repos/$owner/$repo'));
+      final repositoryRequest = await client.getUrl(
+        Uri.https(_apiBaseUrl, '/repos/$owner/$repo'),
+      );
       repositoryRequest.headers.set('Accept', 'application/vnd.github+json');
       repositoryRequest.headers.set('User-Agent', 'KnightOS-App');
       final repositoryResponse = await repositoryRequest.close();
@@ -291,7 +339,9 @@ class GitHubReleaseUpdateProvider implements UpdateService {
       if (repositoryResponse.statusCode == HttpStatus.ok) {
         throw const HttpException('No releases found for this repository.');
       }
-      throw HttpException('GitHub repository check returned status ${repositoryResponse.statusCode}.');
+      throw HttpException(
+        'GitHub repository check returned status ${repositoryResponse.statusCode}.',
+      );
     }
     if (response.statusCode == HttpStatus.forbidden) {
       final remaining = response.headers.value('x-ratelimit-remaining');
@@ -299,8 +349,13 @@ class GitHubReleaseUpdateProvider implements UpdateService {
       if (remaining == '0' && reset != null) {
         final resetEpoch = int.tryParse(reset);
         if (resetEpoch != null) {
-          final resetTime = DateTime.fromMillisecondsSinceEpoch(resetEpoch * 1000, isUtc: true).toLocal();
-          throw HttpException('GitHub API rate limit reached. Limit resets at $resetTime.');
+          final resetTime = DateTime.fromMillisecondsSinceEpoch(
+            resetEpoch * 1000,
+            isUtc: true,
+          ).toLocal();
+          throw HttpException(
+            'GitHub API rate limit reached. Limit resets at $resetTime.',
+          );
         }
       }
       throw const HttpException('GitHub API returned 403 Forbidden.');
@@ -311,7 +366,9 @@ class GitHubReleaseUpdateProvider implements UpdateService {
 
     final decoded = jsonDecode(responseBody);
     if (decoded is! Map<String, dynamic>) {
-      throw const FormatException('GitHub release payload is not a JSON object.');
+      throw const FormatException(
+        'GitHub release payload is not a JSON object.',
+      );
     }
     return decoded;
   }
@@ -330,10 +387,18 @@ class GitHubReleaseUpdateProvider implements UpdateService {
       final browserDownloadUrl = asset['browser_download_url']?.toString();
       final size = asset['size'];
       final contentType = asset['content_type']?.toString() ?? '';
-      final looksLikeApkAsset = name.toLowerCase().endsWith('.apk') || name.toLowerCase().contains('.apk');
-      final looksLikeAndroidPackage = contentType.toLowerCase().contains('apk') || contentType.toLowerCase().contains('android');
+      final looksLikeApkAsset =
+          name.toLowerCase().endsWith('.apk') ||
+          name.toLowerCase().contains('.apk');
+      final looksLikeAndroidPackage =
+          contentType.toLowerCase().contains('apk') ||
+          contentType.toLowerCase().contains('android');
       final hasValidSize = size is int ? size > 0 : true;
-      if (looksLikeApkAsset && browserDownloadUrl != null && browserDownloadUrl.isNotEmpty && hasValidSize && (looksLikeAndroidPackage || contentType.isEmpty)) {
+      if (looksLikeApkAsset &&
+          browserDownloadUrl != null &&
+          browserDownloadUrl.isNotEmpty &&
+          hasValidSize &&
+          (looksLikeAndroidPackage || contentType.isEmpty)) {
         return browserDownloadUrl;
       }
     }
@@ -378,7 +443,9 @@ class GitHubReleaseUpdateProvider implements UpdateService {
   }
 
   bool _isSemanticVersion(String candidate) {
-    return RegExp(r'^[vV]?\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+\d+)?$').hasMatch(candidate.trim());
+    return RegExp(
+      r'^[vV]?\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+\d+)?$',
+    ).hasMatch(candidate.trim());
   }
 
   bool isVersionAtLeast(String installed, String latest) {
@@ -399,12 +466,18 @@ class GitHubReleaseUpdateProvider implements UpdateService {
       return installedVersion.patch.compareTo(latestVersion.patch);
     }
 
-    final prereleaseCompare = _comparePrerelease(installedVersion.prerelease, latestVersion.prerelease);
+    final prereleaseCompare = _comparePrerelease(
+      installedVersion.prerelease,
+      latestVersion.prerelease,
+    );
     if (prereleaseCompare != 0) {
       return prereleaseCompare;
     }
 
-    return _compareBuildMetadata(installedVersion.buildMetadata, latestVersion.buildMetadata);
+    return _compareBuildMetadata(
+      installedVersion.buildMetadata,
+      latestVersion.buildMetadata,
+    );
   }
 
   int _comparePrerelease(String? installed, String? latest) {

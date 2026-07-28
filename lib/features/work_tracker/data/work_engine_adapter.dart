@@ -1,10 +1,10 @@
-import '../../../core/engine/analytics_models.dart';
-import '../../../core/engine/engine_interfaces.dart';
-import '../../../core/engine/engine_types.dart';
-import '../../../core/engine/feature_interfaces.dart';
-import '../../../core/engine/recommendation_models.dart';
-import '../../../core/engine/scoring_models.dart';
-import '../../../core/engine/search_models.dart';
+import '../../../core/platform/engine/analytics_models.dart';
+import '../../../core/platform/engine/engine_interfaces.dart';
+import '../../../core/platform/engine/engine_types.dart';
+import '../../../core/platform/engine/feature_interfaces.dart';
+import '../../../core/platform/engine/recommendation_models.dart';
+import '../../../core/platform/engine/scoring_models.dart';
+import '../../../core/platform/engine/search_models.dart';
 import 'work_module_state.dart';
 
 class WorkSearchProvider implements KnightFeatureSearchProvider {
@@ -46,7 +46,8 @@ class WorkSearchProvider implements KnightFeatureSearchProvider {
             id: session.id,
             moduleId: moduleId,
             title: '${session.workDate} · ${session.shiftType}',
-            summary: '${session.questionsCompleted} questions · ${session.callsHandled} calls · ${session.chatsHandled} chats',
+            summary:
+                '${session.questionsCompleted} questions · ${session.callsHandled} calls · ${session.chatsHandled} chats',
             metadata: <String, String>{
               'date': session.workDate,
               'shiftType': session.shiftType,
@@ -56,7 +57,12 @@ class WorkSearchProvider implements KnightFeatureSearchProvider {
         )
         .toList();
 
-    return KnightSearchPage(items: items, page: query.page, pageSize: query.pageSize, hasMore: false);
+    return KnightSearchPage(
+      items: items,
+      page: query.page,
+      pageSize: query.pageSize,
+      hasMore: false,
+    );
   }
 
   @override
@@ -67,7 +73,12 @@ class WorkSearchProvider implements KnightFeatureSearchProvider {
     }
 
     return state.sessions
-        .where((session) => session.workDate.contains(normalized) || session.shiftType.toLowerCase().contains(normalized) || session.notes.toLowerCase().contains(normalized))
+        .where(
+          (session) =>
+              session.workDate.contains(normalized) ||
+              session.shiftType.toLowerCase().contains(normalized) ||
+              session.notes.toLowerCase().contains(normalized),
+        )
         .map((session) => session.workDate)
         .take(6)
         .toList();
@@ -119,13 +130,37 @@ class WorkAnalyticsProvider implements KnightFeatureAnalyticsProvider {
   @override
   Future<List<KnightMetric>> requestMetrics() async {
     return <KnightMetric>[
-      KnightMetric(name: 'Weekly Summary', value: 0.0, timestamp: DateTime.now()),
-      KnightMetric(name: 'Monthly Summary', value: 0.0, timestamp: DateTime.now()),
+      KnightMetric(
+        name: 'Weekly Summary',
+        value: 0.0,
+        timestamp: DateTime.now(),
+      ),
+      KnightMetric(
+        name: 'Monthly Summary',
+        value: 0.0,
+        timestamp: DateTime.now(),
+      ),
       KnightMetric(name: 'Work Streak', value: 0.0, timestamp: DateTime.now()),
-      KnightMetric(name: 'Goal Progress', value: 0.0, timestamp: DateTime.now()),
-      KnightMetric(name: 'Average Questions', value: 0.0, timestamp: DateTime.now()),
-      KnightMetric(name: 'Average Calls', value: 0.0, timestamp: DateTime.now()),
-      KnightMetric(name: 'Average Chats', value: 0.0, timestamp: DateTime.now()),
+      KnightMetric(
+        name: 'Goal Progress',
+        value: 0.0,
+        timestamp: DateTime.now(),
+      ),
+      KnightMetric(
+        name: 'Average Questions',
+        value: 0.0,
+        timestamp: DateTime.now(),
+      ),
+      KnightMetric(
+        name: 'Average Calls',
+        value: 0.0,
+        timestamp: DateTime.now(),
+      ),
+      KnightMetric(
+        name: 'Average Chats',
+        value: 0.0,
+        timestamp: DateTime.now(),
+      ),
     ];
   }
 
@@ -135,7 +170,8 @@ class WorkAnalyticsProvider implements KnightFeatureAnalyticsProvider {
   }
 }
 
-class WorkRecommendationProvider implements KnightFeatureRecommendationProvider {
+class WorkRecommendationProvider
+    implements KnightFeatureRecommendationProvider {
   @override
   String get id => 'work.recommendation';
 
@@ -154,11 +190,14 @@ class WorkRecommendationProvider implements KnightFeatureRecommendationProvider 
       KnightRecommendation(
         id: 'work-consistency',
         title: 'Improve consistency',
-        description: 'Keep your shift logging consistent to maintain a reliable work streak.',
+        description:
+            'Keep your shift logging consistent to maintain a reliable work streak.',
         category: KnightRecommendationCategory.work,
         priority: KnightRecommendationPriority.medium,
         confidence: const KnightRecommendationConfidence(value: 0.5),
-        reason: const KnightRecommendationReason(summary: 'Work session history is sparse.'),
+        reason: const KnightRecommendationReason(
+          summary: 'Work session history is sparse.',
+        ),
         source: const KnightRecommendationSource(name: 'work'),
         action: const KnightRecommendationAction(label: 'Log today\'s shift'),
         timestamp: DateTime.now(),
@@ -170,7 +209,9 @@ class WorkRecommendationProvider implements KnightFeatureRecommendationProvider 
         category: KnightRecommendationCategory.work,
         priority: KnightRecommendationPriority.medium,
         confidence: const KnightRecommendationConfidence(value: 0.5),
-        reason: const KnightRecommendationReason(summary: 'Daily target placeholder is not met.'),
+        reason: const KnightRecommendationReason(
+          summary: 'Daily target placeholder is not met.',
+        ),
         source: const KnightRecommendationSource(name: 'work'),
         action: const KnightRecommendationAction(label: 'Review work log'),
         timestamp: DateTime.now(),
@@ -181,35 +222,57 @@ class WorkRecommendationProvider implements KnightFeatureRecommendationProvider 
 
 class WorkFeatureModule implements KnightFeatureModule {
   WorkFeatureModule({required this._state})
-      : metadata = const KnightModuleMetadata(
-          id: 'work',
-          name: 'Work Intelligence',
-          description: 'Professional productivity center for KnightOS, exposing work tracking, analytics, search, and recommendations.',
-          version: '0.1.0',
-          category: 'work',
-          tags: <String>['work', 'productivity', 'shift-tracking', 'professional'],
-        ),
-        capabilities = const <KnightModuleCapability>[
-          KnightModuleCapability(id: 'search', name: 'Search', description: 'Search work sessions by date, shift, or notes.'),
-          KnightModuleCapability(id: 'analytics', name: 'Analytics', description: 'Expose work analytics placeholders.'),
-          KnightModuleCapability(id: 'scoring', name: 'Scoring', description: 'Expose a placeholder work score.'),
-          KnightModuleCapability(id: 'recommendations', name: 'Recommendations', description: 'Provide work-related recommendations.'),
+    : metadata = const KnightModuleMetadata(
+        id: 'work',
+        name: 'Work Intelligence',
+        description:
+            'Professional productivity center for KnightOS, exposing work tracking, analytics, search, and recommendations.',
+        version: '0.1.0',
+        category: 'work',
+        tags: <String>[
+          'work',
+          'productivity',
+          'shift-tracking',
+          'professional',
         ],
-        configuration = const KnightModuleConfiguration(
-          moduleId: 'work',
-          enabled: true,
-          offlineEnabled: true,
-          aiAssistedEnabled: false,
-          searchEnabled: true,
+      ),
+      capabilities = const <KnightModuleCapability>[
+        KnightModuleCapability(
+          id: 'search',
+          name: 'Search',
+          description: 'Search work sessions by date, shift, or notes.',
         ),
-        state = const KnightModuleState(
-          moduleId: 'work',
-          isEnabled: true,
-          isAvailable: true,
-          isOnline: true,
-          isOfflineCapable: true,
-          isAiCapable: false,
-        ) {
+        KnightModuleCapability(
+          id: 'analytics',
+          name: 'Analytics',
+          description: 'Expose work analytics placeholders.',
+        ),
+        KnightModuleCapability(
+          id: 'scoring',
+          name: 'Scoring',
+          description: 'Expose a placeholder work score.',
+        ),
+        KnightModuleCapability(
+          id: 'recommendations',
+          name: 'Recommendations',
+          description: 'Provide work-related recommendations.',
+        ),
+      ],
+      configuration = const KnightModuleConfiguration(
+        moduleId: 'work',
+        enabled: true,
+        offlineEnabled: true,
+        aiAssistedEnabled: false,
+        searchEnabled: true,
+      ),
+      state = const KnightModuleState(
+        moduleId: 'work',
+        isEnabled: true,
+        isAvailable: true,
+        isOnline: true,
+        isOfflineCapable: true,
+        isAiCapable: false,
+      ) {
     searchProvider = WorkSearchProvider(state: _state);
     analyticsProvider = WorkAnalyticsProvider(state: _state);
     scoreProvider = WorkScoreProvider();
@@ -254,7 +317,8 @@ class WorkFeatureModule implements KnightFeatureModule {
   @override
   String get name => metadata.name;
 
-  KnightModuleLifecycleState _lifecycleState = KnightModuleLifecycleState.bootstrapping;
+  KnightModuleLifecycleState _lifecycleState =
+      KnightModuleLifecycleState.bootstrapping;
 
   @override
   KnightModuleLifecycleState get lifecycleState => _lifecycleState;

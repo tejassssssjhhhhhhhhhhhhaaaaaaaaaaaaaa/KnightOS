@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://knight.os/schemas/master_memory/07_skills.schema.json",
+  "title": "Domain 7: Skills",
+  "type": "object",
+  "properties": {
+    "metadata": { "$ref": "../core/amu_metadata.schema.json" },
+    "content": {
+      "type": "object",
+      "properties": {
+        "skillName": { "type": "string" },
+        "proficiency": { "type": "number", "minimum": 0, "maximum": 1 },
+        "lastUsed": { "type": "string", "format": "date" },
+        "evidence": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["skillName", "proficiency"]
+    }
+  },
+  "required": ["metadata", "content"]
+}

@@ -20,8 +20,18 @@ class PreferenceSwitch extends StatelessWidget {
 
     return SwitchListTile.adaptive(
       contentPadding: EdgeInsets.zero,
-      title: Text(title, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
-      subtitle: Text(subtitle, style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+      title: Text(
+        title,
+        style: theme.textTheme.titleSmall?.copyWith(
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+      ),
       value: value,
       onChanged: onChanged,
     );

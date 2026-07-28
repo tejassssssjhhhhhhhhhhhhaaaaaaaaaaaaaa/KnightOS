@@ -20,9 +20,21 @@ class SettingsTile extends StatelessWidget {
 
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      leading: leading == null ? null : Icon(leading, color: theme.colorScheme.primary),
-      title: Text(title, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
-      subtitle: Text(subtitle, style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+      leading: leading == null
+          ? null
+          : Icon(leading, color: theme.colorScheme.primary),
+      title: Text(
+        title,
+        style: theme.textTheme.titleSmall?.copyWith(
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+      ),
       trailing: onTap == null ? null : const Icon(Icons.chevron_right_outlined),
       onTap: onTap,
     );

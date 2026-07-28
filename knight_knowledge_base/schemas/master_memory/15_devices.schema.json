@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://knight.os/schemas/master_memory/15_devices.schema.json",
+  "title": "Domain 15: Devices",
+  "type": "object",
+  "properties": {
+    "metadata": { "$ref": "../core/amu_metadata.schema.json" },
+    "content": {
+      "type": "object",
+      "properties": {
+        "model": { "type": "string" },
+        "serialNumber": { "type": "string" },
+        "os": { "type": "string" },
+        "batteryHealth": { "type": "number", "minimum": 0, "maximum": 100 },
+        "lastSecurityPatch": { "type": "string", "format": "date" }
+      },
+      "required": ["model"]
+    }
+  },
+  "required": ["metadata", "content"]
+}

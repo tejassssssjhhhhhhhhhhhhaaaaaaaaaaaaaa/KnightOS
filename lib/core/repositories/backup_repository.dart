@@ -1,12 +1,16 @@
 import '../../core/storage/local_database.dart';
 
 class BackupRepository {
-  BackupRepository({LocalDatabase? localDatabase}) : _database = localDatabase ?? const LocalDatabase();
+  BackupRepository({LocalDatabase? localDatabase})
+    : _database = localDatabase ?? const LocalDatabase();
 
   final LocalDatabase _database;
 
   Future<void> backupSnapshot(Map<String, Object?> snapshot) async {
-    await _database.writeJson('backup_snapshot.json', snapshot.cast<String, dynamic>());
+    await _database.writeJson(
+      'backup_snapshot.json',
+      snapshot.cast<String, dynamic>(),
+    );
   }
 
   Future<Map<String, Object?>?> loadSnapshot() async {

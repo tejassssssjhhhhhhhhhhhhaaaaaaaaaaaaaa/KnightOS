@@ -1,6 +1,6 @@
-import '../engine/engine_interfaces.dart';
-import '../engine/recommendation_models.dart';
-import '../engine/scoring_models.dart';
+import '../platform/engine/engine_interfaces.dart';
+import '../platform/engine/recommendation_models.dart';
+import '../platform/engine/scoring_models.dart';
 import 'knight_context_models.dart';
 
 /// Aggregates feature module state into a unified KnightContext.
@@ -10,7 +10,8 @@ class KnightContextService {
   KnightContext buildContext({
     required List<KnightFeatureModule> featureModules,
     List<KnightScoreValue> currentScores = const <KnightScoreValue>[],
-    List<KnightRecommendation> currentRecommendations = const <KnightRecommendation>[],
+    List<KnightRecommendation> currentRecommendations =
+        const <KnightRecommendation>[],
     List<String> recentActivity = const <String>['Dashboard loaded'],
     KnightFitnessSummary? fitnessSummary,
     KnightTravelSummary? travelSummary,
@@ -20,9 +21,14 @@ class KnightContextService {
     String dataFreshness = 'Live',
     String applicationVersion = '0.1.0',
   }) {
-    final registeredModules = featureModules.map(_buildModuleContext).toList(growable: false);
+    final registeredModules = featureModules
+        .map(_buildModuleContext)
+        .toList(growable: false);
     final analyticsSummary = _buildAnalyticsSummary(featureModules);
-    final recommendationSummary = _buildRecommendationSummary(featureModules, currentRecommendations);
+    final recommendationSummary = _buildRecommendationSummary(
+      featureModules,
+      currentRecommendations,
+    );
     final searchSummary = _buildSearchSummary(featureModules);
     final moduleHealth = _buildModuleHealth(featureModules);
 
@@ -44,13 +50,19 @@ class KnightContextService {
     );
   }
 
-  KnightAnalyticsSummary _buildAnalyticsSummary(List<KnightFeatureModule> featureModules) {
-    final analyticsProviders = featureModules.where((module) => module.analyticsProvider != null).length;
+  KnightAnalyticsSummary _buildAnalyticsSummary(
+    List<KnightFeatureModule> featureModules,
+  ) {
+    final analyticsProviders = featureModules
+        .where((module) => module.analyticsProvider != null)
+        .length;
     return KnightAnalyticsSummary(
       analyticsProviderCount: analyticsProviders,
       snapshotsPlaceholder: 'Analytics will appear here as data is collected',
-      weeklySummaryPlaceholder: 'Your weekly trend will appear after the first activity log',
-      monthlySummaryPlaceholder: 'Your monthly summary will appear after enough activity is captured',
+      weeklySummaryPlaceholder:
+          'Your weekly trend will appear after the first activity log',
+      monthlySummaryPlaceholder:
+          'Your monthly summary will appear after enough activity is captured',
     );
   }
 
@@ -58,7 +70,9 @@ class KnightContextService {
     List<KnightFeatureModule> featureModules,
     List<KnightRecommendation> currentRecommendations,
   ) {
-    final recommendationProviders = featureModules.where((module) => module.recommendationProvider != null).length;
+    final recommendationProviders = featureModules
+        .where((module) => module.recommendationProvider != null)
+        .length;
     return KnightRecommendationSummary(
       recommendationProviderCount: recommendationProviders,
       recommendationCount: currentRecommendations.length,
@@ -68,8 +82,12 @@ class KnightContextService {
     );
   }
 
-  KnightSearchSummary _buildSearchSummary(List<KnightFeatureModule> featureModules) {
-    final searchProviders = featureModules.where((module) => module.searchProvider != null).length;
+  KnightSearchSummary _buildSearchSummary(
+    List<KnightFeatureModule> featureModules,
+  ) {
+    final searchProviders = featureModules
+        .where((module) => module.searchProvider != null)
+        .length;
     return KnightSearchSummary(
       searchProviderCount: searchProviders,
       indexedModules: featureModules.length,
@@ -77,7 +95,9 @@ class KnightContextService {
     );
   }
 
-  List<KnightModuleHealth> _buildModuleHealth(List<KnightFeatureModule> featureModules) {
+  List<KnightModuleHealth> _buildModuleHealth(
+    List<KnightFeatureModule> featureModules,
+  ) {
     return featureModules
         .map(
           (module) => KnightModuleHealth(
@@ -103,7 +123,9 @@ class KnightContextService {
       searchProviderCount: module.searchProvider != null ? 1 : 0,
       analyticsProviderCount: module.analyticsProvider != null ? 1 : 0,
       scoreProviderCount: module.scoreProvider != null ? 1 : 0,
-      recommendationProviderCount: module.recommendationProvider != null ? 1 : 0,
+      recommendationProviderCount: module.recommendationProvider != null
+          ? 1
+          : 0,
       loaded: module.state.isEnabled,
       available: module.state.isAvailable,
       healthy: module.state.isEnabled && module.state.isAvailable,
@@ -116,7 +138,8 @@ class KnightContextService {
     return const KnightFitnessSummary(
       gymProfileExists: false,
       equipmentCount: 0,
-      capabilityPlaceholder: 'Fitness readiness will appear after you log a workout',
+      capabilityPlaceholder:
+          'Fitness readiness will appear after you log a workout',
       workoutPlaceholder: 'No workouts recorded yet',
     );
   }
@@ -138,7 +161,8 @@ class KnightContextService {
       calls: 0,
       chats: 0,
       dailyTarget: 0,
-      productivityPlaceholder: 'Work insights will appear after your first session',
+      productivityPlaceholder:
+          'Work insights will appear after your first session',
     );
   }
 }

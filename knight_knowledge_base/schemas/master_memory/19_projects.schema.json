@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://knight.os/schemas/master_memory/19_projects.schema.json",
+  "title": "Domain 19: Projects",
+  "type": "object",
+  "properties": {
+    "metadata": { "$ref": "../core/amu_metadata.schema.json" },
+    "content": {
+      "type": "object",
+      "properties": {
+        "projectName": { "type": "string" },
+        "objective": { "type": "string" },
+        "status": { "type": "string", "enum": ["idea", "active", "on_hold", "completed", "archived"] },
+        "progress": { "type": "number", "minimum": 0, "maximum": 100 },
+        "resources": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["projectName", "status"]
+    }
+  },
+  "required": ["metadata", "content"]
+}

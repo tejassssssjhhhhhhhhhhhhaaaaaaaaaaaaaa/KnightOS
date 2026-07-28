@@ -3,7 +3,8 @@ import '../storage/local_database.dart';
 import '../storage/storage_keys.dart';
 
 class FitnessRepository {
-  FitnessRepository({LocalDatabase? localDatabase}) : _database = localDatabase ?? const LocalDatabase();
+  FitnessRepository({LocalDatabase? localDatabase})
+    : _database = localDatabase ?? const LocalDatabase();
 
   final LocalDatabase _database;
 
@@ -13,7 +14,9 @@ class FitnessRepository {
       return <WorkoutSession>[];
     }
 
-    return decoded.map((item) => WorkoutSession.fromJson(item as Map<String, Object?>)).toList(growable: false);
+    return decoded
+        .map((item) => WorkoutSession.fromJson(item as Map<String, Object?>))
+        .toList(growable: false);
   }
 
   Future<void> saveSessions(List<WorkoutSession> sessions) async {

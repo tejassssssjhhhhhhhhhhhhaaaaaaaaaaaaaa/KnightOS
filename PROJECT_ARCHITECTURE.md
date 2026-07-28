@@ -1,24 +1,41 @@
-# Project Architecture
+# KnightOS v1 Architecture
 
 ## Overview
-KnightOS is a Flutter-based personal operating system app with onboarding, authentication, dashboard and feature trackers, settings, and OTA update support.
+KnightOS is a high-performance personal operating system built with Flutter. It features a modular architecture designed for local-first intelligence, premium aesthetics, and cross-platform extensibility.
 
-## Architecture layers
-- App layer: routing, shell navigation, screen composition, and high-level UI state.
-- Core layer: repositories, storage, router, theme, authentication, and update services.
-- Feature layer: vertical modules such as finance, fitness, sleep, work, onboarding, and learning.
+## Architecture Layers
 
-## State and navigation
-- Riverpod is used for provider-based state and UI-facing async state.
-- GoRouter handles application navigation and route guards.
-- Screens and providers interact with repositories and storage helpers rather than directly talking to platform APIs.
+### 1. Presentation Layer (App & Features)
+- **Screens**: Composed using `KnightPageScaffold` for consistent layout and constraints.
+- **Controllers**: Implemented as Riverpod `AsyncNotifier`s. They manage module-specific state and handle user interactions.
+- **Widgets**: Atomic, reusable components (e.g., `FocusCard`, `RecoveryCard`, `ChatBubble`) following the KnightOS Design System.
 
-## Data flow
-1. Screens render from provider state.
-2. Providers or controllers call repositories or storage services.
-3. Storage services persist JSON through local file storage and secure storage.
-4. The UI updates after providers refresh state.
+### 2. Domain Layer
+- **Models**: Immutable data classes with JSON serialization and `copyWith` support.
+- **Repository Interfaces**: Define the contract for data access, decoupling business logic from persistence implementations.
+- **State Classes**: Represent the reactive state of each module (e.g., `KnightState`, `MoneyState`).
 
-## Update flow
-- The OTA path uses a GitHub Releases provider and an Android installer flow.
-- The update screen must refresh package info and GitHub data on each open and refresh event.
+### 3. Data Layer (Core & Internal)
+- **Repositories**: Concrete implementations of domain interfaces. They serve as the single source of truth for modules.
+- **Storage Engines**: 
+    - `LocalDatabase`: Handles JSON-based file storage for simple metrics and logs.
+    - `DriftStorageEngine`: High-performance SQLite-backed persistence for complex relational data (e.g., User Profile, Work Sessions).
+    - `SecureStorage`: Manages sensitive authentication tokens and account secrets.
+
+## Module Overview
+
+| Module | Purpose | Key Components |
+| :--- | :--- | :--- |
+| **Focus** | Daily priority tracking | `FocusController`, `LocalFocusRepository` |
+| **Recovery** | Health and readiness metrics | `RecoveryController`, `LocalRecoveryRepository` |
+| **Money** | Financial dashboard | `MoneyController`, `LocalMoneyRepository` |
+| **Upcoming** | Planning and scheduling | `UpcomingController`, `LocalUpcomingRepository` |
+| **Knight** | Central AI assistant foundation | `KnightController`, `LocalKnightRepository`, `AiProvider` interface |
+| **Timeline** | Chronological life history | `TimelineController`, `LocalTimelineRepository` |
+
+## Design Principles
+- **Repository Pattern**: Strict separation between data sourcing and business logic.
+- **Unidirectional Data Flow**: State flows from Repositories -> Controllers -> UI. Events flow from UI -> Controllers -> Repositories.
+- **Dependency Injection**: Orchestrated via Riverpod providers to ensure testability and clean lifecycle management.
+- **Local-First**: All core features function without an internet connection, utilizing high-performance local storage.
+- **Future-Proofing**: Explicit extension points for AI intelligence, semantic search, and cloud synchronization.

@@ -4,7 +4,8 @@ import '../domain/planned_trip.dart';
 import '../domain/travel_place.dart';
 
 class TravelStorage {
-  TravelStorage({LocalDatabase? localDatabase}) : _database = localDatabase ?? const LocalDatabase();
+  TravelStorage({LocalDatabase? localDatabase})
+    : _database = localDatabase ?? const LocalDatabase();
 
   final LocalDatabase _database;
   static const String _travelStateFile = 'travel_module_state.json';
@@ -34,7 +35,9 @@ class TravelStorage {
         if (item is Map<String, Object?>) {
           plannedTrips.add(PlannedTrip.fromJson(item));
         } else if (item is Map) {
-          plannedTrips.add(PlannedTrip.fromJson(Map<String, Object?>.from(item)));
+          plannedTrips.add(
+            PlannedTrip.fromJson(Map<String, Object?>.from(item)),
+          );
         }
       }
     }
@@ -42,7 +45,9 @@ class TravelStorage {
     return TravelModuleState(
       places: places,
       plannedTrips: plannedTrips,
-      searchQuery: decoded['searchQuery'] is String ? decoded['searchQuery'] as String : '',
+      searchQuery: decoded['searchQuery'] is String
+          ? decoded['searchQuery'] as String
+          : '',
     );
   }
 
@@ -52,6 +57,9 @@ class TravelStorage {
       'plannedTrips': state.plannedTrips.map((trip) => trip.toJson()).toList(),
       'searchQuery': state.searchQuery,
     };
-    await _database.writeJson(_travelStateFile, Map<String, dynamic>.from(payload));
+    await _database.writeJson(
+      _travelStateFile,
+      Map<String, dynamic>.from(payload),
+    );
   }
 }

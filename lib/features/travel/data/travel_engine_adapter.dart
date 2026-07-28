@@ -1,10 +1,10 @@
-import '../../../core/engine/analytics_models.dart';
-import '../../../core/engine/engine_interfaces.dart';
-import '../../../core/engine/engine_types.dart';
-import '../../../core/engine/feature_interfaces.dart';
-import '../../../core/engine/recommendation_models.dart';
-import '../../../core/engine/scoring_models.dart';
-import '../../../core/engine/search_models.dart';
+import '../../../core/platform/engine/analytics_models.dart';
+import '../../../core/platform/engine/engine_interfaces.dart';
+import '../../../core/platform/engine/engine_types.dart';
+import '../../../core/platform/engine/feature_interfaces.dart';
+import '../../../core/platform/engine/recommendation_models.dart';
+import '../../../core/platform/engine/scoring_models.dart';
+import '../../../core/platform/engine/search_models.dart';
 import '../data/travel_module_state.dart';
 import '../domain/travel_place.dart';
 
@@ -49,7 +49,8 @@ class TravelSearchProvider implements KnightFeatureSearchProvider {
             id: place.id,
             moduleId: moduleId,
             title: place.name,
-            summary: '${place.city.isNotEmpty ? place.city : place.state} · ${place.status.label}',
+            summary:
+                '${place.city.isNotEmpty ? place.city : place.state} · ${place.status.label}',
             metadata: <String, String>{
               'country': place.country,
               'state': place.state,
@@ -60,7 +61,12 @@ class TravelSearchProvider implements KnightFeatureSearchProvider {
         )
         .toList();
 
-    return KnightSearchPage(items: items, page: query.page, pageSize: query.pageSize, hasMore: false);
+    return KnightSearchPage(
+      items: items,
+      page: query.page,
+      pageSize: query.pageSize,
+      hasMore: false,
+    );
   }
 
   @override
@@ -122,13 +128,47 @@ class TravelAnalyticsProvider implements KnightFeatureAnalyticsProvider {
   @override
   Future<List<KnightMetric>> requestMetrics() async {
     return <KnightMetric>[
-      KnightMetric(name: 'Countries visited', value: 0.0, timestamp: DateTime.now()),
-      KnightMetric(name: 'States visited', value: 0.0, timestamp: DateTime.now()),
-      KnightMetric(name: 'Cities visited', value: 0.0, timestamp: DateTime.now()),
-      KnightMetric(name: 'Total trips', value: state.plannedTrips.length.toDouble(), timestamp: DateTime.now()),
-      KnightMetric(name: 'Wishlist count', value: state.places.where((place) => place.status == TravelPlaceStatus.wishlist).length.toDouble(), timestamp: DateTime.now()),
-      KnightMetric(name: 'Planned trips', value: state.places.where((place) => place.status == TravelPlaceStatus.planned).length.toDouble(), timestamp: DateTime.now()),
-      KnightMetric(name: 'Travel frequency', value: 0.0, timestamp: DateTime.now()),
+      KnightMetric(
+        name: 'Countries visited',
+        value: 0.0,
+        timestamp: DateTime.now(),
+      ),
+      KnightMetric(
+        name: 'States visited',
+        value: 0.0,
+        timestamp: DateTime.now(),
+      ),
+      KnightMetric(
+        name: 'Cities visited',
+        value: 0.0,
+        timestamp: DateTime.now(),
+      ),
+      KnightMetric(
+        name: 'Total trips',
+        value: state.plannedTrips.length.toDouble(),
+        timestamp: DateTime.now(),
+      ),
+      KnightMetric(
+        name: 'Wishlist count',
+        value: state.places
+            .where((place) => place.status == TravelPlaceStatus.wishlist)
+            .length
+            .toDouble(),
+        timestamp: DateTime.now(),
+      ),
+      KnightMetric(
+        name: 'Planned trips',
+        value: state.places
+            .where((place) => place.status == TravelPlaceStatus.planned)
+            .length
+            .toDouble(),
+        timestamp: DateTime.now(),
+      ),
+      KnightMetric(
+        name: 'Travel frequency',
+        value: 0.0,
+        timestamp: DateTime.now(),
+      ),
     ];
   }
 
@@ -138,7 +178,8 @@ class TravelAnalyticsProvider implements KnightFeatureAnalyticsProvider {
   }
 }
 
-class TravelRecommendationProvider implements KnightFeatureRecommendationProvider {
+class TravelRecommendationProvider
+    implements KnightFeatureRecommendationProvider {
   @override
   String get id => 'travel.recommendation';
 
@@ -157,13 +198,18 @@ class TravelRecommendationProvider implements KnightFeatureRecommendationProvide
       KnightRecommendation(
         id: 'travel-next-step',
         title: 'Plan a next getaway',
-        description: 'Use the travel workspace to capture wishlist places and future trips.',
+        description:
+            'Use the travel workspace to capture wishlist places and future trips.',
         category: KnightRecommendationCategory.travel,
         priority: KnightRecommendationPriority.medium,
         confidence: const KnightRecommendationConfidence(value: 0.6),
-        reason: const KnightRecommendationReason(summary: 'A place is waiting to be visited.'),
+        reason: const KnightRecommendationReason(
+          summary: 'A place is waiting to be visited.',
+        ),
         source: const KnightRecommendationSource(name: 'travel'),
-        action: const KnightRecommendationAction(label: 'Review upcoming places'),
+        action: const KnightRecommendationAction(
+          label: 'Review upcoming places',
+        ),
         timestamp: DateTime.now(),
       ),
     ];
@@ -172,35 +218,52 @@ class TravelRecommendationProvider implements KnightFeatureRecommendationProvide
 
 class TravelFeatureModule implements KnightFeatureModule {
   TravelFeatureModule({required this._state})
-      : metadata = const KnightModuleMetadata(
-          id: 'travel',
-          name: 'Travel',
-          description: 'Travel planning and place tracking for the KnightOS engine platform.',
-          version: '0.1.0',
-          category: 'travel',
-          tags: <String>['travel', 'places', 'trip-planning'],
+    : metadata = const KnightModuleMetadata(
+        id: 'travel',
+        name: 'Travel',
+        description:
+            'Travel planning and place tracking for the KnightOS engine platform.',
+        version: '0.1.0',
+        category: 'travel',
+        tags: <String>['travel', 'places', 'trip-planning'],
+      ),
+      capabilities = const <KnightModuleCapability>[
+        KnightModuleCapability(
+          id: 'search',
+          name: 'Search',
+          description: 'Search places by country, state, city or landmark.',
         ),
-        capabilities = const <KnightModuleCapability>[
-          KnightModuleCapability(id: 'search', name: 'Search', description: 'Search places by country, state, city or landmark.'),
-          KnightModuleCapability(id: 'analytics', name: 'Analytics', description: 'Expose travel statistics placeholders.'),
-          KnightModuleCapability(id: 'scoring', name: 'Scoring', description: 'Expose travel scoring placeholders.'),
-          KnightModuleCapability(id: 'recommendations', name: 'Recommendations', description: 'Expose travel recommendation placeholders.'),
-        ],
-        configuration = const KnightModuleConfiguration(
-          moduleId: 'travel',
-          enabled: true,
-          offlineEnabled: true,
-          aiAssistedEnabled: false,
-          searchEnabled: true,
+        KnightModuleCapability(
+          id: 'analytics',
+          name: 'Analytics',
+          description: 'Expose travel statistics placeholders.',
         ),
-        state = const KnightModuleState(
-          moduleId: 'travel',
-          isEnabled: true,
-          isAvailable: true,
-          isOnline: true,
-          isOfflineCapable: true,
-          isAiCapable: false,
-        ) {
+        KnightModuleCapability(
+          id: 'scoring',
+          name: 'Scoring',
+          description: 'Expose travel scoring placeholders.',
+        ),
+        KnightModuleCapability(
+          id: 'recommendations',
+          name: 'Recommendations',
+          description: 'Expose travel recommendation placeholders.',
+        ),
+      ],
+      configuration = const KnightModuleConfiguration(
+        moduleId: 'travel',
+        enabled: true,
+        offlineEnabled: true,
+        aiAssistedEnabled: false,
+        searchEnabled: true,
+      ),
+      state = const KnightModuleState(
+        moduleId: 'travel',
+        isEnabled: true,
+        isAvailable: true,
+        isOnline: true,
+        isOfflineCapable: true,
+        isAiCapable: false,
+      ) {
     searchProvider = TravelSearchProvider(state: _state);
     analyticsProvider = TravelAnalyticsProvider(state: _state);
     scoreProvider = TravelScoreProvider();
@@ -245,7 +308,8 @@ class TravelFeatureModule implements KnightFeatureModule {
   @override
   String get name => metadata.name;
 
-  KnightModuleLifecycleState _lifecycleState = KnightModuleLifecycleState.bootstrapping;
+  KnightModuleLifecycleState _lifecycleState =
+      KnightModuleLifecycleState.bootstrapping;
 
   @override
   KnightModuleLifecycleState get lifecycleState => _lifecycleState;

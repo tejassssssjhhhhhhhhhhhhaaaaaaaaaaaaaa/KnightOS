@@ -77,18 +77,30 @@ class FinanceTransactionMetrics {
   final String topSpendingCategory;
   final double monthlyTrend;
 
-  factory FinanceTransactionMetrics.fromTransactions(List<FinanceTransaction> transactions) {
-    final income = transactions.where((transaction) => transaction.isIncome).fold<double>(0, (sum, item) => sum + item.amount);
-    final expense = transactions.where((transaction) => !transaction.isIncome).fold<double>(0, (sum, item) => sum + item.amount);
+  factory FinanceTransactionMetrics.fromTransactions(
+    List<FinanceTransaction> transactions,
+  ) {
+    final income = transactions
+        .where((transaction) => transaction.isIncome)
+        .fold<double>(0, (sum, item) => sum + item.amount);
+    final expense = transactions
+        .where((transaction) => !transaction.isIncome)
+        .fold<double>(0, (sum, item) => sum + item.amount);
     final spendingByCategory = <String, double>{};
 
     for (final transaction in transactions.where((item) => !item.isIncome)) {
-      spendingByCategory.update(transaction.category, (value) => value + transaction.amount, ifAbsent: () => transaction.amount);
+      spendingByCategory.update(
+        transaction.category,
+        (value) => value + transaction.amount,
+        ifAbsent: () => transaction.amount,
+      );
     }
 
     final topSpendingCategory = spendingByCategory.entries.isEmpty
         ? 'No expenses'
-        : spendingByCategory.entries.reduce((a, b) => a.value >= b.value ? a : b).key;
+        : spendingByCategory.entries
+              .reduce((a, b) => a.value >= b.value ? a : b)
+              .key;
 
     return FinanceTransactionMetrics(
       totalIncome: income,

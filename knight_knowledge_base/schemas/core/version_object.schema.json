@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://knight.os/schemas/core/version_object.schema.json",
+  "title": "Version Object",
+  "description": "Temporal metadata for tracking the evolution of a fact.",
+  "type": "object",
+  "properties": {
+    "currentVersion": { "type": "integer", "minimum": 1 },
+    "previousVersionId": { "type": ["string", "null"], "format": "uuid" },
+    "changeType": {
+      "type": "string",
+      "enum": ["creation", "correction", "evolution", "refinement", "conflict_resolution"]
+    },
+    "reasoning": { "type": "string" },
+    "delta": {
+      "type": "object",
+      "description": "JSON Patch or simple Map of changed fields."
+    }
+  },
+  "required": ["currentVersion", "changeType"]
+}

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../app/widgets/knight_page_scaffold.dart';
-import '../../../core/engine/analytics_models.dart';
-import '../../../core/engine/search_models.dart';
+import '../../../core/platform/engine/analytics_models.dart';
+import '../../../core/platform/engine/search_models.dart';
 import '../data/fitness_engine_adapter.dart';
 import '../data/fitness_module_state.dart';
 import '../data/fitness_storage.dart';
@@ -72,7 +72,9 @@ class _FitnessTrackerScreenState extends State<FitnessTrackerScreen> {
       nextIds.add(equipmentId);
     }
 
-    final nextState = _state.copyWith(availableEquipmentIds: nextIds.toList()..sort());
+    final nextState = _state.copyWith(
+      availableEquipmentIds: nextIds.toList()..sort(),
+    );
     setState(() {
       _state = nextState;
       _module = FitnessFeatureModule(
@@ -149,7 +151,12 @@ class _FitnessTrackerScreenState extends State<FitnessTrackerScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Gym Profile', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+            Text(
+              'Gym Profile',
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+            ),
             const SizedBox(height: 12),
             TextField(
               controller: _gymNameController,
@@ -159,8 +166,16 @@ class _FitnessTrackerScreenState extends State<FitnessTrackerScreen> {
             const SizedBox(height: 12),
             SegmentedButton<GymProfileType>(
               segments: const <ButtonSegment<GymProfileType>>[
-                ButtonSegment(value: GymProfileType.home, label: Text('Home'), icon: Icon(Icons.home_outlined)),
-                ButtonSegment(value: GymProfileType.commercial, label: Text('Commercial'), icon: Icon(Icons.business_outlined)),
+                ButtonSegment(
+                  value: GymProfileType.home,
+                  label: Text('Home'),
+                  icon: Icon(Icons.home_outlined),
+                ),
+                ButtonSegment(
+                  value: GymProfileType.commercial,
+                  label: Text('Commercial'),
+                  icon: Icon(Icons.business_outlined),
+                ),
               ],
               selected: <GymProfileType>{_selectedGymType},
               onSelectionChanged: (selection) async {
@@ -209,7 +224,12 @@ class _FitnessTrackerScreenState extends State<FitnessTrackerScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Equipment Search', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+            Text(
+              'Equipment Search',
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+            ),
             const SizedBox(height: 12),
             SearchBar(
               controller: _searchController,
@@ -225,7 +245,9 @@ class _FitnessTrackerScreenState extends State<FitnessTrackerScreen> {
               runSpacing: 8,
               children: FitnessEquipmentCategory.values.map((category) {
                 final count = _module.searchProvider != null
-                    ? (FitnessEquipmentCatalog.items.where((equipment) => equipment.category == category).length)
+                    ? (FitnessEquipmentCatalog.items
+                          .where((equipment) => equipment.category == category)
+                          .length)
                     : 0;
                 return FilterChip(
                   label: Text('${category.label} ($count)'),
@@ -252,9 +274,17 @@ class _FitnessTrackerScreenState extends State<FitnessTrackerScreen> {
             Row(
               children: [
                 Expanded(
-                  child: Text('Equipment Library', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+                  child: Text(
+                    'Equipment Library',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
-                Text('${_state.availableEquipmentIds.length} available', style: Theme.of(context).textTheme.bodyMedium),
+                Text(
+                  '${_state.availableEquipmentIds.length} available',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
               ],
             ),
             const SizedBox(height: 12),
@@ -273,13 +303,18 @@ class _FitnessTrackerScreenState extends State<FitnessTrackerScreen> {
                 }
                 final items = snapshot.data?.items ?? <KnightSearchResult>[];
                 if (items.isEmpty) {
-                  return Text('No equipment matches your search yet.', style: Theme.of(context).textTheme.bodyMedium);
+                  return Text(
+                    'No equipment matches your search yet.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  );
                 }
 
                 final grouped = <String, List<KnightSearchResult>>{};
                 for (final item in items) {
                   final category = item.metadata['category'] ?? 'General';
-                  grouped.putIfAbsent(category, () => <KnightSearchResult>[]).add(item);
+                  grouped
+                      .putIfAbsent(category, () => <KnightSearchResult>[])
+                      .add(item);
                 }
 
                 return Column(
@@ -288,7 +323,8 @@ class _FitnessTrackerScreenState extends State<FitnessTrackerScreen> {
                       title: Text(entry.key),
                       subtitle: Text('${entry.value.length} item(s)'),
                       children: entry.value.map((result) {
-                        final isSelected = _state.availableEquipmentIds.contains(result.id);
+                        final isSelected = _state.availableEquipmentIds
+                            .contains(result.id);
                         return CheckboxListTile(
                           value: isSelected,
                           onChanged: (value) async {
@@ -318,7 +354,12 @@ class _FitnessTrackerScreenState extends State<FitnessTrackerScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Engine Analytics', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+            Text(
+              'Engine Analytics',
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+            ),
             const SizedBox(height: 12),
             FutureBuilder<List<KnightMetric>>(
               future: _module.analyticsProvider!.requestMetrics(),
@@ -339,9 +380,16 @@ class _FitnessTrackerScreenState extends State<FitnessTrackerScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(metric.name, style: Theme.of(context).textTheme.bodyMedium),
+                              Text(
+                                metric.name,
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
                               const SizedBox(height: 8),
-                              Text(metric.value.toString(), style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                              Text(
+                                metric.value.toString(),
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(fontWeight: FontWeight.w700),
+                              ),
                             ],
                           ),
                         ),

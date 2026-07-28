@@ -14,10 +14,10 @@ class TravelModuleState {
   final String searchQuery;
 
   factory TravelModuleState.initial() => const TravelModuleState(
-        places: <TravelPlace>[],
-        plannedTrips: <PlannedTrip>[],
-        searchQuery: '',
-      );
+    places: <TravelPlace>[],
+    plannedTrips: <PlannedTrip>[],
+    searchQuery: '',
+  );
 
   TravelModuleState copyWith({
     List<TravelPlace>? places,

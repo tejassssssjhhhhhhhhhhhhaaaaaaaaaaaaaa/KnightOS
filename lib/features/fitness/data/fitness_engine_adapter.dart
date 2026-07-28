@@ -1,10 +1,10 @@
-import '../../../core/engine/analytics_models.dart';
-import '../../../core/engine/engine_interfaces.dart';
-import '../../../core/engine/engine_types.dart';
-import '../../../core/engine/feature_interfaces.dart';
-import '../../../core/engine/recommendation_models.dart';
-import '../../../core/engine/scoring_models.dart';
-import '../../../core/engine/search_models.dart';
+import '../../../core/platform/engine/analytics_models.dart';
+import '../../../core/platform/engine/engine_interfaces.dart';
+import '../../../core/platform/engine/engine_types.dart';
+import '../../../core/platform/engine/feature_interfaces.dart';
+import '../../../core/platform/engine/recommendation_models.dart';
+import '../../../core/platform/engine/scoring_models.dart';
+import '../../../core/platform/engine/search_models.dart';
 import '../domain/equipment_catalog.dart';
 import 'fitness_module_state.dart';
 
@@ -28,7 +28,8 @@ class FitnessSearchProvider implements KnightFeatureSearchProvider {
   Future<KnightSearchPage> search(KnightSearchQuery query) async {
     final normalized = query.text.trim().toLowerCase();
     final filtered = catalog.where((equipment) {
-      final textMatches = normalized.isEmpty ||
+      final textMatches =
+          normalized.isEmpty ||
           equipment.name.toLowerCase().contains(normalized) ||
           equipment.description.toLowerCase().contains(normalized) ||
           equipment.category.label.toLowerCase().contains(normalized) ||
@@ -38,11 +39,14 @@ class FitnessSearchProvider implements KnightFeatureSearchProvider {
         final value = filter.value.toLowerCase();
         switch (filter.operator) {
           case KnightSearchFilterOperator.equals:
-            return field == 'category' && equipment.category.label.toLowerCase() == value;
+            return field == 'category' &&
+                equipment.category.label.toLowerCase() == value;
           case KnightSearchFilterOperator.notEquals:
-            return field != 'category' || equipment.category.label.toLowerCase() != value;
+            return field != 'category' ||
+                equipment.category.label.toLowerCase() != value;
           case KnightSearchFilterOperator.contains:
-            return field == 'name' && equipment.name.toLowerCase().contains(value);
+            return field == 'name' &&
+                equipment.name.toLowerCase().contains(value);
           case KnightSearchFilterOperator.greaterThan:
             return false;
           case KnightSearchFilterOperator.lessThan:
@@ -64,13 +68,20 @@ class FitnessSearchProvider implements KnightFeatureSearchProvider {
             summary: equipment.description,
             metadata: <String, String>{
               'category': equipment.category.label,
-              'available': state.availableEquipmentIds.contains(equipment.id) ? 'true' : 'false',
+              'available': state.availableEquipmentIds.contains(equipment.id)
+                  ? 'true'
+                  : 'false',
             },
           ),
         )
         .toList();
 
-    return KnightSearchPage(items: items, page: query.page, pageSize: query.pageSize, hasMore: false);
+    return KnightSearchPage(
+      items: items,
+      page: query.page,
+      pageSize: query.pageSize,
+      hasMore: false,
+    );
   }
 
   @override
@@ -80,7 +91,11 @@ class FitnessSearchProvider implements KnightFeatureSearchProvider {
       return <String>[];
     }
     return catalog
-        .where((equipment) => equipment.name.toLowerCase().contains(normalized) || equipment.category.label.toLowerCase().contains(normalized))
+        .where(
+          (equipment) =>
+              equipment.name.toLowerCase().contains(normalized) ||
+              equipment.category.label.toLowerCase().contains(normalized),
+        )
         .map((equipment) => equipment.name)
         .take(6)
         .toList();
@@ -135,9 +150,21 @@ class FitnessAnalyticsProvider implements KnightFeatureAnalyticsProvider {
   Future<List<KnightMetric>> requestMetrics() async {
     final availableCount = state.availableEquipmentIds.length.toDouble();
     return <KnightMetric>[
-      KnightMetric(name: 'Equipment Count', value: availableCount, timestamp: DateTime.now()),
-      KnightMetric(name: 'Category Distribution', value: availableCount, timestamp: DateTime.now()),
-      KnightMetric(name: 'Workout Capability Score', value: 0.0, timestamp: DateTime.now()),
+      KnightMetric(
+        name: 'Equipment Count',
+        value: availableCount,
+        timestamp: DateTime.now(),
+      ),
+      KnightMetric(
+        name: 'Category Distribution',
+        value: availableCount,
+        timestamp: DateTime.now(),
+      ),
+      KnightMetric(
+        name: 'Workout Capability Score',
+        value: 0.0,
+        timestamp: DateTime.now(),
+      ),
     ];
   }
 
@@ -148,7 +175,8 @@ class FitnessAnalyticsProvider implements KnightFeatureAnalyticsProvider {
 }
 
 /// Recommendation provider for fitness module.
-class FitnessRecommendationProvider implements KnightFeatureRecommendationProvider {
+class FitnessRecommendationProvider
+    implements KnightFeatureRecommendationProvider {
   @override
   String get id => 'fitness.recommendation';
 
@@ -170,36 +198,56 @@ class FitnessRecommendationProvider implements KnightFeatureRecommendationProvid
 /// Engine-facing feature module implementation for fitness.
 class FitnessFeatureModule implements KnightFeatureModule {
   FitnessFeatureModule({required this._fitnessState, required this._catalog})
-      : metadata = const KnightModuleMetadata(
-          id: 'fitness',
-          name: 'Fitness',
-          description: 'Equipment-focused fitness module for the KnightOS engine platform.',
-          version: '0.1.0',
-          category: 'fitness',
-          tags: <String>['fitness', 'equipment', 'gym'],
+    : metadata = const KnightModuleMetadata(
+        id: 'fitness',
+        name: 'Fitness',
+        description:
+            'Equipment-focused fitness module for the KnightOS engine platform.',
+        version: '0.1.0',
+        category: 'fitness',
+        tags: <String>['fitness', 'equipment', 'gym'],
+      ),
+      capabilities = const <KnightModuleCapability>[
+        KnightModuleCapability(
+          id: 'search',
+          name: 'Search',
+          description: 'Search fitness equipment by text and category.',
         ),
-        capabilities = const <KnightModuleCapability>[
-          KnightModuleCapability(id: 'search', name: 'Search', description: 'Search fitness equipment by text and category.'),
-          KnightModuleCapability(id: 'scoring', name: 'Scoring', description: 'Expose fitness scoring placeholders.'),
-          KnightModuleCapability(id: 'analytics', name: 'Analytics', description: 'Expose fitness analytics placeholders.'),
-          KnightModuleCapability(id: 'recommendations', name: 'Recommendations', description: 'Expose fitness recommendation placeholders.'),
-        ],
-        configuration = const KnightModuleConfiguration(
-          moduleId: 'fitness',
-          enabled: true,
-          offlineEnabled: true,
-          aiAssistedEnabled: false,
-          searchEnabled: true,
+        KnightModuleCapability(
+          id: 'scoring',
+          name: 'Scoring',
+          description: 'Expose fitness scoring placeholders.',
         ),
-        state = const KnightModuleState(
-          moduleId: 'fitness',
-          isEnabled: true,
-          isAvailable: true,
-          isOnline: true,
-          isOfflineCapable: true,
-          isAiCapable: false,
-        ) {
-    searchProvider = FitnessSearchProvider(catalog: _catalog, state: _fitnessState);
+        KnightModuleCapability(
+          id: 'analytics',
+          name: 'Analytics',
+          description: 'Expose fitness analytics placeholders.',
+        ),
+        KnightModuleCapability(
+          id: 'recommendations',
+          name: 'Recommendations',
+          description: 'Expose fitness recommendation placeholders.',
+        ),
+      ],
+      configuration = const KnightModuleConfiguration(
+        moduleId: 'fitness',
+        enabled: true,
+        offlineEnabled: true,
+        aiAssistedEnabled: false,
+        searchEnabled: true,
+      ),
+      state = const KnightModuleState(
+        moduleId: 'fitness',
+        isEnabled: true,
+        isAvailable: true,
+        isOnline: true,
+        isOfflineCapable: true,
+        isAiCapable: false,
+      ) {
+    searchProvider = FitnessSearchProvider(
+      catalog: _catalog,
+      state: _fitnessState,
+    );
     scoreProvider = FitnessScoreProvider();
     analyticsProvider = FitnessAnalyticsProvider(state: _fitnessState);
     recommendationProvider = FitnessRecommendationProvider();
@@ -244,7 +292,8 @@ class FitnessFeatureModule implements KnightFeatureModule {
   @override
   String get name => metadata.name;
 
-  KnightModuleLifecycleState _lifecycleState = KnightModuleLifecycleState.bootstrapping;
+  KnightModuleLifecycleState _lifecycleState =
+      KnightModuleLifecycleState.bootstrapping;
 
   @override
   KnightModuleLifecycleState get lifecycleState => _lifecycleState;

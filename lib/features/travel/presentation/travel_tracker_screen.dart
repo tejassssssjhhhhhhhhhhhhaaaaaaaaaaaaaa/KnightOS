@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../app/widgets/knight_page_scaffold.dart';
-import '../../../core/engine/analytics_models.dart';
-import '../../../core/engine/search_models.dart';
+import '../../../core/platform/engine/analytics_models.dart';
+import '../../../core/platform/engine/search_models.dart';
 import '../data/travel_engine_adapter.dart';
 import '../data/travel_module_state.dart';
 import '../data/travel_storage.dart';
@@ -19,7 +19,8 @@ class TravelTrackerScreen extends StatefulWidget {
 class _TravelTrackerScreenState extends State<TravelTrackerScreen> {
   final TravelStorage _storage = TravelStorage();
   final TextEditingController _searchController = TextEditingController();
-  final TextEditingController _tripDestinationController = TextEditingController();
+  final TextEditingController _tripDestinationController =
+      TextEditingController();
   final TextEditingController _tripMonthController = TextEditingController();
   final TextEditingController _tripBudgetController = TextEditingController();
   final TextEditingController _tripNotesController = TextEditingController();
@@ -27,7 +28,8 @@ class _TravelTrackerScreenState extends State<TravelTrackerScreen> {
   final TextEditingController _placeCountryController = TextEditingController();
   final TextEditingController _placeStateController = TextEditingController();
   final TextEditingController _placeCityController = TextEditingController();
-  final TextEditingController _placeDescriptionController = TextEditingController();
+  final TextEditingController _placeDescriptionController =
+      TextEditingController();
   final TextEditingController _placeNotesController = TextEditingController();
 
   late TravelModuleState _state;
@@ -130,9 +132,14 @@ class _TravelTrackerScreenState extends State<TravelTrackerScreen> {
     await _persistState();
   }
 
-  Future<void> _togglePlaceStatus(TravelPlace place, TravelPlaceStatus nextStatus) async {
+  Future<void> _togglePlaceStatus(
+    TravelPlace place,
+    TravelPlaceStatus nextStatus,
+  ) async {
     final updated = place.copyWith(status: nextStatus);
-    final nextPlaces = _state.places.map((entry) => entry.id == place.id ? updated : entry).toList();
+    final nextPlaces = _state.places
+        .map((entry) => entry.id == place.id ? updated : entry)
+        .toList();
     final nextState = _state.copyWith(places: nextPlaces);
     setState(() {
       _state = nextState;
@@ -141,9 +148,20 @@ class _TravelTrackerScreenState extends State<TravelTrackerScreen> {
     await _persistState();
   }
 
-  Future<void> _updatePlaceDetails(TravelPlace place, {String? notes, double? rating, bool? isFavorite}) async {
-    final updated = place.copyWith(notes: notes ?? place.notes, rating: rating ?? place.rating, isFavorite: isFavorite ?? place.isFavorite);
-    final nextPlaces = _state.places.map((entry) => entry.id == place.id ? updated : entry).toList();
+  Future<void> _updatePlaceDetails(
+    TravelPlace place, {
+    String? notes,
+    double? rating,
+    bool? isFavorite,
+  }) async {
+    final updated = place.copyWith(
+      notes: notes ?? place.notes,
+      rating: rating ?? place.rating,
+      isFavorite: isFavorite ?? place.isFavorite,
+    );
+    final nextPlaces = _state.places
+        .map((entry) => entry.id == place.id ? updated : entry)
+        .toList();
     final nextState = _state.copyWith(places: nextPlaces);
     setState(() {
       _state = nextState;
@@ -191,14 +209,22 @@ class _TravelTrackerScreenState extends State<TravelTrackerScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Interactive Travel Map', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+            Text(
+              'Interactive Travel Map',
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+            ),
             const SizedBox(height: 12),
             Container(
               height: 220,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(24),
                 gradient: LinearGradient(
-                  colors: [Theme.of(context).colorScheme.primaryContainer, Theme.of(context).colorScheme.secondaryContainer],
+                  colors: [
+                    Theme.of(context).colorScheme.primaryContainer,
+                    Theme.of(context).colorScheme.secondaryContainer,
+                  ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -208,9 +234,7 @@ class _TravelTrackerScreenState extends State<TravelTrackerScreen> {
                   Positioned.fill(
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(24),
-                      child: CustomPaint(
-                        painter: _WorldMapPainter(),
-                      ),
+                      child: CustomPaint(painter: _WorldMapPainter()),
                     ),
                   ),
                   Positioned(
@@ -226,7 +250,10 @@ class _TravelTrackerScreenState extends State<TravelTrackerScreen> {
                   Positioned(
                     bottom: 16,
                     left: 16,
-                    child: Text('World map preview · expandable for future regions', style: Theme.of(context).textTheme.bodySmall),
+                    child: Text(
+                      'World map preview · expandable for future regions',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
                   ),
                 ],
               ),
@@ -244,7 +271,12 @@ class _TravelTrackerScreenState extends State<TravelTrackerScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Place Search', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+            Text(
+              'Place Search',
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+            ),
             const SizedBox(height: 12),
             SearchBar(
               controller: _searchController,
@@ -257,7 +289,12 @@ class _TravelTrackerScreenState extends State<TravelTrackerScreen> {
             const SizedBox(height: 12),
             FutureBuilder<KnightSearchPage>(
               future: _module.searchProvider!.search(
-                KnightSearchQuery(moduleId: 'travel', text: _state.searchQuery, page: 0, pageSize: 20),
+                KnightSearchQuery(
+                  moduleId: 'travel',
+                  text: _state.searchQuery,
+                  page: 0,
+                  pageSize: 20,
+                ),
               ),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -265,12 +302,18 @@ class _TravelTrackerScreenState extends State<TravelTrackerScreen> {
                 }
                 final items = snapshot.data?.items ?? <KnightSearchResult>[];
                 if (items.isEmpty) {
-                  return Text('Start typing to discover places.', style: Theme.of(context).textTheme.bodyMedium);
+                  return Text(
+                    'Start typing to discover places.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  );
                 }
                 return Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: items.take(6).map((item) => Chip(label: Text(item.title))).toList(),
+                  children: items
+                      .take(6)
+                      .map((item) => Chip(label: Text(item.title)))
+                      .toList(),
                 );
               },
             ),
@@ -287,27 +330,82 @@ class _TravelTrackerScreenState extends State<TravelTrackerScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Capture a Place', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+            Text(
+              'Capture a Place',
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+            ),
             const SizedBox(height: 12),
             Wrap(
               spacing: 12,
               runSpacing: 12,
               children: [
-                SizedBox(width: 220, child: TextField(controller: _placeNameController, decoration: const InputDecoration(labelText: 'Place / landmark'))),
-                SizedBox(width: 220, child: TextField(controller: _placeCountryController, decoration: const InputDecoration(labelText: 'Country'))),
-                SizedBox(width: 220, child: TextField(controller: _placeStateController, decoration: const InputDecoration(labelText: 'State'))),
-                SizedBox(width: 220, child: TextField(controller: _placeCityController, decoration: const InputDecoration(labelText: 'City'))),
-                SizedBox(width: 220, child: TextField(controller: _placeDescriptionController, decoration: const InputDecoration(labelText: 'Description'))),
-                SizedBox(width: 220, child: TextField(controller: _placeNotesController, decoration: const InputDecoration(labelText: 'Notes'))),
+                SizedBox(
+                  width: 220,
+                  child: TextField(
+                    controller: _placeNameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Place / landmark',
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: 220,
+                  child: TextField(
+                    controller: _placeCountryController,
+                    decoration: const InputDecoration(labelText: 'Country'),
+                  ),
+                ),
+                SizedBox(
+                  width: 220,
+                  child: TextField(
+                    controller: _placeStateController,
+                    decoration: const InputDecoration(labelText: 'State'),
+                  ),
+                ),
+                SizedBox(
+                  width: 220,
+                  child: TextField(
+                    controller: _placeCityController,
+                    decoration: const InputDecoration(labelText: 'City'),
+                  ),
+                ),
+                SizedBox(
+                  width: 220,
+                  child: TextField(
+                    controller: _placeDescriptionController,
+                    decoration: const InputDecoration(labelText: 'Description'),
+                  ),
+                ),
+                SizedBox(
+                  width: 220,
+                  child: TextField(
+                    controller: _placeNotesController,
+                    decoration: const InputDecoration(labelText: 'Notes'),
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 12),
             Wrap(
               spacing: 8,
               children: [
-                FilledButton.icon(onPressed: () => _addPlace(TravelPlaceStatus.visited), icon: const Icon(Icons.check_circle_outline), label: const Text('Visited')),
-                OutlinedButton.icon(onPressed: () => _addPlace(TravelPlaceStatus.wishlist), icon: const Icon(Icons.favorite_border), label: const Text('Wishlist')),
-                OutlinedButton.icon(onPressed: () => _addPlace(TravelPlaceStatus.planned), icon: const Icon(Icons.event_available_outlined), label: const Text('Planned')),
+                FilledButton.icon(
+                  onPressed: () => _addPlace(TravelPlaceStatus.visited),
+                  icon: const Icon(Icons.check_circle_outline),
+                  label: const Text('Visited'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () => _addPlace(TravelPlaceStatus.wishlist),
+                  icon: const Icon(Icons.favorite_border),
+                  label: const Text('Wishlist'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () => _addPlace(TravelPlaceStatus.planned),
+                  icon: const Icon(Icons.event_available_outlined),
+                  label: const Text('Planned'),
+                ),
               ],
             ),
           ],
@@ -323,10 +421,18 @@ class _TravelTrackerScreenState extends State<TravelTrackerScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Places', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+            Text(
+              'Places',
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+            ),
             const SizedBox(height: 12),
             if (_state.places.isEmpty)
-              Text('No places added yet.', style: Theme.of(context).textTheme.bodyMedium)
+              Text(
+                'No places added yet.',
+                style: Theme.of(context).textTheme.bodyMedium,
+              )
             else
               ExpansionTile(
                 title: Text('Saved places (${_state.places.length})'),
@@ -334,17 +440,35 @@ class _TravelTrackerScreenState extends State<TravelTrackerScreen> {
                   return Card(
                     child: ListTile(
                       title: Text(place.name),
-                      subtitle: Text('${place.country} · ${place.state} · ${place.city}'),
+                      subtitle: Text(
+                        '${place.country} · ${place.state} · ${place.city}',
+                      ),
                       trailing: Wrap(
                         spacing: 4,
                         children: [
-                          IconButton(icon: const Icon(Icons.favorite_border), onPressed: () => _updatePlaceDetails(place, isFavorite: !place.isFavorite)),
+                          IconButton(
+                            icon: const Icon(Icons.favorite_border),
+                            onPressed: () => _updatePlaceDetails(
+                              place,
+                              isFavorite: !place.isFavorite,
+                            ),
+                          ),
                           PopupMenuButton<TravelPlaceStatus>(
-                            onSelected: (status) => _togglePlaceStatus(place, status),
+                            onSelected: (status) =>
+                                _togglePlaceStatus(place, status),
                             itemBuilder: (context) => const [
-                              PopupMenuItem(value: TravelPlaceStatus.visited, child: Text('Visited')),
-                              PopupMenuItem(value: TravelPlaceStatus.wishlist, child: Text('Wishlist')),
-                              PopupMenuItem(value: TravelPlaceStatus.planned, child: Text('Planned')),
+                              PopupMenuItem(
+                                value: TravelPlaceStatus.visited,
+                                child: Text('Visited'),
+                              ),
+                              PopupMenuItem(
+                                value: TravelPlaceStatus.wishlist,
+                                child: Text('Wishlist'),
+                              ),
+                              PopupMenuItem(
+                                value: TravelPlaceStatus.planned,
+                                child: Text('Planned'),
+                              ),
                             ],
                           ),
                         ],
@@ -367,25 +491,74 @@ class _TravelTrackerScreenState extends State<TravelTrackerScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Planned Trips', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+            Text(
+              'Planned Trips',
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+            ),
             const SizedBox(height: 12),
             Wrap(
               spacing: 12,
               runSpacing: 12,
               children: [
-                SizedBox(width: 220, child: TextField(controller: _tripDestinationController, decoration: const InputDecoration(labelText: 'Destination'))),
-                SizedBox(width: 220, child: TextField(controller: _tripMonthController, decoration: const InputDecoration(labelText: 'Tentative month/year'))),
-                SizedBox(width: 220, child: TextField(controller: _tripBudgetController, decoration: const InputDecoration(labelText: 'Estimated budget'))),
-                SizedBox(width: 220, child: TextField(controller: _tripNotesController, decoration: const InputDecoration(labelText: 'Notes'))),
+                SizedBox(
+                  width: 220,
+                  child: TextField(
+                    controller: _tripDestinationController,
+                    decoration: const InputDecoration(labelText: 'Destination'),
+                  ),
+                ),
+                SizedBox(
+                  width: 220,
+                  child: TextField(
+                    controller: _tripMonthController,
+                    decoration: const InputDecoration(
+                      labelText: 'Tentative month/year',
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: 220,
+                  child: TextField(
+                    controller: _tripBudgetController,
+                    decoration: const InputDecoration(
+                      labelText: 'Estimated budget',
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: 220,
+                  child: TextField(
+                    controller: _tripNotesController,
+                    decoration: const InputDecoration(labelText: 'Notes'),
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 12),
-            FilledButton.icon(onPressed: _addTrip, icon: const Icon(Icons.flight_takeoff_outlined), label: const Text('Save trip')), 
+            FilledButton.icon(
+              onPressed: _addTrip,
+              icon: const Icon(Icons.flight_takeoff_outlined),
+              label: const Text('Save trip'),
+            ),
             const SizedBox(height: 12),
             if (_state.plannedTrips.isEmpty)
-              Text('No trip plans yet.', style: Theme.of(context).textTheme.bodyMedium)
+              Text(
+                'No trip plans yet.',
+                style: Theme.of(context).textTheme.bodyMedium,
+              )
             else
-              ..._state.plannedTrips.map((trip) => Card(child: ListTile(title: Text(trip.destination), subtitle: Text('${trip.tentativeMonthYear} · ${trip.estimatedBudget} · ${trip.notes}')))),
+              ..._state.plannedTrips.map(
+                (trip) => Card(
+                  child: ListTile(
+                    title: Text(trip.destination),
+                    subtitle: Text(
+                      '${trip.tentativeMonthYear} · ${trip.estimatedBudget} · ${trip.notes}',
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -399,7 +572,12 @@ class _TravelTrackerScreenState extends State<TravelTrackerScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Travel Insights', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+            Text(
+              'Travel Insights',
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+            ),
             const SizedBox(height: 12),
             FutureBuilder<List<KnightMetric>>(
               future: _module.analyticsProvider!.requestMetrics(),
@@ -420,9 +598,16 @@ class _TravelTrackerScreenState extends State<TravelTrackerScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(metric.name, style: Theme.of(context).textTheme.bodyMedium),
+                              Text(
+                                metric.name,
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
                               const SizedBox(height: 8),
-                              Text(metric.value.toString(), style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                              Text(
+                                metric.value.toString(),
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(fontWeight: FontWeight.w700),
+                              ),
                             ],
                           ),
                         ),
@@ -449,12 +634,42 @@ class _WorldMapPainter extends CustomPainter {
     final rect = Rect.fromLTWH(24, 40, size.width - 48, size.height - 80);
     canvas.drawRect(rect, paint);
 
-    final indiaRect = Rect.fromLTWH(size.width * 0.66, size.height * 0.62, 40, 28);
-    final nepalRect = Rect.fromLTWH(size.width * 0.69, size.height * 0.58, 26, 18);
-    final worldRect = Rect.fromLTWH(size.width * 0.1, size.height * 0.2, size.width * 0.2, size.height * 0.3);
-    canvas.drawRect(indiaRect, Paint()..color = Colors.deepPurple.shade700..style = PaintingStyle.fill);
-    canvas.drawRect(nepalRect, Paint()..color = Colors.indigo.shade700..style = PaintingStyle.fill);
-    canvas.drawRect(worldRect, Paint()..color = Colors.white.withValues(alpha: 0.7)..style = PaintingStyle.fill);
+    final indiaRect = Rect.fromLTWH(
+      size.width * 0.66,
+      size.height * 0.62,
+      40,
+      28,
+    );
+    final nepalRect = Rect.fromLTWH(
+      size.width * 0.69,
+      size.height * 0.58,
+      26,
+      18,
+    );
+    final worldRect = Rect.fromLTWH(
+      size.width * 0.1,
+      size.height * 0.2,
+      size.width * 0.2,
+      size.height * 0.3,
+    );
+    canvas.drawRect(
+      indiaRect,
+      Paint()
+        ..color = Colors.deepPurple.shade700
+        ..style = PaintingStyle.fill,
+    );
+    canvas.drawRect(
+      nepalRect,
+      Paint()
+        ..color = Colors.indigo.shade700
+        ..style = PaintingStyle.fill,
+    );
+    canvas.drawRect(
+      worldRect,
+      Paint()
+        ..color = Colors.white.withValues(alpha: 0.7)
+        ..style = PaintingStyle.fill,
+    );
   }
 
   @override

@@ -99,15 +99,21 @@ class WorkoutSessionMetrics {
     }
 
     final durations = sessions.map((session) => session.duration).toList();
-    final sortedDates = sessions
-        .map((session) => DateTime.tryParse(session.workoutDate))
-        .whereType<DateTime>()
-        .toSet()
-        .toList()
-      ..sort();
+    final sortedDates =
+        sessions
+            .map((session) => DateTime.tryParse(session.workoutDate))
+            .whereType<DateTime>()
+            .toSet()
+            .toList()
+          ..sort();
 
     var streak = 0;
-    final uniqueDays = sortedDates.map((date) => DateTime(date.year, date.month, date.day)).toSet().toList()..sort();
+    final uniqueDays =
+        sortedDates
+            .map((date) => DateTime(date.year, date.month, date.day))
+            .toSet()
+            .toList()
+          ..sort();
     if (uniqueDays.isNotEmpty) {
       var current = 1;
       for (var index = 1; index < uniqueDays.length; index += 1) {
@@ -127,9 +133,19 @@ class WorkoutSessionMetrics {
       weeklyWorkouts: sessions.length,
       monthlyWorkouts: sessions.length,
       totalWorkoutTime: durations.fold<int>(0, (sum, item) => sum + item),
-      totalCaloriesBurned: sessions.fold<int>(0, (sum, item) => sum + item.caloriesBurned),
-      averageWorkoutDuration: durations.isEmpty ? 0 : durations.reduce((value, element) => value + element) / durations.length,
-      longestWorkout: durations.isEmpty ? 0 : durations.reduce((value, element) => value > element ? value : element),
+      totalCaloriesBurned: sessions.fold<int>(
+        0,
+        (sum, item) => sum + item.caloriesBurned,
+      ),
+      averageWorkoutDuration: durations.isEmpty
+          ? 0
+          : durations.reduce((value, element) => value + element) /
+                durations.length,
+      longestWorkout: durations.isEmpty
+          ? 0
+          : durations.reduce(
+              (value, element) => value > element ? value : element,
+            ),
       workoutStreak: streak,
     );
   }

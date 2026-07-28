@@ -37,8 +37,12 @@ class JournalEntry {
       id: json['id'] as String? ?? '',
       title: json['title'] as String? ?? 'Journal entry',
       body: json['body'] as String? ?? '',
-      createdAt: DateTime.tryParse(json['createdAt'] as String? ?? '') ?? DateTime.now(),
-      tags: (json['tags'] as List?)?.whereType<String>().toList() ?? const <String>[],
+      createdAt:
+          DateTime.tryParse(json['createdAt'] as String? ?? '') ??
+          DateTime.now(),
+      tags:
+          (json['tags'] as List?)?.whereType<String>().toList() ??
+          const <String>[],
       mood: json['mood'] as String?,
       permission: json['permission'] as String? ?? 'conversation_only',
       source: json['source'] as String? ?? 'text',

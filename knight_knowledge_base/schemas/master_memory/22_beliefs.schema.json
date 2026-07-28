@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://knight.os/schemas/master_memory/22_beliefs.schema.json",
+  "title": "Domain 22: Beliefs",
+  "type": "object",
+  "properties": {
+    "metadata": { "$ref": "../core/amu_metadata.schema.json" },
+    "content": {
+      "type": "object",
+      "properties": {
+        "proposition": { "type": "string" },
+        "subjectiveProbability": { "type": "number", "minimum": 0, "maximum": 1 },
+        "supportingExperiences": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["proposition", "subjectiveProbability"]
+    }
+  },
+  "required": ["metadata", "content"]
+}

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/repositories/authentication_repository.dart';
+import '../../core/design_system/design_constants.dart';
+import '../../core/design_system/widgets/knight_background.dart';
 import '../../core/router/app_routes.dart';
 
 class KnightPageScaffold extends StatelessWidget {
@@ -10,6 +11,8 @@ class KnightPageScaffold extends StatelessWidget {
     this.title,
     this.actions,
     this.showBackButton = false,
+    this.floatingActionButton,
+    this.floatingActionButtonLocation,
     super.key,
   });
 
@@ -17,72 +20,79 @@ class KnightPageScaffold extends StatelessWidget {
   final String? title;
   final List<Widget>? actions;
   final bool showBackButton;
+  final Widget? floatingActionButton;
+  final FloatingActionButtonLocation? floatingActionButtonLocation;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: DesignColors.background,
+      floatingActionButton: floatingActionButton,
+      floatingActionButtonLocation: floatingActionButtonLocation,
       appBar: title == null
           ? null
           : AppBar(
               backgroundColor: Colors.transparent,
               elevation: 0,
+              centerTitle: false,
               leading: showBackButton
                   ? IconButton(
                       onPressed: () {
                         if (Navigator.of(context).canPop()) {
                           context.pop();
                         } else {
-                          final location = GoRouterState.of(context).matchedLocation;
-                          if (location == AppRoutes.auth || location == AppRoutes.welcome || location == AppRoutes.splash) {
-                            context.go(AppRoutes.welcome);
-                          } else {
-                            context.go(AppRoutes.dashboard);
-                          }
+                          context.go(AppRoutes.home);
                         }
                       },
-                      icon: const Icon(Icons.arrow_back_rounded),
+                      icon: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        size: 18,
+                      ),
                       tooltip: 'Back',
                     )
-                  : null,
+                  : Padding(
+                      padding: const EdgeInsets.only(left: 16.0),
+                      child: Center(
+                        child: Text(
+                          'K',
+                          style: theme.textTheme.headlineMedium?.copyWith(
+                            color: DesignColors.accentBlue,
+                            fontFamily: 'Serif', // Placeholder for brand font
+                          ),
+                        ),
+                      ),
+                    ),
               title: Text(
-                title!,
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
+                title!.toUpperCase(),
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: DesignColors.primary,
+                  letterSpacing: 3.0,
                 ),
               ),
               actions: [
                 ...?actions,
-                FutureBuilder<bool>(
-                  future: AuthenticationRepository().isAuthenticated(),
-                  builder: (context, snapshot) {
-                    if (!snapshot.hasData || snapshot.data != true) {
-                      return const SizedBox.shrink();
-                    }
-                    return IconButton(
-                      onPressed: () => context.go(AppRoutes.account),
-                      icon: const Icon(Icons.person_outline_rounded),
-                      tooltip: 'Profile',
-                    );
-                  },
+                IconButton(
+                  onPressed: () => context.push(AppRoutes.settings),
+                  icon: const Icon(Icons.settings_outlined, size: 20),
+                  tooltip: 'System Settings',
                 ),
+                const SizedBox(width: 8),
               ],
             ),
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 960),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+      body: KnightBackground(
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 800),
                   child: body,
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );

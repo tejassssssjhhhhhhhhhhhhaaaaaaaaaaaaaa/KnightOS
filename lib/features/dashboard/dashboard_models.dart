@@ -26,7 +26,8 @@ class DashboardData {
   final FinanceTransactionMetrics financeMetrics;
   final WorkoutSessionMetrics fitnessMetrics;
 
-  OnboardingProfile get resolvedProfile => profile ?? const OnboardingProfile(completedSteps: []);
+  OnboardingProfile get resolvedProfile =>
+      profile ?? UserProfile(completedSteps: const []);
 
   double get averageSleep {
     if (sleepSessions.isEmpty) {
@@ -34,8 +35,8 @@ class DashboardData {
     }
 
     return sleepSessions
-        .map((session) => session.sleepDuration)
-        .reduce((value, element) => value + element) /
+            .map((session) => session.sleepDuration)
+            .reduce((value, element) => value + element) /
         sleepSessions.length;
   }
 
@@ -62,10 +63,18 @@ class DashboardData {
   Map<String, Object?> toJson() {
     return {
       'profile': profile?.toJson(),
-      'sleepSessions': sleepSessions.map((item) => item.toJson()).toList(growable: false),
-      'workoutSessions': workoutSessions.map((item) => item.toJson()).toList(growable: false),
-      'workSessions': workSessions.map((item) => item.toJson()).toList(growable: false),
-      'financeTransactions': financeTransactions.map((item) => item.toJson()).toList(growable: false),
+      'sleepSessions': sleepSessions
+          .map((item) => item.toJson())
+          .toList(growable: false),
+      'workoutSessions': workoutSessions
+          .map((item) => item.toJson())
+          .toList(growable: false),
+      'workSessions': workSessions
+          .map((item) => item.toJson())
+          .toList(growable: false),
+      'financeTransactions': financeTransactions
+          .map((item) => item.toJson())
+          .toList(growable: false),
       'financeMetrics': {
         'totalIncome': financeMetrics.totalIncome,
         'totalExpense': financeMetrics.totalExpense,

@@ -44,7 +44,9 @@ class AccountCenterScreen extends ConsumerWidget {
             ListTile(
               leading: const Icon(Icons.privacy_tip_outlined),
               title: const Text('Privacy'),
-              subtitle: const Text('Your personal data stays local to this device'),
+              subtitle: const Text(
+                'Your personal data stays local to this device',
+              ),
               onTap: () => context.push(AppRoutes.settings),
             ),
             ListTile(
@@ -54,7 +56,9 @@ class AccountCenterScreen extends ConsumerWidget {
                 await authRepository.signOut();
                 if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('You have been logged out successfully.')),
+                  const SnackBar(
+                    content: Text('You have been logged out successfully.'),
+                  ),
                 );
                 context.go(AppRoutes.auth);
               },
@@ -62,7 +66,8 @@ class AccountCenterScreen extends ConsumerWidget {
           ],
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stackTrace) => Center(child: Text('Unable to load account: $error')),
+        error: (error, stackTrace) =>
+            Center(child: Text('Unable to load account: $error')),
       ),
     );
   }

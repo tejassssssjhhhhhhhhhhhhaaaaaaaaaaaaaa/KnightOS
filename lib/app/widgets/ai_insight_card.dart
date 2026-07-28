@@ -31,11 +31,16 @@ class AiInsightCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.auto_awesome_outlined, color: theme.colorScheme.primary),
+              Icon(
+                Icons.auto_awesome_outlined,
+                color: theme.colorScheme.primary,
+              ),
               const SizedBox(width: 8),
               Text(
                 'AI Insight',
-                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ],
           ),

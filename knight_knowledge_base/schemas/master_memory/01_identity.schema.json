@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://knight.os/schemas/master_memory/01_identity.schema.json",
+  "title": "Domain 1: Identity",
+  "type": "object",
+  "properties": {
+    "metadata": { "$ref": "../core/amu_metadata.schema.json" },
+    "content": {
+      "type": "object",
+      "properties": {
+        "legalName": { "type": "string" },
+        "birthDate": { "type": "string", "format": "date" },
+        "birthPlace": { "type": "string" },
+        "biologicalSex": { "type": "string", "enum": ["male", "female", "intersex", "other"] },
+        "bloodType": { "type": "string", "pattern": "^(A|B|AB|O)[+-]$" },
+        "nationalId": { "type": "string" },
+        "citizenship": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["legalName", "birthDate"]
+    }
+  },
+  "required": ["metadata", "content"]
+}

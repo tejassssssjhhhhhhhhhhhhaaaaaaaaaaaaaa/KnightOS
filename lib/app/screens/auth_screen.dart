@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/providers/storage_providers.dart';
 import '../../core/repositories/authentication_repository.dart';
 import '../../core/router/app_routes.dart';
-import '../../features/onboarding/data/onboarding_storage.dart';
 import '../widgets/knight_page_scaffold.dart';
 
 enum _AuthFlow { signIn, register, forgotEmail, forgotSuccess }
@@ -47,11 +47,16 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
     try {
       if (_flow == _AuthFlow.register) {
-        await _authRepository.signUp(email: email, password: password, displayName: displayName);
+        await _authRepository.signUp(
+          email: email,
+          password: password,
+          displayName: displayName,
+        );
         if (!mounted) return;
         setState(() {
           _flow = _AuthFlow.signIn;
-          _successMessage = 'Your account has been created successfully. Please sign in to continue.';
+          _successMessage =
+              'Your account has been created successfully. Please sign in to continue.';
           _passwordController.clear();
         });
         return;
@@ -67,12 +72,18 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         return;
       }
 
-      final session = await _authRepository.signIn(email: email, password: password);
+      final session = await _authRepository.signIn(
+        email: email,
+        password: password,
+      );
       if (!mounted) return;
-      final onboardingStorage = OnboardingStorage();
-      final profile = await onboardingStorage.loadProfile();
+
+      final userRepository = ref.read(userRepositoryProvider);
+      final profile = await userRepository.loadProfile();
+
       if (!mounted) return;
-      final onboardingComplete = profile != null && profile.completedSteps.isNotEmpty;
+      final onboardingComplete =
+          profile != null && profile.completedSteps.isNotEmpty;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Welcome back, ${session.displayName}')),
       );
@@ -124,7 +135,9 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     final isForgotSuccess = _flow == _AuthFlow.forgotSuccess;
 
     return KnightPageScaffold(
-      title: _flow == _AuthFlow.register ? 'Create Account' : 'Log in to KnightOS',
+      title: _flow == _AuthFlow.register
+          ? 'Create Account'
+          : 'Log in to KnightOS',
       showBackButton: true,
       body: SingleChildScrollView(
         child: Column(
@@ -134,22 +147,26 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               isForgotSuccess
                   ? 'Reset complete'
                   : isForgotPassword
-                      ? 'Reset your password'
-                      : isRegistration
-                          ? 'Create your KnightOS account'
-                          : 'Log in to KnightOS',
-              style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
+                  ? 'Reset your password'
+                  : isRegistration
+                  ? 'Create your KnightOS account'
+                  : 'Log in to KnightOS',
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               isForgotSuccess
                   ? 'We have prepared the next step for you. Please return to login to continue.'
                   : isForgotPassword
-                      ? 'Enter your email address and we will validate your account.'
-                      : isRegistration
-                          ? 'Create your account, then sign in from the next screen.'
-                          : 'Use your email and password to access your dashboard.',
-              style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                  ? 'Enter your email address and we will validate your account.'
+                  : isRegistration
+                  ? 'Create your account, then sign in from the next screen.'
+                  : 'Use your email and password to access your dashboard.',
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 24),
             if (isRegistration)
@@ -211,7 +228,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
             if (_error != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 12),
-                child: Text(_error!, style: TextStyle(color: theme.colorScheme.error)),
+                child: Text(
+                  _error!,
+                  style: TextStyle(color: theme.colorScheme.error),
+                ),
               ),
             if (isForgotSuccess)
               SizedBox(
@@ -228,10 +248,22 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 child: FilledButton.icon(
                   onPressed: _loading ? null : _submit,
                   icon: _loading
-                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                      : Icon(isForgotPassword ? Icons.lock_reset_rounded : Icons.lock_open_rounded),
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Icon(
+                          isForgotPassword
+                              ? Icons.lock_reset_rounded
+                              : Icons.lock_open_rounded,
+                        ),
                   label: Text(
-                    isForgotPassword ? 'Reset Password' : isRegistration ? 'Create Account' : 'Sign In',
+                    isForgotPassword
+                        ? 'Reset Password'
+                        : isRegistration
+                        ? 'Create Account'
+                        : 'Sign In',
                   ),
                 ),
               ),
@@ -242,19 +274,28 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               children: [
                 if (!isForgotSuccess)
                   TextButton(
-                    onPressed: _loading ? null : () {
-                      if (_flow == _AuthFlow.register) {
-                        _returnToLogin();
-                      } else {
-                        _switchToRegister();
-                      }
-                    },
+                    onPressed: _loading
+                        ? null
+                        : () {
+                            if (_flow == _AuthFlow.register) {
+                              _returnToLogin();
+                            } else {
+                              _switchToRegister();
+                            }
+                          },
                     child: Text(isRegistration ? 'Sign In' : 'Create Account'),
                   ),
                 if (!isForgotSuccess && _flow != _AuthFlow.forgotEmail)
-                  TextButton(onPressed: _loading ? null : _switchToForgotPassword, child: const Text('Forgot Password')),
-                if (_flow == _AuthFlow.forgotEmail || _flow == _AuthFlow.forgotSuccess)
-                  TextButton(onPressed: _loading ? null : _returnToLogin, child: const Text('Return to Login')),
+                  TextButton(
+                    onPressed: _loading ? null : _switchToForgotPassword,
+                    child: const Text('Forgot Password'),
+                  ),
+                if (_flow == _AuthFlow.forgotEmail ||
+                    _flow == _AuthFlow.forgotSuccess)
+                  TextButton(
+                    onPressed: _loading ? null : _returnToLogin,
+                    child: const Text('Return to Login'),
+                  ),
               ],
             ),
           ],

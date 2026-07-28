@@ -37,7 +37,9 @@ class DashboardHeader extends StatelessWidget {
         children: [
           Text(
             '$greeting, $name',
-            style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
@@ -56,7 +58,9 @@ class DashboardHeader extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             score,
-            style: theme.textTheme.displaySmall?.copyWith(fontWeight: FontWeight.w700),
+            style: theme.textTheme.displaySmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ],
       ),

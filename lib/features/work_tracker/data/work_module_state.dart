@@ -18,11 +18,11 @@ class WorkModuleState {
   final String searchQuery;
 
   factory WorkModuleState.initial() => WorkModuleState(
-        profile: WorkProfile.empty(),
-        sessions: const <WorkSession>[],
-        dailyTarget: 0,
-        searchQuery: '',
-      );
+    profile: WorkProfile.empty(),
+    sessions: const <WorkSession>[],
+    dailyTarget: 0,
+    searchQuery: '',
+  );
 
   WorkModuleState copyWith({
     WorkProfile? profile,
@@ -41,7 +41,9 @@ class WorkModuleState {
   Map<String, Object?> toJson() {
     return {
       'profile': profile.toJson(),
-      'sessions': sessions.map((session) => session.toJson()).toList(growable: false),
+      'sessions': sessions
+          .map((session) => session.toJson())
+          .toList(growable: false),
       'dailyTarget': dailyTarget,
       'searchQuery': searchQuery,
     };
@@ -56,9 +58,9 @@ class WorkModuleState {
       sessions: sessionsJson == null
           ? <WorkSession>[]
           : sessionsJson
-              .whereType<Map<String, Object?>>()
-              .map(WorkSession.fromJson)
-              .toList(growable: false),
+                .whereType<Map<String, Object?>>()
+                .map(WorkSession.fromJson)
+                .toList(growable: false),
       dailyTarget: json['dailyTarget'] as int? ?? 0,
       searchQuery: json['searchQuery'] as String? ?? '',
     );

@@ -36,7 +36,9 @@ class _OnboardingTextFieldState extends State<OnboardingTextField> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.value != widget.value && widget.value != _controller.text) {
       _controller.text = widget.value;
-      _controller.selection = TextSelection.collapsed(offset: _controller.text.length);
+      _controller.selection = TextSelection.collapsed(
+        offset: _controller.text.length,
+      );
     }
   }
 
