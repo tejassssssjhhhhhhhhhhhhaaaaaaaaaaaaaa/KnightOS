@@ -56,8 +56,14 @@ class CopilotService {
     required String text,
     required List<KnightFeatureModule> featureModules,
   }) async* {
-    // Basic streaming wrapper
+    // 1. Detect Intent for routing
+    final intent = cognition.intentEngine.detectIntent(text);
+    final provider = cognition.aiRouter.selectProvider(intent);
+
+    // 2. Fetch context
     final memories = await memoryEngine.search('');
-    yield* cognition.aiProvider.streamChat(context: memories, prompt: text);
+    
+    // 3. Stream
+    yield* provider.streamChat(context: memories, prompt: text);
   }
 }

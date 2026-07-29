@@ -5,6 +5,7 @@ import 'package:knight_os/core/intelligence/domain/memory_metadata.dart';
 import 'package:knight_os/core/intelligence/domain/memory_version.dart';
 import 'package:knight_os/core/intelligence/domain/memory_domain.dart';
 import 'package:knight_os/core/intelligence/domain/memory_category.dart';
+import 'package:knight_os/core/intelligence/domain/memory_relation.dart';
 import 'package:knight_os/core/intelligence/domain/repositories/memory_repository.dart';
 import 'package:knight_os/core/intelligence/engines/memory_engine.dart';
 import 'package:knight_os/core/intelligence/services/json_validation_service.dart';
@@ -51,6 +52,9 @@ class LocalMemoryRepository implements MemoryRepository {
 
   @override
   Future<List<KnightMemory>> getRelated(String memoryId) async => [];
+
+  @override
+  Future<List<MemoryRelation>> getAllRelations() async => [];
 
   @override
   Stream<KnightMemory?> watchLatest(String memoryId) => Stream.value(null);

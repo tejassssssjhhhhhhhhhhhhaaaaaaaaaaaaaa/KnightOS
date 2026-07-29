@@ -27,6 +27,7 @@ import '../../features/connectors/presentation/connector_dashboard_screen.dart';
 import '../../features/discovery/presentation/discovery_dashboard_screen.dart';
 import '../../features/health/presentation/health_dashboard_screen.dart';
 import '../../features/documents/presentation/document_center_screen.dart';
+import '../../features/knight/presentation/intelligence_dashboard_screen.dart';
 
 import 'app_routes.dart';
 
@@ -206,6 +207,14 @@ class AppRouter {
               context,
               state,
               const DiscoveryDashboardScreen(),
+            ),
+          ),
+          GoRoute(
+            path: AppRoutes.intelligence,
+            pageBuilder: (context, state) => _fadeTransition(
+              context,
+              state,
+              const IntelligenceDashboardScreen(),
             ),
           ),
         ],

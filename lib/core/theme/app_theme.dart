@@ -5,6 +5,123 @@ import '../design_system/design_constants.dart';
 class AppTheme {
   const AppTheme._();
 
+  static ThemeData lightTheme({bool isTest = false}) {
+    final baseTheme = ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.light,
+      scaffoldBackgroundColor: const Color(0xFFF8FAFC), // Slate 50
+      colorScheme: const ColorScheme.light(
+        surface: Colors.white,
+        onSurface: Color(0xFF0F172A),
+        primary: DesignColors.accentBlue,
+        onPrimary: Colors.white,
+        secondary: DesignColors.accentPurple,
+        onSecondary: Colors.white,
+      ),
+    );
+
+    if (isTest) return baseTheme;
+
+    final interTextTheme = GoogleFonts.interTextTheme(baseTheme.textTheme);
+
+    return baseTheme.copyWith(
+      appBarTheme: AppBarTheme(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: false,
+        iconTheme: const IconThemeData(color: Color(0xFF0F172A)),
+        titleTextStyle: GoogleFonts.inter(
+          fontWeight: FontWeight.w800,
+          fontSize: 20,
+          color: const Color(0xFF0F172A),
+        ),
+      ),
+      textTheme: interTextTheme.copyWith(
+        displayLarge: GoogleFonts.inter(
+          fontWeight: FontWeight.w900,
+          fontSize: 48,
+          letterSpacing: -1.5,
+          color: const Color(0xFF0F172A),
+        ),
+        displayMedium: GoogleFonts.inter(
+          fontWeight: FontWeight.w800,
+          fontSize: 32,
+          letterSpacing: -1.0,
+          color: const Color(0xFF0F172A),
+        ),
+        headlineLarge: GoogleFonts.inter(
+          fontWeight: FontWeight.w800,
+          fontSize: 28,
+          letterSpacing: -0.5,
+          color: const Color(0xFF0F172A),
+        ),
+        headlineMedium: GoogleFonts.inter(
+          fontWeight: FontWeight.w700,
+          fontSize: 22,
+          color: const Color(0xFF0F172A),
+        ),
+        titleLarge: GoogleFonts.inter(
+          fontWeight: FontWeight.w600,
+          fontSize: 18,
+          color: const Color(0xFF0F172A),
+        ),
+        bodyLarge: GoogleFonts.inter(
+          fontSize: 16,
+          height: 1.5,
+          color: const Color(0xFF1E293B),
+        ),
+        bodyMedium: GoogleFonts.inter(
+          fontSize: 14,
+          height: 1.5,
+          color: const Color(0xFF475569),
+        ),
+        labelLarge: GoogleFonts.inter(
+          fontWeight: FontWeight.w900,
+          fontSize: 10,
+          letterSpacing: 2.0,
+          color: const Color(0xFF64748B),
+        ),
+      ),
+      cardTheme: CardThemeData(
+        color: Colors.white,
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: DesignRadius.card,
+          side: BorderSide(color: Colors.black.withValues(alpha: 0.05)),
+        ),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          backgroundColor: const Color(0xFF0F172A),
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          shape: RoundedRectangleBorder(borderRadius: DesignRadius.pill),
+          textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: Colors.black.withValues(alpha: 0.03),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: Colors.black.withValues(alpha: 0.1)),
+        ),
+        labelStyle: const TextStyle(color: Color(0xFF64748B)),
+        hintStyle: const TextStyle(color: Colors.black26),
+      ),
+    );
+  }
+
   static ThemeData darkTheme({bool isTest = false}) {
     final baseTheme = ThemeData(
       useMaterial3: true,

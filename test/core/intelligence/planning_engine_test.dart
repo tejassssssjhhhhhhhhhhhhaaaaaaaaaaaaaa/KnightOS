@@ -1,20 +1,19 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:knight_os/core/intelligence/domain/cognitive_models.dart';
-import 'package:knight_os/core/intelligence/domain/knight_memory.dart';
-import 'package:knight_os/core/intelligence/domain/memory_category.dart';
-import 'package:knight_os/core/intelligence/domain/memory_domain.dart';
-import 'package:knight_os/core/intelligence/domain/planning_models.dart';
 import 'package:knight_os/core/intelligence/domain/reasoning_models.dart';
 import 'package:knight_os/core/intelligence/engines/planning_engine.dart';
 import 'package:knight_os/core/intelligence/knight_context_models.dart';
 import 'package:knight_os/core/platform/engine/recommendation_models.dart';
-import 'package:knight_os/core/intelligence/domain/mission_models.dart';
+
+import 'package:knight_os/core/intelligence/engines/ai_provider.dart';
+
+class MockAiProvider extends Fake implements KnightAiProvider {}
 
 void main() {
   late PlanningEngine engine;
 
   setUp(() {
-    engine = const PlanningEngine();
+    engine = PlanningEngine(aiProvider: MockAiProvider());
   });
 
   group('PlanningEngine', () {

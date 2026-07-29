@@ -2,7 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:knight_os/core/intelligence/engines/workflow_orchestrator.dart';
 import 'package:knight_os/core/intelligence/engines/autonomous_engine.dart';
 import 'package:knight_os/core/intelligence/domain/planning_models.dart';
-import 'package:knight_os/core/intelligence/domain/workflow_models.dart';
 import 'package:knight_os/core/intelligence/intelligence_bus.dart';
 import 'package:knight_os/core/intelligence/engines/memory_engine.dart';
 import 'package:knight_os/core/intelligence/domain/mission_models.dart';
@@ -10,6 +9,8 @@ import 'package:knight_os/core/intelligence/domain/knight_memory.dart';
 import 'package:knight_os/core/intelligence/domain/memory_domain.dart';
 import 'package:knight_os/core/intelligence/services/json_validation_service.dart';
 import 'package:knight_os/core/intelligence/domain/repositories/memory_repository.dart';
+import 'package:knight_os/core/intelligence/engines/reasoning_engine.dart';
+import 'package:knight_os/core/intelligence/knight_context_models.dart';
 
 class MockMemoryRepository extends Fake implements MemoryRepository {
   @override
@@ -31,7 +32,65 @@ void main() {
       repository: MockMemoryRepository(),
       validationService: MockJsonValidationService(),
     );
-    engine = AutonomousEngine(bus: bus, memoryEngine: mem);
+    engine = AutonomousEngine(
+      bus: bus, 
+      memoryEngine: mem,
+      reasoningEngine: const ReasoningEngine(),
+      getContext: () async => KnightContext(
+        registeredModules: [],
+        currentScores: [],
+        analyticsSummary: const KnightAnalyticsSummary(
+          analyticsProviderCount: 0,
+          snapshotsPlaceholder: '',
+          weeklySummaryPlaceholder: '',
+          monthlySummaryPlaceholder: '',
+        ),
+        recommendationSummary: const KnightRecommendationSummary(
+          recommendationProviderCount: 0,
+          recommendationCount: 0,
+          topRecommendationPlaceholder: '',
+        ),
+        recentActivity: [],
+        searchSummary: const KnightSearchSummary(
+          searchProviderCount: 0,
+          indexedModules: 0,
+          lastSearchPlaceholder: '',
+        ),
+        moduleHealth: [],
+        lastSyncTime: DateTime.now(),
+        healthStatus: 'Healthy',
+        dataFreshness: 'Live',
+        applicationVersion: '1.0.0',
+        fitnessSummary: const KnightFitnessSummary(
+          gymProfileExists: false,
+          equipmentCount: 0,
+          capabilityPlaceholder: '',
+          workoutPlaceholder: '',
+        ),
+        travelSummary: const KnightTravelSummary(
+          visited: 0,
+          wishlist: 0,
+          planned: 0,
+          favoritePlaces: 0,
+          upcomingTripsPlaceholder: '',
+        ),
+        workSummary: const KnightWorkSummary(
+          currentShiftPlaceholder: '',
+          questions: 0,
+          calls: 0,
+          chats: 0,
+          dailyTarget: 0,
+          productivityPlaceholder: '',
+        ),
+        timestamp: DateTime.now(),
+        greeting: 'Hello',
+        sleepStatus: 'Good',
+        upcomingEvents: [],
+        currentGoals: [],
+        healthSummary: 'OK',
+        weather: 'Sunny',
+      ),
+    );
     orchestrator = WorkflowOrchestrator(engine: engine);
   });
 

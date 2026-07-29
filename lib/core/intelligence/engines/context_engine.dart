@@ -1,6 +1,8 @@
 import '../domain/knight_memory.dart';
 import '../domain/memory_category.dart';
 import '../domain/cognitive_models.dart';
+import '../domain/world_models.dart';
+import '../domain/memory_domain.dart';
 import 'memory_engine.dart';
 
 /// Intelligently assembles relevant context for AI reasoning.
@@ -13,8 +15,14 @@ class ContextEngine {
   Future<List<KnightMemory>> buildActiveContext({
     String? query,
     KnightIntent? intent,
+    WorldState? worldState,
   }) async {
     final List<KnightMemory> context = [];
+
+    // TIER 0: External Context (Real-world state) - Sprint 5.1
+    if (worldState != null) {
+      context.addAll(_normalizeWorldState(worldState));
+    }
 
     // TIER 1: Identity (Who I am) - Always Included
     final identity = await memoryEngine.getByCategory(BookCategory.identity);
@@ -68,6 +76,43 @@ class ContextEngine {
     // Basic implementation: fetch all and filter by keywords in summary.
     // Future: Use Vector Database.
     return [];
+  }
+
+  List<KnightMemory> _normalizeWorldState(WorldState state) {
+    final List<KnightMemory> memories = [];
+
+    for (final event in state.calendarEvents) {
+      memories.add(
+        KnightMemory.create(
+          memoryId: 'ctx-cal-${event.id}',
+          category: BookCategory.history,
+          domain: MemoryDomain.memories,
+          source: MemorySource.imported,
+          content: event.toJson(),
+          summary: 'Upcoming Calendar Event: ${event.title}',
+          importance: 0.8,
+          provenance: 'google-calendar',
+        ),
+      );
+    }
+
+    for (final thread in state.emailThreads) {
+      if (!thread.isUnread) continue;
+      memories.add(
+        KnightMemory.create(
+          memoryId: 'ctx-mail-${thread.id}',
+          category: BookCategory.social,
+          domain: MemoryDomain.memories,
+          source: MemorySource.imported,
+          content: thread.toJson(),
+          summary: 'Unread Email: ${thread.subject} from ${thread.sender}',
+          importance: 0.6,
+          provenance: 'google-email',
+        ),
+      );
+    }
+
+    return memories;
   }
 
   List<KnightMemory> _rankAndDeduplicate(List<KnightMemory> memories) {

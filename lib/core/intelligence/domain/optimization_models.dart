@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'cognitive_models.dart';
 
 /// Represents a learned optimization derived from user feedback or outcomes.
 @immutable

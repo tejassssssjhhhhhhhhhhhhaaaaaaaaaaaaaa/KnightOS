@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../features/voice/voice_controller.dart';
-import '../../core/intelligence/providers/intelligence_providers.dart';
 import '../widgets/knight_page_scaffold.dart';
+import '../widgets/voice_waveform.dart';
+import '../../core/intelligence/providers/intelligence_providers.dart';
+import '../../core/intelligence/services/voice_service.dart';
+import '../../core/design_system/design_constants.dart';
+import '../../core/intelligence/knight_context_provider.dart';
 
 class VoiceCaptureScreen extends ConsumerStatefulWidget {
   const VoiceCaptureScreen({super.key});
@@ -27,93 +30,99 @@ class _VoiceCaptureScreenState extends ConsumerState<VoiceCaptureScreen> {
     super.dispose();
   }
 
+  Future<void> _handleVoiceAction() async {
+    final voiceService = ref.read(voiceServiceProvider.notifier);
+    final voiceState = ref.read(voiceServiceProvider);
+    final contextAsync = ref.read(currentContextNotifierProvider);
+    
+    if (voiceState.mode == VoiceMode.idle) {
+      await voiceService.startListening();
+      _controller.text = ref.read(voiceServiceProvider).lastTranscribedText;
+    } else if (voiceState.mode == VoiceMode.processing) {
+      final context = contextAsync.value;
+      if (context != null) {
+        // Trigger AI Response
+        final result = await ref.read(knightCognitionProvider).processRequest(_controller.text);
+        await voiceService.speak(result.response, context: context);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final session = ref.watch(voiceControllerProvider);
-    final controller = ref.read(voiceControllerProvider.notifier);
-
-    if (session != null && _controller.text.isEmpty) {
-      _controller.text = session.transcript;
-    }
+    final voiceState = ref.watch(voiceServiceProvider);
+    final voiceService = ref.read(voiceServiceProvider.notifier);
 
     return KnightPageScaffold(
-      title: 'Voice capture',
+      title: 'Voice Interaction',
       showBackButton: true,
-      body: SingleChildScrollView(
+      body: Padding(
+        padding: const EdgeInsets.all(DesignSpacing.l),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Capture your thoughts naturally',
-              style: Theme.of(
-                context,
-              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
+            const Spacer(),
+            
+            // 1. Dynamic Waveform
+            VoiceWaveform(
+              isActive: voiceState.mode == VoiceMode.listening || 
+                        voiceState.mode == VoiceMode.speaking,
             ),
-            const SizedBox(height: 8),
+            
+            const SizedBox(height: DesignSpacing.xl),
+            
+            // 2. Status Label
             Text(
-              'Speak naturally and save a voice memory. Future AI extraction will turn this into structured context.',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              _getStatusLabel(voiceState.mode),
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                color: DesignColors.accentBlue,
+                letterSpacing: 2.0,
               ),
             ),
-            const SizedBox(height: 24),
-            FilledButton.icon(
-              onPressed: () async {
-                await controller.captureSpeech(prompt: '');
-                if (!context.mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Voice memory captured.')),
-                );
-              },
-              icon: const Icon(Icons.mic_rounded),
-              label: const Text('Capture voice'),
-            ),
-            const SizedBox(height: 24),
-            if (session != null) ...[
-              Text(
-                'Transcript',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _controller,
-                maxLines: 6,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: 'Edit transcript before saving',
+            
+            const SizedBox(height: DesignSpacing.m),
+            
+            // 3. Live Transcript
+            if (voiceState.mode != VoiceMode.idle)
+              Container(
+                padding: const EdgeInsets.all(DesignSpacing.m),
+                decoration: BoxDecoration(
+                  color: DesignColors.white05,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Text(
+                  _controller.text.isEmpty ? 'Listening...' : _controller.text,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 16, height: 1.5),
                 ),
               ),
-              const SizedBox(height: 12),
-              FilledButton.icon(
-                onPressed: () async {
-                  final text = _controller.text;
-                  await controller.updateTranscript(text);
-                  if (!context.mounted) return;
-                  
-                  // Trigger Cognition for "Voice Assistant" effect
-                  ref.read(knightCognitionProvider).processRequest(text);
-                  
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Cognition engine processing voice input...')),
-                  );
-                  Navigator.of(context).pop();
-                },
-                icon: const Icon(Icons.psychology_rounded),
-                label: const Text('Process with Knight'),
+
+            const Spacer(),
+            
+            // 4. Action Button
+            IconButton.filled(
+              onPressed: voiceState.mode == VoiceMode.speaking ? () => voiceService.stop() : _handleVoiceAction,
+              iconSize: 48,
+              padding: const EdgeInsets.all(24),
+              icon: Icon(
+                voiceState.mode == VoiceMode.speaking ? Icons.stop_rounded :
+                voiceState.mode == VoiceMode.idle ? Icons.mic_rounded : Icons.psychology_rounded,
               ),
-            ] else
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Text(
-                    'No transcript yet. Press the microphone to begin.',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                ),
-              ),
+            ),
+            
+            const SizedBox(height: 48),
           ],
         ),
       ),
     );
+  }
+
+  String _getStatusLabel(VoiceMode mode) {
+    switch (mode) {
+      case VoiceMode.idle: return 'READY';
+      case VoiceMode.listening: return 'LISTENING';
+      case VoiceMode.processing: return 'THINKING';
+      case VoiceMode.speaking: return 'KNIGHT SPEAKING';
+      case VoiceMode.ambient: return 'AMBIENT MONITORING';
+    }
   }
 }

@@ -56,7 +56,8 @@ class WelcomeScreen extends ConsumerWidget {
                               'YOUR PERSONAL OPERATING SYSTEM',
                               style: Theme.of(context).textTheme.labelLarge?.copyWith(
                                 color: DesignColors.accentBlue,
-                                letterSpacing: 3.0,
+                                letterSpacing: 4.0,
+                                fontSize: 10,
                               ),
                             ),
                           ],

@@ -335,6 +335,31 @@ After completing every feature or sprint:
 
 ---
 
+## Execution Contract
+
+The implementation scope is the ENTIRE ROADMAP.
+
+A sprint is NOT an implementation scope.
+
+A feature is NOT an implementation scope.
+
+A milestone is NOT an implementation scope.
+
+When a queue item is completed:
+
+1. Mark it complete.
+2. Select the next unchecked queue item.
+3. Continue immediately.
+
+Do not stop between queue items.
+
+Return control ONLY when:
+
+- the Work Queue has no unchecked items, OR
+- a Genuine Blocker exists.
+
+---
+
 # Absolute Rule
 
 Your default behaviour is **CONTINUE**.

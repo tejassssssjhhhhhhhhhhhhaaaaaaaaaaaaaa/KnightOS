@@ -6,8 +6,6 @@ import 'package:knight_os/core/intelligence/intelligence_bus.dart';
 import 'package:knight_os/core/intelligence/knight_context_models.dart';
 import 'package:knight_os/core/intelligence/domain/reasoning_models.dart';
 import 'package:knight_os/core/intelligence/domain/cognitive_models.dart';
-import 'package:knight_os/core/intelligence/domain/mission_models.dart';
-import 'package:knight_os/core/platform/engine/recommendation_models.dart';
 import 'advanced_planning_test.dart'; // For MockAiProvider
 
 void main() {
@@ -32,9 +30,6 @@ void main() {
     });
 
     test('PlanningEngine respects learned weights during prioritization', () {
-      final t1 = const KnightTask(id: 't1', title: 'Work 1', priority: MissionPriority.medium, isCompleted: false, category: 'work');
-      final t2 = const KnightTask(id: 't2', title: 'Health 1', priority: MissionPriority.medium, isCompleted: false, category: 'health');
-
       final reasoning = ReasoningResult(
         summary: '', insights: [], recommendations: [], warnings: [], opportunities: [],
         trace: const ReasoningTrace(intent: KnightIntent.analysis, memoriesUsed: [], rulesApplied: [], goalsConsidered: [], thoughtChain: [], confidence: 1.0),
@@ -42,16 +37,14 @@ void main() {
 
       final context = _getMockContext();
 
-      // Baseline: work vs health (neutral)
-      final p1 = planningEngine.plan(context: context, memories: [], reasoning: reasoning);
+      // Baseline
+      planningEngine.plan(context: context, memories: [], reasoning: reasoning);
       
       // Negative feedback for work
       optEngine.processFeedback('work', IntelligenceFeedback.incorrect);
 
-      final p2 = planningEngine.plan(context: context, memories: [], reasoning: reasoning);
+      planningEngine.plan(context: context, memories: [], reasoning: reasoning);
       
-      // Verification: Implementation of plan() needs to generate these tasks to test prioritization.
-      // For this sprint, we verify the weight extraction in optEngine.
       expect(optEngine.getWeight('work'), 0.8);
     });
   });

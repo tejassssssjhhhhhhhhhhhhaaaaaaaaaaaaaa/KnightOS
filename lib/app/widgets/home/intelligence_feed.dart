@@ -1,21 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/design_system/design_constants.dart';
 import '../../../../core/intelligence/domain/reasoning_models.dart';
-import '../../../../core/platform/engine/recommendation_models.dart';
+import '../../../../core/intelligence/domain/intelligence_models.dart';
+import '../../../../core/intelligence/providers/intelligence_providers.dart';
 import '../../../../core/router/app_routes.dart';
 
-class IntelligenceFeedList extends StatelessWidget {
+class IntelligenceFeedList extends StatefulWidget {
   const IntelligenceFeedList({required this.reasoning, super.key});
 
   final ReasoningResult reasoning;
 
   @override
-  Widget build(BuildContext context) {
-    final insights = reasoning.insights;
-    final recommendations = reasoning.recommendations;
+  State<IntelligenceFeedList> createState() => _IntelligenceFeedListState();
+}
 
-    if (insights.isEmpty && recommendations.isEmpty) {
+class _IntelligenceFeedListState extends State<IntelligenceFeedList> {
+  final Set<String> _dismissedIds = {};
+
+  @override
+  Widget build(BuildContext context) {
+    final insights = widget.reasoning.insights.where((i) => !_dismissedIds.contains(i.id)).toList();
+    final recommendations = widget.reasoning.recommendations.where((r) => !_dismissedIds.contains(r.id)).toList();
+    final warnings = widget.reasoning.warnings;
+
+    if (insights.isEmpty && recommendations.isEmpty && warnings.isEmpty) {
       return _buildEmptyState(context);
     }
 
@@ -38,8 +48,29 @@ class IntelligenceFeedList extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 8),
-        ...insights.take(2).map((i) => IntelligenceCard.fromInsight(i)),
-        ...recommendations.take(2).map((r) => IntelligenceCard.fromRecommendation(r)),
+        ...warnings.take(1).map((w) => IntelligenceCard.fromWarning(w)),
+        ...insights.take(2).map((i) => IntelligenceCard(
+          title: i.title,
+          description: i.description,
+          icon: Icons.lightbulb_outline_rounded,
+          color: DesignColors.accentBlue,
+          reasoning: i.explanation,
+          domain: 'custom', // Map appropriately in real logic
+          onFeedback: (f) {
+            setState(() => _dismissedIds.add(i.id));
+          },
+        )),
+        ...recommendations.take(2).map((r) => IntelligenceCard(
+          title: r.title,
+          description: r.description,
+          icon: Icons.auto_awesome_rounded,
+          color: DesignColors.accentPurple,
+          reasoning: r.reason.summary,
+          domain: r.category.name,
+          onFeedback: (f) {
+            setState(() => _dismissedIds.add(r.id));
+          },
+        )),
       ],
     );
   }
@@ -62,13 +93,15 @@ class IntelligenceFeedList extends StatelessWidget {
   }
 }
 
-class IntelligenceCard extends StatelessWidget {
+class IntelligenceCard extends ConsumerWidget {
   const IntelligenceCard({
     required this.title,
     required this.description,
     required this.icon,
     required this.color,
     this.reasoning,
+    this.domain,
+    this.onFeedback,
     super.key,
   });
 
@@ -77,29 +110,21 @@ class IntelligenceCard extends StatelessWidget {
   final IconData icon;
   final Color color;
   final String? reasoning;
+  final String? domain;
+  final ValueChanged<IntelligenceFeedback>? onFeedback;
 
-  factory IntelligenceCard.fromInsight(KnightInsight insight) {
+  factory IntelligenceCard.fromWarning(String warning) {
     return IntelligenceCard(
-      title: insight.title,
-      description: insight.description,
-      icon: Icons.lightbulb_outline_rounded,
-      color: DesignColors.accentBlue,
-      reasoning: insight.explanation,
-    );
-  }
-
-  factory IntelligenceCard.fromRecommendation(KnightRecommendation rec) {
-    return IntelligenceCard(
-      title: rec.title,
-      description: rec.description,
-      icon: Icons.auto_awesome_rounded,
-      color: DesignColors.accentPurple,
-      reasoning: rec.reason.summary,
+      title: 'High Priority Alert',
+      description: warning,
+      icon: Icons.warning_amber_rounded,
+      color: DesignColors.error,
+      reasoning: 'Critical environmental trigger',
     );
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
@@ -117,6 +142,21 @@ class IntelligenceCard extends StatelessWidget {
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                   ),
                 ),
+                if (domain != null) ...[
+                  IconButton(
+                    onPressed: () => _handleFeedback(ref, IntelligenceFeedback.helpful),
+                    icon: const Icon(Icons.check_circle_outline_rounded, color: Colors.white24, size: 18),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                  const SizedBox(width: 12),
+                  IconButton(
+                    onPressed: () => _handleFeedback(ref, IntelligenceFeedback.ignore),
+                    icon: const Icon(Icons.close_rounded, color: Colors.white24, size: 18),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
               ],
             ),
             const SizedBox(height: 8),
@@ -146,5 +186,12 @@ class IntelligenceCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _handleFeedback(WidgetRef ref, IntelligenceFeedback feedback) {
+    if (domain != null) {
+      ref.read(reasoningServiceProvider).provideFeedback(domain!, feedback);
+      onFeedback?.call(feedback);
+    }
   }
 }

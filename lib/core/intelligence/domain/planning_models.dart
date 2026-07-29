@@ -36,6 +36,12 @@ class KnightTask {
     this.estimatedMinutes,
     this.scheduledStartTime,
     this.category,
+    this.dependencyIds = const [],
+    this.milestoneId,
+    this.isSensitive = false,
+    this.fallbackTaskIds = const [],
+    this.executionMetadata = const {},
+    this.targetDeviceId,
   });
 
   final String id;
@@ -46,6 +52,54 @@ class KnightTask {
   final int? estimatedMinutes;
   final DateTime? scheduledStartTime;
   final String? category;
+  final List<String> dependencyIds;
+  final String? milestoneId;
+  final bool isSensitive;
+  final List<String> fallbackTaskIds;
+  final Map<String, dynamic> executionMetadata;
+  final String? targetDeviceId;
+
+  KnightTask copyWith({
+    bool? isCompleted,
+    List<String>? dependencyIds,
+    bool? isSensitive,
+    List<String>? fallbackTaskIds,
+    Map<String, dynamic>? executionMetadata,
+    String? targetDeviceId,
+  }) {
+    return KnightTask(
+      id: id,
+      title: title,
+      description: description,
+      priority: priority,
+      isCompleted: isCompleted ?? this.isCompleted,
+      estimatedMinutes: estimatedMinutes,
+      scheduledStartTime: scheduledStartTime,
+      category: category,
+      dependencyIds: dependencyIds ?? this.dependencyIds,
+      milestoneId: milestoneId,
+      isSensitive: isSensitive ?? this.isSensitive,
+      fallbackTaskIds: fallbackTaskIds ?? this.fallbackTaskIds,
+      executionMetadata: executionMetadata ?? this.executionMetadata,
+      targetDeviceId: targetDeviceId ?? this.targetDeviceId,
+    );
+  }
+}
+
+/// Represents a significant achievement marker within a plan.
+@immutable
+class KnightMilestone {
+  const KnightMilestone({
+    required this.id,
+    required this.title,
+    required this.isReached,
+    this.targetDate,
+  });
+
+  final String id;
+  final String title;
+  final bool isReached;
+  final DateTime? targetDate;
 }
 
 /// A structured sequence of tasks and milestones to achieve an objective.
@@ -56,6 +110,7 @@ class KnightPlan {
     required this.title,
     required this.goalId,
     required this.tasks,
+    this.milestones = const [],
     required this.status,
     required this.createdAt,
     this.updatedAt,
@@ -65,6 +120,7 @@ class KnightPlan {
   final String title;
   final String goalId;
   final List<KnightTask> tasks;
+  final List<KnightMilestone> milestones;
   final MissionStatus status;
   final DateTime createdAt;
   final DateTime? updatedAt;

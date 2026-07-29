@@ -43,13 +43,9 @@ class _EntranceFaderState extends State<EntranceFader>
           ),
         );
 
-    if (widget.delay == Duration.zero) {
-      _controller.forward();
-    } else {
-      Future.delayed(widget.delay, () {
-        if (mounted) _controller.forward();
-      });
-    }
+    Future.delayed(widget.delay, () {
+      if (mounted) _controller.forward();
+    });
   }
 
   @override

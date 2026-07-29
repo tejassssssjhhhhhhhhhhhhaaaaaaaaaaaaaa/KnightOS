@@ -86,7 +86,7 @@ class _WaveformPainter extends CustomPainter {
     final centerY = size.height / 2;
     final width = size.width;
 
-    for (double x = 0; i < 50; i++) {
+    for (int i = 0; i < 50; i++) {
       final double progress = i / 50;
       final double xPos = progress * width;
       

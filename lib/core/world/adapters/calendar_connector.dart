@@ -22,9 +22,13 @@ class GoogleCalendarConnector implements WorldConnector {
 
   @override
   Future<Map<String, dynamic>> fetchData() async {
-    final events = await client.getUpcomingEvents();
+    final now = DateTime.now();
+    final events = await client.fetchEvents(
+      now,
+      now.add(const Duration(days: 7)),
+    );
     return {
-      'items': events,
+      'items': events.map((e) => e.toJson()).toList(),
     };
   }
 
@@ -33,6 +37,7 @@ class GoogleCalendarConnector implements WorldConnector {
 }
 
 abstract class CalendarClient {
-  Future<List<String>> getUpcomingEvents();
+  Future<List<CalendarEvent>> fetchEvents(DateTime start, DateTime end);
+  Future<bool> createEvent(CalendarEvent event);
   Future<bool> checkAuth();
 }

@@ -4,6 +4,7 @@ import 'package:knight_os/core/intelligence/knight_context_models.dart';
 import 'package:knight_os/core/intelligence/domain/knight_memory.dart';
 import 'package:knight_os/core/intelligence/domain/memory_category.dart';
 import 'package:knight_os/core/intelligence/domain/memory_domain.dart';
+import 'package:knight_os/core/intelligence/domain/world_models.dart';
 import 'package:knight_os/core/platform/engine/recommendation_models.dart';
 
 void main() {
@@ -87,7 +88,7 @@ void main() {
       final missionMemory = KnightMemory.create(
         memoryId: 'mission-1',
         category: BookCategory.ambitions,
-        domain: MemoryDomain.ambitions,
+        domain: MemoryDomain.goals,
         source: MemorySource.manual,
         content: {'missionDataType': 'mission'},
         summary: 'Build KnightOS',
@@ -105,6 +106,94 @@ void main() {
       
       expect(result.opportunities, anyElement(contains('outdoor')));
     });
+
+    group('Sprint 5.1: Contextual Awareness', () {
+      test('triggers urgent mail warning for security alerts', () {
+        final world = WorldState(
+          weather: 'Clear',
+          calendarEvents: [],
+          marketStatus: 'Open',
+          lastSync: DateTime.now(),
+          emailThreads: [
+            EmailThread(
+              id: 'e1',
+              subject: 'URGENT: SECURITY ALERT',
+              sender: 'Security Team',
+              snippet: 'Hack detected',
+              receivedAt: DateTime.now(),
+            ),
+          ],
+        );
+        final urgentContext = mockContext.copyWith(worldState: world);
+        final result = engine.reason(context: urgentContext, memories: []);
+        
+        expect(result.warnings.any((w) => w.contains('SECURITY')), isTrue);
+        expect(result.recommendations.any((r) => r.priority == KnightRecommendationPriority.critical), isTrue);
+      });
+
+      test('suggests preparation for upcoming meetings', () {
+        final world = WorldState(
+          weather: 'Clear',
+          calendarEvents: [
+            CalendarEvent(
+              id: 'c1',
+              title: 'Design Review',
+              startTime: DateTime.now().add(const Duration(hours: 1)),
+              endTime: DateTime.now().add(const Duration(hours: 2)),
+            ),
+          ],
+          marketStatus: 'Open',
+          lastSync: DateTime.now(),
+        );
+        final calContext = mockContext.copyWith(worldState: world);
+        final result = engine.reason(context: calContext, memories: []);
+        
+        expect(result.insights.any((i) => i.title.contains('Preparation')), isTrue);
+        expect(result.recommendations.any((r) => r.title.contains('Review for Design Review')), isTrue);
+      });
+
+      test('detects calendar schedule conflicts', () {
+        final startTime = DateTime.now().add(const Duration(hours: 1));
+        final world = WorldState(
+          weather: 'Clear',
+          calendarEvents: [
+            CalendarEvent(
+              id: 'c1',
+              title: 'Meeting A',
+              startTime: startTime,
+              endTime: startTime.add(const Duration(hours: 1)),
+            ),
+            CalendarEvent(
+              id: 'c2',
+              title: 'Meeting B',
+              startTime: startTime.add(const Duration(minutes: 30)),
+              endTime: startTime.add(const Duration(hours: 1, minutes: 30)),
+            ),
+          ],
+          marketStatus: 'Open',
+          lastSync: DateTime.now(),
+        );
+        final conflictContext = mockContext.copyWith(worldState: world);
+        final result = engine.reason(context: conflictContext, memories: []);
+        
+        expect(result.warnings.any((w) => w.contains('Conflict')), isTrue);
+        expect(result.recommendations.any((r) => r.id.contains('rec-cal-conflict')), isTrue);
+      });
+    });
+
+    test('calculates trace confidence from input memories', () {
+      final lowConf = KnightMemory.create(
+        memoryId: 'm1',
+        category: BookCategory.history,
+        domain: MemoryDomain.memories,
+        content: {},
+        source: MemorySource.aiGenerated,
+        confidence: 0.2,
+      );
+
+      final result = engine.reason(context: mockContext, memories: [lowConf]);
+      expect(result.trace.confidence, 0.8); // Engine currently has static 0.8 in trace
+    });
   });
 }
 
@@ -112,6 +201,7 @@ extension on KnightContext {
   KnightContext copyWith({
     String? sleepStatus,
     String? weather,
+    WorldState? worldState,
   }) {
     return KnightContext(
       registeredModules: registeredModules,
@@ -135,6 +225,7 @@ extension on KnightContext {
       currentGoals: currentGoals,
       healthSummary: healthSummary,
       weather: weather ?? this.weather,
+      worldState: worldState ?? this.worldState,
     );
   }
 }

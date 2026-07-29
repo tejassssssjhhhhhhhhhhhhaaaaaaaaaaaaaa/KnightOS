@@ -4,79 +4,133 @@ import 'package:go_router/go_router.dart';
 
 import '../core/design_system/design_constants.dart';
 import '../core/design_system/widgets/entrance_fader.dart';
-import '../core/intelligence/providers/intelligence_providers.dart';
-import '../core/intelligence/domain/memory_category.dart';
-import '../core/intelligence/engines/memory_retrieval_engine.dart';
+import '../core/intelligence/knight_context_models.dart';
+import '../core/intelligence/knight_context_provider.dart';
+import '../core/intelligence/domain/world_models.dart';
 import '../core/router/app_routes.dart';
 import 'widgets/knight_page_scaffold.dart';
 import 'widgets/home/mission_control_hero.dart';
+import 'widgets/home/intelligence_feed.dart';
+import 'widgets/home/quick_actions.dart';
+import 'widgets/home/ambient_voice_overlay.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final retrieval = ref.watch(memoryRetrievalEngineProvider);
+    final contextAsync = ref.watch(currentContextNotifierProvider);
 
     return KnightPageScaffold(
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(DesignSpacing.m),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 20),
-            
-            // 1. Hero Greeting
-            EntranceFader(
-              child: MissionControlHero(
-                name: 'Tejas',
-                quote: '"Discipline Today, Freedom Tomorrow."',
-              ),
+      body: Stack(
+        children: [
+          RefreshIndicator(
+            onRefresh: () => ref.read(currentContextNotifierProvider.notifier).refresh(),
+            color: DesignColors.accentBlue,
+            backgroundColor: DesignColors.surfaceHigh,
+            child: contextAsync.when(
+              data: (knightContext) => _HomeScreenContent(knightContext: knightContext),
+              loading: () => const _HomeScreenLoading(),
+              error: (e, s) => _HomeScreenError(error: e.toString()),
             ),
-            
-            const SizedBox(height: DesignSpacing.l),
-            
-            // 2. Operational Command Summary
+          ),
+          const AmbientVoiceOverlay(),
+        ],
+      ),
+    );
+  }
+}
+
+class _HomeScreenContent extends StatelessWidget {
+  const _HomeScreenContent({required this.knightContext});
+  final KnightContext knightContext;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(DesignSpacing.m),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 20),
+          
+          // 1. Hero Greeting
+          EntranceFader(
+            child: MissionControlHero(
+              name: 'Tejas',
+              greeting: knightContext.greeting,
+              quote: '"Discipline Today, Freedom Tomorrow."',
+            ),
+          ),
+          
+          const SizedBox(height: DesignSpacing.l),
+          
+          // 2. Intelligence Feed (Rule-based insights)
+          if (knightContext.reasoning != null)
             EntranceFader(
               delay: const Duration(milliseconds: 200),
-              child: _OperationalCommandCard(retrieval: retrieval),
+              child: IntelligenceFeedList(reasoning: knightContext.reasoning!),
             ),
-            
+          
+          const SizedBox(height: DesignSpacing.l),
+          
+          // 3. Operational Command Summary
+          EntranceFader(
+            delay: const Duration(milliseconds: 400),
+            child: _OperationalCommandCard(knightContext: knightContext),
+          ),
+          
+          const SizedBox(height: DesignSpacing.l),
+          
+          // 4. Focus & Vitality
+          EntranceFader(
+            delay: const Duration(milliseconds: 600),
+            child: _FocusAndVitalityRow(knightContext: knightContext),
+          ),
+          
+          const SizedBox(height: DesignSpacing.l),
+          
+          // 5. Next Planned Action
+          EntranceFader(
+            delay: const Duration(milliseconds: 800),
+            child: _NextActionCard(knightContext: knightContext),
+          ),
+          
+          const SizedBox(height: DesignSpacing.l),
+          
+          // 6. Quick Actions
+          EntranceFader(
+            delay: const Duration(milliseconds: 1000),
+            child: const QuickActionsPanel(),
+          ),
+
+          const SizedBox(height: DesignSpacing.l),
+          
+          // 7. At a Glance (World Perception)
+          EntranceFader(
+            delay: const Duration(milliseconds: 1200),
+            child: _AtAGlanceStats(knightContext: knightContext),
+          ),
+          
+          if (knightContext.worldState.emailThreads.isNotEmpty) ...[
             const SizedBox(height: DesignSpacing.l),
-            
-            // 3. Focus Score & Vitality
             EntranceFader(
-              delay: const Duration(milliseconds: 400),
-              child: const _FocusAndVitalityRow(),
+              delay: const Duration(milliseconds: 1400),
+              child: _RecentEmailsCard(threads: knightContext.worldState.emailThreads),
             ),
-            
-            const SizedBox(height: DesignSpacing.l),
-            
-            // 4. Today's Priority
-            EntranceFader(
-              delay: const Duration(milliseconds: 600),
-              child: _PriorityCard(retrieval: retrieval),
-            ),
-            
-            const SizedBox(height: DesignSpacing.l),
-            
-            // 5. At a Glance Stats
-            EntranceFader(
-              delay: const Duration(milliseconds: 800),
-              child: const _AtAGlanceStats(),
-            ),
-            
-            const SizedBox(height: 140), // Navigation Spacing
           ],
-        ),
+          
+          const SizedBox(height: 140),
+        ],
       ),
     );
   }
 }
 
 class _OperationalCommandCard extends StatelessWidget {
-  const _OperationalCommandCard({required this.retrieval});
-  final MemoryRetrievalEngine retrieval;
+  const _OperationalCommandCard({required this.knightContext});
+  final KnightContext knightContext;
 
   @override
   Widget build(BuildContext context) {
@@ -104,9 +158,9 @@ class _OperationalCommandCard extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _buildStat(BookCategory.ambitions, 'Tasks'),
-                  _buildStat(null, 'Questions', isTotal: true),
-                  _buildStat(BookCategory.history, 'Events'),
+                  _buildStat('${knightContext.planning?.dailyPlan.tasks.length ?? 0}', 'Tasks'),
+                  _buildStat('${knightContext.registeredModules.length}', 'Hubs'),
+                  _buildStat('${knightContext.recentMemoriesCount}', 'Memories'),
                 ],
               ),
             ],
@@ -116,86 +170,71 @@ class _OperationalCommandCard extends StatelessWidget {
     );
   }
 
-  Widget _buildStat(BookCategory? category, String label, {bool isTotal = false}) {
-    final Future<int> countFuture = isTotal 
-      ? retrieval.search('').then((list) => list.length)
-      : retrieval.getByCategory(category!).then((list) => list.length);
-
-    return FutureBuilder<int>(
-      future: countFuture,
-      builder: (context, snapshot) {
-        final count = snapshot.data ?? 0;
-        return Column(
-          children: [
-            Text('$count', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
-            const SizedBox(height: 4),
-            Text(label, style: const TextStyle(fontSize: 12, color: Colors.white38)),
-          ],
-        );
-      },
+  Widget _buildStat(String value, String label) {
+    return Column(
+      children: [
+        Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
+        const SizedBox(height: 4),
+        Text(label, style: const TextStyle(fontSize: 12, color: Colors.white38)),
+      ],
     );
   }
 }
 
 class _FocusAndVitalityRow extends StatelessWidget {
-  const _FocusAndVitalityRow();
+  const _FocusAndVitalityRow({required this.knightContext});
+  final KnightContext knightContext;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Focus Score (Large)
         Expanded(
           flex: 4,
-          child: InkWell(
-            onTap: () => context.go(AppRoutes.work),
-            borderRadius: DesignRadius.card,
-            child: Card(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
-                    Text('FOCUS SCORE', style: Theme.of(context).textTheme.labelLarge),
-                    const SizedBox(height: 16),
-                    Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        const SizedBox(
-                          width: 100,
-                          height: 100,
-                          child: CircularProgressIndicator(
-                            value: 0.87,
-                            strokeWidth: 8,
-                            backgroundColor: DesignColors.white05,
-                            color: DesignColors.accentBlue,
-                          ),
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  Text('FOCUS SCORE', style: Theme.of(context).textTheme.labelLarge),
+                  const SizedBox(height: 16),
+                  Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      SizedBox(
+                        width: 100,
+                        height: 100,
+                        child: CircularProgressIndicator(
+                          value: knightContext.focusScore,
+                          strokeWidth: 8,
+                          backgroundColor: DesignColors.white05,
+                          color: DesignColors.accentBlue,
                         ),
-                        Column(
-                          children: [
-                            Text('87%', style: Theme.of(context).textTheme.headlineLarge),
-                            const Text('Excellent ↑', style: TextStyle(fontSize: 10, color: DesignColors.success)),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                      ),
+                      Column(
+                        children: [
+                          Text('${(knightContext.focusScore * 100).toInt()}%', style: Theme.of(context).textTheme.headlineLarge),
+                          Text(knightContext.focusScore > 0.8 ? 'Excellent ↑' : 'Stable', style: const TextStyle(fontSize: 10, color: DesignColors.success)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ),
         ),
         const SizedBox(width: 12),
-        // Vitality Stats (Small Column)
         Expanded(
           flex: 3,
           child: Column(
             children: [
-              _buildVitalityTile(context, Icons.bedtime_rounded, 'Sleep', '6h 45m', AppRoutes.health),
+              _buildVitalityTile(Icons.bedtime_rounded, 'Sleep', knightContext.sleepStatus.split(' ').first),
               const SizedBox(height: 12),
-              _buildVitalityTile(context, Icons.bolt_rounded, 'Energy', 'High', AppRoutes.health),
+              _buildVitalityTile(Icons.bolt_rounded, 'Energy', knightContext.energyLevel),
               const SizedBox(height: 12),
-              _buildVitalityTile(context, Icons.mood_rounded, 'Mood', 'Focused', AppRoutes.health),
+              _buildVitalityTile(Icons.mood_rounded, 'Mood', knightContext.mood),
             ],
           ),
         ),
@@ -203,74 +242,64 @@ class _FocusAndVitalityRow extends StatelessWidget {
     );
   }
 
-  Widget _buildVitalityTile(BuildContext context, IconData icon, String label, String value, String route) {
-    return InkWell(
-      onTap: () => context.go(route),
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: DesignColors.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: DesignColors.white05),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, size: 16, color: DesignColors.accentBlue),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(label, style: const TextStyle(fontSize: 10, color: Colors.white24)),
-                  Text(value, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                ],
-              ),
+  Widget _buildVitalityTile(IconData icon, String label, String value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: DesignColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: DesignColors.white05),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: DesignColors.accentBlue),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: const TextStyle(fontSize: 10, color: Colors.white24)),
+                Text(value, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
 
-class _PriorityCard extends StatelessWidget {
-  const _PriorityCard({required this.retrieval});
-  final dynamic retrieval;
+class _NextActionCard extends StatelessWidget {
+  const _NextActionCard({required this.knightContext});
+  final KnightContext knightContext;
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () => context.go(AppRoutes.mission),
-      borderRadius: DesignRadius.card,
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('TODAY\'S PRIORITY', style: Theme.of(context).textTheme.labelLarge),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: FutureBuilder<List>(
-                      future: retrieval.getByCategory(BookCategory.ambitions),
-                      builder: (context, snapshot) {
-                        final items = snapshot.data ?? [];
-                        final priority = items.isNotEmpty ? items.first.summary : 'Define your next mission';
-                        return Text(
-                          priority,
-                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-                        );
-                      }
-                    ),
+    final dailyPlan = knightContext.planning?.dailyPlan;
+    final nextTask = dailyPlan?.tasks.firstWhere((t) => !t.isCompleted, orElse: () => dailyPlan.tasks.first);
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('NEXT PLANNED ACTION', style: Theme.of(context).textTheme.labelLarge),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                const Icon(Icons.radio_button_unchecked_rounded, color: DesignColors.accentBlue),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    nextTask?.title ?? 'No scheduled actions',
+                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
                   ),
-                  const Icon(Icons.chevron_right_rounded, color: Colors.white24),
-                ],
-              ),
-            ],
-          ),
+                ),
+                const Icon(Icons.play_circle_outline_rounded, color: Colors.white24),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -278,32 +307,124 @@ class _PriorityCard extends StatelessWidget {
 }
 
 class _AtAGlanceStats extends StatelessWidget {
-  const _AtAGlanceStats();
+  const _AtAGlanceStats({required this.knightContext});
+  final KnightContext knightContext;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        _buildGlanceItem(context, Icons.directions_run_rounded, 'Steps', '8,432', AppRoutes.health),
-        _buildGlanceItem(context, Icons.water_drop_rounded, 'Water', '1.8 L', AppRoutes.health),
-        _buildGlanceItem(context, Icons.local_fire_department_rounded, 'Calories', '1,200', AppRoutes.health),
-        _buildGlanceItem(context, Icons.menu_book_rounded, 'Study', '1h 20m', AppRoutes.work),
+        _buildGlanceItem(Icons.directions_run_rounded, 'Steps', knightContext.steps.toString()),
+        _buildGlanceItem(Icons.water_drop_rounded, 'Water', '${knightContext.waterIntake}L'),
+        _buildGlanceItem(Icons.local_fire_department_rounded, 'Calories', knightContext.calories.toString()),
+        _buildGlanceItem(Icons.wb_sunny_rounded, 'Weather', knightContext.weather),
       ],
     );
   }
 
-  Widget _buildGlanceItem(BuildContext context, IconData icon, String label, String value, String route) {
-    return InkWell(
-      onTap: () => context.go(route),
-      borderRadius: BorderRadius.circular(10),
-      child: Column(
-        children: [
-          Icon(icon, size: 20, color: Colors.white24),
-          const SizedBox(height: 8),
-          Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-          Text(label, style: const TextStyle(fontSize: 10, color: Colors.white24)),
-        ],
+  Widget _buildGlanceItem(IconData icon, String label, String value) {
+    return Column(
+      children: [
+        Icon(icon, size: 20, color: Colors.white24),
+        const SizedBox(height: 8),
+        Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+        Text(label, style: const TextStyle(fontSize: 10, color: Colors.white24)),
+      ],
+    );
+  }
+}
+
+class _RecentEmailsCard extends StatelessWidget {
+  const _RecentEmailsCard({required this.threads});
+  final List<EmailThread> threads;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('RECENT INTELLIGENCE (MAIL)', style: Theme.of(context).textTheme.labelLarge),
+                const Icon(Icons.mail_outline_rounded, color: DesignColors.accentBlue, size: 16),
+              ],
+            ),
+            const SizedBox(height: 16),
+            ...threads.take(2).map((t) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Row(
+                children: [
+                  Container(
+                    width: 4,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: t.isUnread ? DesignColors.accentBlue : Colors.white10,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          t.subject,
+                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          '${t.sender} • ${t.snippet}',
+                          style: const TextStyle(fontSize: 11, color: Colors.white38),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            )),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HomeScreenLoading extends StatelessWidget {
+  const _HomeScreenLoading();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(child: CircularProgressIndicator(color: DesignColors.accentBlue));
+  }
+}
+
+class _HomeScreenError extends StatelessWidget {
+  const _HomeScreenError({required this.error});
+  final String error;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(DesignSpacing.xl),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline_rounded, color: DesignColors.error, size: 48),
+            const SizedBox(height: 16),
+            Text('Perception Error', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 8),
+            Text(error, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white38)),
+          ],
+        ),
       ),
     );
   }

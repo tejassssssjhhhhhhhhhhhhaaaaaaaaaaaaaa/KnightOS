@@ -49,6 +49,12 @@ enum KnightRecommendationCategory {
   /// A suggestion related to travel.
   travel,
 
+  /// A suggestion related to the system or OS operation.
+  system,
+
+  /// A suggestion related to security or privacy.
+  security,
+
   /// A generic category for future extension.
   custom,
 }

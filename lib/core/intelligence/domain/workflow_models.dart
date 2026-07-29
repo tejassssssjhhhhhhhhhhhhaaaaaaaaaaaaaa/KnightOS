@@ -13,7 +13,7 @@ enum WorkflowStatus {
 /// A snapshot of an active workflow's execution state.
 @immutable
 class WorkflowState {
-  const WorkflowStatusState({
+  const WorkflowState({
     required this.planId,
     required this.status,
     required this.currentTaskId,

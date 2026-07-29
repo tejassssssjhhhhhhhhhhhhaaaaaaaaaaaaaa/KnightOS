@@ -28,7 +28,7 @@ class ApprovalOverlay extends ConsumerWidget {
         );
       },
       loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 }
@@ -45,7 +45,7 @@ class _ApprovalCard extends ConsumerWidget {
       color: DesignColors.surfaceHigh,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: _getRiskColor().withValues(alpha: 0.3)),
+        side: BorderSide(color: _getRiskColor().withValues(alpha: 0.3)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(24),

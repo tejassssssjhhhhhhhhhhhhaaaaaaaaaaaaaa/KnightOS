@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'knight_memory.dart';
 import 'cognitive_models.dart';
+import 'workflow_models.dart';
 
 /// Base class for all events that trigger intelligence recomputation.
 @immutable
@@ -65,4 +66,69 @@ class FeedbackReceivedEvent extends IntelligenceEvent {
 
   final String intelligenceId;
   final dynamic feedback; // Usually IntelligenceFeedback
+}
+
+/// Emitted when an autonomous workflow state changes.
+class WorkflowUpdatedEvent extends IntelligenceEvent {
+  WorkflowUpdatedEvent({required this.state}) : super(timestamp: DateTime.now());
+  final WorkflowState state;
+}
+
+/// Emitted when a sensitive action requires human approval.
+class ApprovalRequestedEvent extends IntelligenceEvent {
+  ApprovalRequestedEvent({required this.request}) : super(timestamp: DateTime.now());
+  final dynamic request; // ApprovalRequest
+}
+
+/// Emitted when an approval request is resolved.
+class ApprovalResolvedEvent extends IntelligenceEvent {
+  ApprovalResolvedEvent({required this.requestId, required this.status}) : super(timestamp: DateTime.now());
+  final String requestId;
+  final dynamic status; // ApprovalStatus
+}
+
+/// Emitted when a remote device broadcasts its status.
+class DeviceHeartbeatEvent extends IntelligenceEvent {
+  DeviceHeartbeatEvent({required this.deviceId, required this.status}) : super(timestamp: DateTime.now());
+  final String deviceId;
+  final dynamic status; // DeviceStatus
+}
+
+/// Emitted when a task is delegated to a specific device.
+class RemoteTaskExecutionEvent extends IntelligenceEvent {
+  RemoteTaskExecutionEvent({
+    required this.taskId, 
+    required this.deviceId, 
+    required this.planId,
+  }) : super(timestamp: DateTime.now());
+
+  final String taskId;
+  final String deviceId;
+  final String planId;
+}
+
+/// Emitted when a remote task completes.
+class RemoteTaskCompletedEvent extends IntelligenceEvent {
+  RemoteTaskCompletedEvent({
+    required this.taskId, 
+    required this.planId, 
+    this.error,
+  }) : super(timestamp: DateTime.now());
+
+  final String taskId;
+  final String planId;
+  final String? error;
+}
+
+/// Emitted when a workflow attempts to heal itself from a failure.
+class WorkflowHealingEvent extends IntelligenceEvent {
+  WorkflowHealingEvent({
+    required this.planId, 
+    required this.failedTaskId, 
+    this.fallbackTaskId,
+  }) : super(timestamp: DateTime.now());
+
+  final String planId;
+  final String failedTaskId;
+  final String? fallbackTaskId;
 }

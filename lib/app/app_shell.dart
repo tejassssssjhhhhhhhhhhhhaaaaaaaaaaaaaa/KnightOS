@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../core/design_system/design_constants.dart';
 import '../core/router/app_routes.dart';
 import 'widgets/knight_orb.dart';
+import 'widgets/autonomous_monitor.dart';
+import 'widgets/approval_overlay.dart';
 
 class KnightShell extends StatelessWidget {
   const KnightShell({required this.child, super.key});
@@ -30,7 +32,13 @@ class KnightShell extends StatelessWidget {
             ),
           ),
 
-          // 3. Consolidated Bottom Navigation (Home, Personal Hub, Settings)
+          // 3. Autonomous Execution Overlay (Sprint 4.1)
+          const AutonomousMonitorOverlay(),
+
+          // 4. Approval Portal Overlay (Sprint 4.2)
+          const ApprovalOverlay(),
+
+          // 5. Consolidated Bottom Navigation (Home, Personal Hub, Settings)
           Positioned(
             left: 0,
             right: 0,

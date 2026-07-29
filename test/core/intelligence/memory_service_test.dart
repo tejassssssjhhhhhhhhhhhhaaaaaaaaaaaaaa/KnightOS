@@ -1,10 +1,9 @@
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:knight_os/core/intelligence/domain/knight_memory.dart';
-import 'package:knight_os/core/intelligence/domain/memory_metadata.dart';
-import 'package:knight_os/core/intelligence/domain/memory_version.dart';
 import 'package:knight_os/core/intelligence/domain/memory_domain.dart';
 import 'package:knight_os/core/intelligence/domain/memory_category.dart';
+import 'package:knight_os/core/intelligence/domain/memory_relation.dart';
 import 'package:knight_os/core/intelligence/domain/repositories/memory_repository.dart';
 import 'package:knight_os/core/intelligence/engines/memory_engine.dart';
 import 'package:knight_os/core/intelligence/services/json_validation_service.dart';
@@ -62,6 +61,9 @@ class MockMemoryRepository implements MemoryRepository {
   Future<List<KnightMemory>> getRelated(String memoryId) async => [];
 
   @override
+  Future<List<MemoryRelation>> getAllRelations() async => [];
+
+  @override
   Stream<KnightMemory?> watchLatest(String memoryId) => Stream.value(null);
 
   @override
@@ -89,8 +91,11 @@ void main() {
     service = MemoryService(memoryEngine: engine);
 
     // Schema for tests
-    final schemaFile = File('${tempDir.path}/08_health.schema.json');
-    await schemaFile.writeAsString('{"type": "object"}');
+    final healthSchema = File('${tempDir.path}/08_health.schema.json');
+    await healthSchema.writeAsString('{"type": "object"}');
+
+    final memorySchema = File('${tempDir.path}/27_memories.schema.json');
+    await memorySchema.writeAsString('{"type": "object"}');
   });
 
   tearDown(() async {
@@ -112,8 +117,8 @@ void main() {
       final retrieved = await service.retrieveMemory('test-1');
 
       expect(retrieved, isNotNull);
-      expect(retrieved!.summary, 'Test Memory');
-      expect(retrieved!.content['key'], 'value');
+      expect(retrieved?.summary, 'Test Memory');
+      expect(retrieved?.content['key'], 'value');
     });
 
     test('saveQuickNote creates correct memory', () async {

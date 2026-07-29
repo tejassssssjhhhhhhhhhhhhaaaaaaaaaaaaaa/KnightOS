@@ -1,6 +1,7 @@
 import '../knight_memory.dart';
 import '../memory_domain.dart';
 import '../memory_category.dart';
+import '../memory_relation.dart';
 
 /// Contract for Atomic Memory Unit (AMU) persistence and versioning.
 abstract class MemoryRepository {
@@ -39,6 +40,9 @@ abstract class MemoryRepository {
 
   /// Retrieves all memories related to the given ID.
   Future<List<KnightMemory>> getRelated(String memoryId);
+
+  /// Retrieves all relationship edges in the graph.
+  Future<List<MemoryRelation>> getAllRelations();
 
   /// --- Reactive APIs (ADR-002) ---
 

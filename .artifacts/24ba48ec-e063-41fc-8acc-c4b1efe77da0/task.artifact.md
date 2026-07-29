@@ -1,0 +1,8 @@
+- [ ] Sprint 8: Stability & Quality Assurance
+    - [ ] Fix `MockMemoryRepository` UnimplementedErrors
+        - [ ] Update `planning_service_test.dart`
+        - [ ] Update `reasoning_service_test.dart`
+    - [ ] Fix `SplashScreen` unmounted ref usage
+    - [ ] Verify Full Test Suite
+    - [ ] Update Task Index & Session State
+    - [ ] Prepare V4.0.0-rc1 Release Candidate

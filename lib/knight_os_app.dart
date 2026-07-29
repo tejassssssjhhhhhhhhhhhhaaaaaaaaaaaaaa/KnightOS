@@ -58,7 +58,9 @@ class _KnightOsAppState extends State<KnightOsApp> with WidgetsBindingObserver {
       child: MaterialApp.router(
         title: 'KnightOS',
         debugShowCheckedModeBanner: false,
-        theme: widget.theme ?? AppTheme.darkTheme(),
+        theme: widget.theme ?? AppTheme.lightTheme(),
+        darkTheme: widget.theme ?? AppTheme.darkTheme(),
+        themeMode: widget.theme != null ? ThemeMode.light : ThemeMode.system,
         routerConfig: AppRouter.router,
       ),
     );

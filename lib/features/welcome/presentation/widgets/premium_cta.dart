@@ -1,6 +1,5 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:knight_os/core/theme/knight_theme_extensions.dart';
 
 class PremiumCTA extends StatefulWidget {
@@ -142,7 +141,7 @@ class _PremiumCTAState extends State<PremiumCTA> with TickerProviderStateMixin {
                         children: [
                           Text(
                             widget.label,
-                            style: GoogleFonts.inter(
+                            style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
                               color: Colors.white,

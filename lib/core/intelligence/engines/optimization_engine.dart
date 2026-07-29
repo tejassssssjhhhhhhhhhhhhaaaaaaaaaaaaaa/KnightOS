@@ -1,7 +1,6 @@
 import '../domain/intelligence_models.dart';
 import '../domain/optimization_models.dart';
 import '../intelligence_bus.dart';
-import '../domain/intelligence_events.dart';
 
 /// The self-learning core of KnightOS.
 /// Optimizes priority weights based on user feedback (RLHF).

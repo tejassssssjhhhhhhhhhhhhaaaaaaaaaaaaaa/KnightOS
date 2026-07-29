@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import '../../core/design_system/design_constants.dart';
 import '../../core/intelligence/domain/workflow_models.dart';
 import '../../core/intelligence/providers/intelligence_providers.dart';
@@ -71,7 +70,9 @@ class _LogContent extends StatelessWidget {
                 _buildLogEntry('Fetching plan definition: ${state.planId}', '07:42:02'),
                 _buildLogEntry('Context verified. Security level: Green.', '07:42:02'),
                 if (state.currentTaskId != null)
-                   _buildLogEntry('Executing task: ${state.currentTaskId}', '07:42:03', isActive: true),
+                   _buildLogEntry('Executing task: ${state.currentTaskId} (Local)', '07:42:03', isActive: true),
+                if (state.errorMessage != null && state.errorMessage!.contains('denied'))
+                   _buildLogEntry('USER INTERVENTION: ${state.errorMessage}', '07:42:04', isWarning: true),
                 if (state.status == WorkflowStatus.failed)
                    _buildLogEntry('CRITICAL: ${state.errorMessage}', '07:42:05', isError: true),
               ],
@@ -152,7 +153,7 @@ class _LogContent extends StatelessWidget {
     );
   }
 
-  Widget _buildLogEntry(String message, String time, {bool isActive = false, bool isError = false}) {
+  Widget _buildLogEntry(String message, String time, {bool isActive = false, bool isError = false, bool isWarning = false}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
       child: Row(
@@ -165,7 +166,7 @@ class _LogContent extends StatelessWidget {
               message,
               style: TextStyle(
                 fontSize: 12, 
-                color: isError ? DesignColors.error : (isActive ? Colors.white : Colors.white38),
+                color: isError ? DesignColors.error : (isWarning ? DesignColors.warning : (isActive ? Colors.white : Colors.white38)),
                 fontFamily: 'monospace',
               ),
             ),

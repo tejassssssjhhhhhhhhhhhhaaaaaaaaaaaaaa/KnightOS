@@ -32,4 +32,65 @@ class KnowledgeGraph {
     // Future: Filter by relationType == influences
     return all;
   }
+
+  /// Performs a semantic traversal to find the root causes (causedBy/influences).
+  Future<List<KnightMemory>> findCausalChain(String memoryId, {int maxDepth = 4}) async {
+    final List<KnightMemory> chain = [];
+    final Set<String> visited = {memoryId};
+    String currentId = memoryId;
+
+    for (var i = 0; i < maxDepth; i++) {
+      final neighbors = await memoryEngine.getRelated(currentId);
+      // Logic: Find first neighbor with a causal link type
+      // Note: getRelated currently doesn't return the edge type.
+      // In a real V4 impl, we'd query for links of type 'causedBy' or 'influences'.
+      if (neighbors.isEmpty) break;
+
+      final influencer = neighbors.first; // Simplified for now
+      if (!visited.contains(influencer.memoryId)) {
+        visited.add(influencer.memoryId);
+        chain.add(influencer);
+        currentId = influencer.memoryId;
+      } else {
+        break;
+      }
+    }
+    return chain;
+  }
+
+  /// Retrieves memories within N hops, ranked by semantic strength.
+  Future<List<KnightMemory>> getDeeplyRelated(String memoryId, {int hops = 2}) async {
+    final path = await findPath(startId: memoryId, maxDepth: hops);
+    // Future: Rank by path weight (strength)
+    return path;
+  }
+
+  /// Performs a semantic traversal to find deep connections (BFS).
+  Future<List<KnightMemory>> findPath({
+    required String startId,
+    int maxDepth = 3,
+  }) async {
+    final List<KnightMemory> results = [];
+    final Set<String> visited = {startId};
+    final List<String> queue = [startId];
+    int currentDepth = 0;
+
+    while (queue.isNotEmpty && currentDepth < maxDepth) {
+      final layerSize = queue.length;
+      for (var i = 0; i < layerSize; i++) {
+        final currentId = queue.removeAt(0);
+        final neighbors = await memoryEngine.getRelated(currentId);
+        
+        for (final neighbor in neighbors) {
+          if (!visited.contains(neighbor.memoryId)) {
+            visited.add(neighbor.memoryId);
+            results.add(neighbor);
+            queue.add(neighbor.memoryId);
+          }
+        }
+      }
+      currentDepth++;
+    }
+    return results;
+  }
 }

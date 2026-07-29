@@ -1,4 +1,6 @@
 import '../../domain/knight_memory.dart';
+import '../../domain/memory_category.dart';
+import '../../domain/memory_relation.dart';
 import '../memory_engine.dart';
 import '../memory_retrieval_engine.dart';
 
@@ -52,6 +54,50 @@ class RelationshipDiscoveryEngine {
         }
       }
     }
+  }
+
+  /// Discovers implicit links between memories based on shared metadata or tags.
+  Future<List<MemoryRelation>> discoverImplicitLinks() async {
+    final List<MemoryRelation> inferred = [];
+    
+    // 1. Fetch a broad sample of memories
+    final all = await retrieval.search('');
+    
+    // 2. Pairwise comparison (Naive O(n^2) for this sprint, targeted in V4)
+    for (int i = 0; i < all.length; i++) {
+      for (int j = i + 1; j < all.length; j++) {
+        final a = all[i];
+        final b = all[j];
+        
+        // Rule: Shared specific tags
+        final commonTags = a.tags.toSet().intersection(b.tags.toSet());
+        if (commonTags.length >= 2) {
+          inferred.add(MemoryRelation(
+            sourceId: a.memoryId,
+            targetId: b.memoryId,
+            type: MemoryRelationType.relatesTo,
+            strength: 0.5 + (0.1 * commonTags.length).clamp(0.0, 0.4),
+            metadata: {'reason': 'Shared tags: ${commonTags.join(", ")}'},
+          ));
+        }
+
+        // Rule: Cross-domain correlation (Mock: Finance -> Travel)
+        if (a.category == BookCategory.finance && b.category == BookCategory.history) {
+          if (a.summary != null && b.summary != null && 
+              a.summary!.contains('Flight') && b.summary!.contains('Trip')) {
+             inferred.add(MemoryRelation(
+              sourceId: a.memoryId,
+              targetId: b.memoryId,
+              type: MemoryRelationType.influences,
+              strength: 0.9,
+              metadata: {'reason': 'Financial record likely caused by travel event'},
+            ));
+          }
+        }
+      }
+    }
+
+    return inferred;
   }
 
   String _getEventKey(KnightMemory m) {

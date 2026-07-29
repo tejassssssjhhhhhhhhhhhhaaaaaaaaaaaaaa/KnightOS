@@ -13,6 +13,8 @@ class FakeRetrieval extends Fake implements MemoryRetrievalEngine {
   Future<List<KnightMemory>> search(String query) async => memories;
 }
 
+class MockMemoryEngine extends Fake implements MemoryEngine {}
+
 void main() {
   late RelationshipDiscoveryEngine engine;
   late FakeRetrieval retrieval;
@@ -20,7 +22,7 @@ void main() {
   setUp(() {
     retrieval = FakeRetrieval();
     engine = RelationshipDiscoveryEngine(
-      memoryEngine: Fake(), // Not used for discovery logic itself
+      memoryEngine: MockMemoryEngine(),
       retrieval: retrieval,
     );
   });

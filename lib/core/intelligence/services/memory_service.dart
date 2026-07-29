@@ -1,6 +1,7 @@
 import '../engines/memory_engine.dart';
 import '../domain/knight_memory.dart';
 import '../domain/memory_category.dart';
+import '../domain/memory_domain.dart';
 
 /// Comprehensive memory management service for KnightOS.
 /// Provides high-level APIs for CRUD operations and search, backed by the Memory Engine.
@@ -11,6 +12,20 @@ class MemoryService {
 
   /// Persists a new memory unit.
   Future<void> saveMemory(KnightMemory memory) => memoryEngine.save(memory);
+
+  /// Saves a textual note as a manual memory.
+  Future<void> saveQuickNote(String title, String body) async {
+    final memory = KnightMemory.create(
+      memoryId: 'note-${DateTime.now().millisecondsSinceEpoch}',
+      category: BookCategory.history,
+      domain: MemoryDomain.memories,
+      content: {'title': title, 'body': body},
+      summary: title,
+      source: MemorySource.manual,
+      importance: 0.5,
+    );
+    await memoryEngine.save(memory);
+  }
 
   /// Persists multiple memory units in a single transaction.
   Future<void> saveAllMemories(List<KnightMemory> memories) =>
@@ -32,8 +47,14 @@ class MemoryService {
 
   /// Performs a keyword-based search across all memories.
   /// Designed to be augmented with vector search in future iterations.
-  Future<List<KnightMemory>> searchMemories(String query) =>
-      memoryEngine.search(query);
+  Future<List<KnightMemory>> searchMemories(
+    String query, {
+    bool semantic = false,
+  }) async {
+    // Current implementation only supports keyword search.
+    // Future: If semantic is true, use embedding service and vector search.
+    return memoryEngine.search(query);
+  }
 
   /// Establishes a semantic link between two memories.
   Future<void> linkMemories(

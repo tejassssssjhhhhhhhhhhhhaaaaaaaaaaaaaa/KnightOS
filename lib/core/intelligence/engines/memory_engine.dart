@@ -1,6 +1,7 @@
 import '../domain/knight_memory.dart';
 import '../domain/memory_domain.dart';
 import '../domain/memory_category.dart';
+import '../domain/memory_relation.dart';
 import '../domain/repositories/memory_repository.dart';
 import '../services/json_validation_service.dart';
 import '../domain/intelligence_events.dart';
@@ -81,6 +82,10 @@ class MemoryEngine {
   /// Retrieves all memories related to the given ID.
   Future<List<KnightMemory>> getRelated(String memoryId) =>
       repository.getRelated(memoryId);
+
+  /// Retrieves all relationship edges.
+  Future<List<MemoryRelation>> getAllRelations() =>
+      repository.getAllRelations();
 
   /// --- Reactive APIs (ADR-002) ---
 

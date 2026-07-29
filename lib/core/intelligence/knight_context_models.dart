@@ -1,5 +1,11 @@
 import '../platform/engine/feature_interfaces.dart';
 import '../platform/engine/scoring_models.dart';
+import 'domain/knight_memory.dart';
+import 'domain/reasoning_models.dart';
+import 'domain/planning_models.dart';
+import 'domain/world_models.dart';
+
+/// Immutable context summary for an individual feature module.
 
 /// Immutable context summary for an individual feature module.
 class KnightModuleContext {
@@ -151,7 +157,7 @@ class KnightModuleHealth {
 
 /// The unified Knight Context that aggregates feature module state.
 class KnightContext {
-  const KnightContext({
+  KnightContext({
     required this.registeredModules,
     required this.currentScores,
     required this.analyticsSummary,
@@ -166,7 +172,26 @@ class KnightContext {
     required this.fitnessSummary,
     required this.travelSummary,
     required this.workSummary,
-  });
+    required this.timestamp,
+    required this.greeting,
+    required this.sleepStatus,
+    required this.upcomingEvents,
+    required this.currentGoals,
+    required this.healthSummary,
+    required this.weather,
+    WorldState? worldState,
+    this.reasoning,
+    this.planning,
+    this.focusScore = 0.0,
+    this.energyLevel = 'Stable',
+    this.mood = 'Neutral',
+    this.steps = 0,
+    this.waterIntake = 0.0,
+    this.calories = 0,
+    this.totalBalance = 0.0,
+    this.recentMemoriesCount = 0,
+    this.relatedMemories = const [],
+  }) : worldState = worldState ?? WorldState.empty;
 
   final List<KnightModuleContext> registeredModules;
   final List<KnightScoreValue> currentScores;
@@ -182,4 +207,27 @@ class KnightContext {
   final KnightFitnessSummary fitnessSummary;
   final KnightTravelSummary travelSummary;
   final KnightWorkSummary workSummary;
+
+  /// New Version 3 Sprint 1 fields for User Life Context.
+  final DateTime timestamp;
+  final String greeting;
+  final String sleepStatus;
+  final List<String> upcomingEvents;
+  final List<String> currentGoals;
+  final String healthSummary;
+  final String weather;
+  final WorldState worldState;
+
+  /// AI-First Dashboard data (Sprint 6.2)
+  final ReasoningResult? reasoning;
+  final PlanningResult? planning;
+  final double focusScore;
+  final String energyLevel;
+  final String mood;
+  final int steps;
+  final double waterIntake;
+  final int calories;
+  final double totalBalance;
+  final int recentMemoriesCount;
+  final List<KnightMemory> relatedMemories;
 }

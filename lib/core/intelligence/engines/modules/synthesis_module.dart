@@ -2,14 +2,17 @@ import '../../domain/intelligence_module.dart';
 import '../../domain/intelligence_events.dart';
 import '../../domain/intelligence_models.dart';
 import '../../domain/memory_category.dart';
-import '../../domain/memory_domain.dart';
 import '../memory_retrieval_engine.dart';
-import '../../domain/cognitive_models.dart';
+import '../synthesis_engine.dart';
 
 class SynthesisModule implements IntelligenceModule {
-  SynthesisModule({required this.retrieval});
+  SynthesisModule({
+    required this.retrieval,
+    required this.synthesisEngine,
+  });
 
   final MemoryRetrievalEngine retrieval;
+  final SynthesisEngine synthesisEngine;
 
   @override
   String get id => 'knowledge_synthesis';
@@ -29,37 +32,7 @@ class SynthesisModule implements IntelligenceModule {
 
   @override
   Future<List<IntelligenceResult>> getInsights() async {
-    final List<IntelligenceResult> insights = [];
-
-    // Synthesis: Timeline + Finance
-    final visits = await retrieval.getByDomain(MemoryDomain.travel);
-    final txns = await retrieval.getByCategory(BookCategory.finance);
-
-    if (visits.isNotEmpty && txns.isNotEmpty) {
-      insights.add(
-        IntelligenceResult(
-          id: 'synth-travel-spending-${DateTime.now().millisecondsSinceEpoch}',
-          data:
-              'Synthesis: Frequent visits to "Downtown" correlate with 15% higher discretionary spending.',
-          trace: ReasoningTrace(
-            intent: KnightIntent.analysis,
-            memoriesUsed: [visits.first.memoryId, txns.first.memoryId],
-            rulesApplied: [],
-            goalsConsidered: [],
-            thoughtChain: [
-              'Joined location visits with transaction timestamps.',
-              'Identified cost-per-location density.',
-            ],
-            confidence: 0.82,
-          ),
-          generatedAt: DateTime.now(),
-          version: 1,
-          evidenceHash: 'sim-hash-synth',
-        ),
-      );
-    }
-
-    return insights;
+    return synthesisEngine.performCrossChapterSynthesis();
   }
 
   @override

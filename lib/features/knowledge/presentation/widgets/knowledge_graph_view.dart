@@ -107,7 +107,3 @@ class _KnowledgeGraphPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
-
-extension on dynamic {
-  Color get color => Colors.blue; // Fallback for BookCategory mapping
-}

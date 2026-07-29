@@ -12,7 +12,7 @@ void main() {
       final goalMemory = KnightMemory.create(
         memoryId: 'goal-1',
         category: BookCategory.ambitions,
-        domain: MemoryDomain.ambitions,
+        domain: MemoryDomain.goals,
         source: MemorySource.manual,
         content: {},
         summary: 'Master Flutter Context',

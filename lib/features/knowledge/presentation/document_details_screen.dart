@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../../core/design_system/design_constants.dart';
 import '../../../core/design_system/widgets/knight_layout.dart';
 import '../../../core/design_system/widgets/knight_card.dart';
+import '../../../core/design_system/widgets/entrance_fader.dart';
 import '../../../core/domain/models/models.dart';
 import '../../../app/widgets/knight_page_scaffold.dart';
 
@@ -13,18 +15,39 @@ class DocumentDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return KnightPageScaffold(
       body: SingleChildScrollView(
+        padding: const EdgeInsets.all(DesignSpacing.m),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeader(context),
+            _buildCustomAppBar(context),
             const SizedBox(height: 32),
-            _buildSummary(context),
+            EntranceFader(child: _buildHeader(context)),
             const SizedBox(height: 32),
-            _buildMetadata(context),
+            EntranceFader(delay: const Duration(milliseconds: 200), child: _buildSummary(context)),
+            const SizedBox(height: 32),
+            EntranceFader(delay: const Duration(milliseconds: 400), child: _buildMetadata(context)),
             const SizedBox(height: 140),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildCustomAppBar(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        Row(
+          children: [
+            IconButton(icon: const Icon(Icons.share_outlined, size: 20), onPressed: () {}),
+            IconButton(icon: const Icon(Icons.star_outline_rounded, size: 20), onPressed: () {}),
+          ],
+        ),
+      ],
     );
   }
 

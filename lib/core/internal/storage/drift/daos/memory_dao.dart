@@ -163,6 +163,11 @@ class MemoryDao extends BaseDao<MemoryTable, MemoryTableData>
         .get();
   }
 
+  /// Retrieves all edges in the knowledge graph.
+  Future<List<MemoryRelationData>> getAllRelations() {
+    return select(memoryRelationTable).get();
+  }
+
   // --- Reactive Methods ---
 
   /// Watches the latest version of a specific memory.

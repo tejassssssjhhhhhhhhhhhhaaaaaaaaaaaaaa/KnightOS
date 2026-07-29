@@ -5,8 +5,10 @@ import 'package:knight_os/core/intelligence/intelligence_bus.dart';
 import 'package:knight_os/core/world/domain/world_connector.dart';
 
 class TestConnector implements WorldConnector {
-  TestConnector({required this.data});
-  final Map<String, dynamic> data;
+  TestConnector({required Map<String, dynamic> initialData}) : _data = initialData;
+  Map<String, dynamic> _data;
+
+  set data(Map<String, dynamic> value) => _data = value;
 
   @override
   String get id => 'test';
@@ -15,7 +17,7 @@ class TestConnector implements WorldConnector {
   @override
   WorldSource get source => const WorldSource(id: 'test-src', name: 'Test Source', type: 'test');
   @override
-  Future<Map<String, dynamic>> fetchData() async => data;
+  Future<Map<String, dynamic>> fetchData() async => _data;
   @override
   Future<bool> isAvailable() async => true;
 }
@@ -31,7 +33,7 @@ void main() {
 
   group('WorldEngine', () {
     test('perceive aggregates data from connectors', () async {
-      engine.registerConnector(TestConnector(data: {'current': 'Sunny'}));
+      engine.registerConnector(TestConnector(initialData: {'current': 'Sunny'}));
       
       // Override the id to 'weather' for the test to verify mapping
       final weatherConnector = TestWeatherConnector();
@@ -54,7 +56,7 @@ void main() {
     });
 
     test('detectChange produces WorldEvent on data shift', () async {
-      final connector = MutableConnector(data: {'items': ['A']});
+      final connector = MutableConnector(initialData: {'items': ['A']});
       engine.registerConnector(connector);
 
       // First pass to establish baseline
@@ -72,19 +74,17 @@ void main() {
 }
 
 class TestWeatherConnector extends TestConnector {
-  TestWeatherConnector() : super(data: {'current': 'Sunny, 24°C'});
+  TestWeatherConnector() : super(initialData: {'current': 'Sunny, 24°C'});
   @override
   String get id => 'weather';
 }
 
 class TestCalendarConnector extends TestConnector {
-  TestCalendarConnector() : super(data: {'items': ['Meeting @ 10']});
+  TestCalendarConnector() : super(initialData: {'items': ['Meeting @ 10']});
   @override
   String get id => 'calendar';
 }
 
 class MutableConnector extends TestConnector {
-  MutableConnector({required super.data});
-  @override
-  Map<String, dynamic> data;
+  MutableConnector({required super.initialData});
 }

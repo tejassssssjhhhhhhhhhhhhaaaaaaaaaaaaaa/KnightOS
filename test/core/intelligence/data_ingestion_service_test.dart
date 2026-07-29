@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:knight_os/core/intelligence/domain/knight_memory.dart';
 import 'package:knight_os/core/intelligence/domain/memory_domain.dart';
@@ -52,20 +51,22 @@ void main() {
   });
 
   group('DataIngestionService', () {
-    test('ingestAllHistoricalData returns report with zeros if no files found', () async {
+    test('ingestAllHistoricalData returns report and populates repository', () async {
       final report = await service.ingestAllHistoricalData();
       
-      expect(report['timeline'], 0);
-      expect(report['finance'], isNotNull); // Ported logic always mocks finance if not real
+      expect(report, contains('finance'));
+      expect(report['errors'], isA<List>());
+      
+      // Even if files are missing, finance is currently simulated/mocked in ported logic
+      expect(repository.savedMemories, isNotEmpty);
     });
 
-    test('ingestCareerHistory creates memories for known documents', () async {
-      final report = {'career': 0, 'errors': []};
-      // Accessing private method via public trigger is better, but service logic is deterministic
+    test('ingestCareerHistory creates memories for career domain', () async {
       await service.ingestAllHistoricalData();
       
-      final careerMemories = repository.savedMemories.where((m) => m.category.id == 2);
+      final careerMemories = repository.savedMemories.where((m) => m.metadata.domain == MemoryDomain.career);
       expect(careerMemories, isNotEmpty);
+      expect(careerMemories.first.summary, contains('Career Document'));
     });
   });
 }

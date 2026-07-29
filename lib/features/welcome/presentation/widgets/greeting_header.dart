@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class GreetingHeader extends StatefulWidget {
   const GreetingHeader({super.key, required this.greeting});
@@ -111,7 +110,7 @@ class _GreetingHeaderState extends State<GreetingHeader>
             position: _greetingSlide,
             child: Text(
               widget.greeting,
-              style: GoogleFonts.inter(
+              style: const TextStyle(
                 fontSize: 62, // Further refined
                 fontWeight: FontWeight.w800,
                 color: Colors.white,
@@ -171,7 +170,7 @@ class _AnimatedMissionLine extends StatelessWidget {
         position: slide,
         child: Text(
           text,
-          style: GoogleFonts.inter(
+          style: TextStyle(
             fontSize: 22, // Flagship size
             fontWeight: FontWeight.w400,
             color: Colors.white.withValues(alpha: 0.95), // High contrast

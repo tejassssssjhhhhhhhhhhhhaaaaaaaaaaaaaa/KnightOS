@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import '../../platform/engine/recommendation_models.dart';
 
 /// Categories for proactive OS notifications.
 enum NotificationCategory {

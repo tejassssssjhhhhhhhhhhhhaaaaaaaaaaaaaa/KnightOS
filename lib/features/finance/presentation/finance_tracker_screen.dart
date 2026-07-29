@@ -4,42 +4,48 @@ import 'package:intl/intl.dart';
 
 import '../../../app/widgets/knight_page_scaffold.dart';
 import '../../../core/design_system/design_constants.dart';
-import '../../../core/intelligence/providers/intelligence_providers.dart';
-import '../domain/finance_transaction.dart';
+import '../../../core/intelligence/knight_context_models.dart';
+import '../../../core/intelligence/knight_context_provider.dart';
 
 class FinanceTrackerScreen extends ConsumerWidget {
   const FinanceTrackerScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final financeService = ref.watch(financeServiceProvider);
+    final contextAsync = ref.watch(currentContextNotifierProvider);
 
     return KnightPageScaffold(
-      body: FutureBuilder<List<FinanceTransaction>>(
-        future: financeService.loadTransactions(),
-        builder: (context, snapshot) {
-          final transactions = snapshot.data ?? [];
-          final metrics = FinanceTransactionMetrics.fromTransactions(transactions);
+      body: contextAsync.when(
+        data: (knightContext) => _FinanceContent(context: knightContext),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, s) => Center(child: Text('Error: $e')),
+      ),
+    );
+  }
+}
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(DesignSpacing.m),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(context),
-                const SizedBox(height: 24),
-                _buildTabs(context),
-                const SizedBox(height: 32),
-                _buildBalanceCard(context, metrics),
-                const SizedBox(height: 32),
-                _buildChartSection(context),
-                const SizedBox(height: 32),
-                _buildQuickActions(context),
-                const SizedBox(height: 140),
-              ],
-            ),
-          );
-        },
+class _FinanceContent extends StatelessWidget {
+  const _FinanceContent({required this.context});
+  final KnightContext context;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(DesignSpacing.m),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildHeader(context),
+          const SizedBox(height: 24),
+          _buildTabs(context),
+          const SizedBox(height: 32),
+          _buildBalanceCard(context),
+          const SizedBox(height: 32),
+          _buildChartSection(context),
+          const SizedBox(height: 32),
+          _buildQuickActions(context),
+          const SizedBox(height: 140),
+        ],
       ),
     );
   }
@@ -89,7 +95,7 @@ class FinanceTrackerScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildBalanceCard(BuildContext context, FinanceTransactionMetrics metrics) {
+  Widget _buildBalanceCard(BuildContext context) {
     return Card(
       color: DesignColors.surfaceHigh,
       child: Padding(
@@ -103,7 +109,7 @@ class FinanceTrackerScreen extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '₹${NumberFormat('#,##,###').format(metrics.netBalance)}',
+                  '₹${NumberFormat('#,##,###').format(this.context.totalBalance)}',
                   style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900),
                 ),
                 const Icon(Icons.chevron_right_rounded, color: Colors.white24),

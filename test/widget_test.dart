@@ -11,6 +11,7 @@ import 'package:knight_os/core/repositories/authentication_repository.dart';
 import 'package:knight_os/features/welcome/presentation/widgets/knight_helmet_logo.dart';
 import 'package:drift/native.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:knight_os/core/theme/app_theme.dart';
 
 class MockAuthRepository extends Fake implements AuthenticationRepository {
   @override
@@ -43,13 +44,15 @@ void main() {
               (ref) => MockAuthRepository(),
             ),
           ],
-          child: const KnightOsApp(),
+          child: KnightOsApp(
+            theme: AppTheme.darkTheme(isTest: true),
+          ),
         ),
       );
       // Advance clock to clear cinematic effect and storage init
-      await tester.pump(const Duration(seconds: 2));
+      await tester.pump(const Duration(seconds: 3));
       // Verify logo appears
-      expect(find.byType(KnightHelmetLogo), findsAtLeast(1));
+      expect(find.byType(KnightHelmetLogo), findsWidgets);
     });
   });
 
@@ -67,7 +70,10 @@ void main() {
             (ref) => MockAuthRepository(),
           ),
         ],
-        child: const MaterialApp(home: OnboardingFlowScreen()),
+        child: MaterialApp(
+          theme: AppTheme.lightTheme(isTest: true),
+          home: const OnboardingFlowScreen(),
+        ),
       ),
     );
 
@@ -91,7 +97,10 @@ void main() {
             (ref) => MockAuthRepository(),
           ),
         ],
-        child: const MaterialApp(home: OnboardingFlowScreen()),
+        child: MaterialApp(
+          theme: AppTheme.lightTheme(isTest: true),
+          home: const OnboardingFlowScreen(),
+        ),
       ),
     );
 

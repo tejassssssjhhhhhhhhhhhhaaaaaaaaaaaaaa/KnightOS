@@ -1,7 +1,6 @@
-import 'dart:async';
+import '../../platform/engine/recommendation_models.dart';
 import '../domain/notification_models.dart';
 import '../domain/reasoning_models.dart';
-import '../domain/planning_models.dart';
 import '../knight_context_models.dart';
 import '../intelligence_bus.dart';
 
@@ -20,8 +19,10 @@ class NotificationEngine {
     final List<KnightNotification> generated = [];
 
     // 1. Mute Logic (Deep Work)
-    final isMuted = context.currentActivity == 'Working' && 
-                    context.energyLevel == 'High'; // Assuming focused state
+    final currentActivity = context.workSummary.productivityPlaceholder.contains('Focus') 
+        ? 'Working' 
+        : 'Active';
+    final isMuted = currentActivity == 'Working';
 
     // 2. Map high-priority recommendations
     for (final rec in reasoning.recommendations) {
@@ -29,7 +30,7 @@ class NotificationEngine {
       
       // Filter: Only notify if not muted OR if critical
       if (!isMuted || priority == NotificationPriority.critical) {
-        if (priority == NotificationPriority.high || priority == NotificationPriority.critical) {
+        if (priority.index >= NotificationPriority.high.index) {
           generated.add(KnightNotification(
             id: 'notif-${rec.id}',
             title: rec.title,
@@ -47,13 +48,24 @@ class NotificationEngine {
     return generated;
   }
 
-  NotificationPriority _mapPriority(dynamic p) {
-    // In Sprint 1.8, we use a simple mapping from recommendation priorities
-    return NotificationPriority.high; 
+  NotificationPriority _mapPriority(KnightRecommendationPriority p) {
+    switch (p) {
+      case KnightRecommendationPriority.critical: return NotificationPriority.critical;
+      case KnightRecommendationPriority.high: return NotificationPriority.high;
+      case KnightRecommendationPriority.medium: return NotificationPriority.medium;
+      case KnightRecommendationPriority.low: return NotificationPriority.low;
+    }
   }
 
-  NotificationCategory _mapCategory(dynamic c) {
-    return NotificationCategory.system;
+  NotificationCategory _mapCategory(KnightRecommendationCategory c) {
+    switch (c) {
+      case KnightRecommendationCategory.health: return NotificationCategory.health;
+      case KnightRecommendationCategory.finance: return NotificationCategory.finance;
+      case KnightRecommendationCategory.work: return NotificationCategory.mission;
+      case KnightRecommendationCategory.sleep: return NotificationCategory.health;
+      case KnightRecommendationCategory.fitness: return NotificationCategory.health;
+      default: return NotificationCategory.system;
+    }
   }
 
   List<KnightNotification> get history => List.unmodifiable(_history);

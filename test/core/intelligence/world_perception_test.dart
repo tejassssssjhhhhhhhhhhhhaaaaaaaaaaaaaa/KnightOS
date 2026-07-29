@@ -1,16 +1,19 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:knight_os/core/intelligence/engines/world_engine.dart';
-import 'package:knight_os/core/intelligence/domain/world_models.dart';
 import 'package:knight_os/core/intelligence/intelligence_bus.dart';
 import 'package:knight_os/core/world/adapters/calendar_connector.dart';
 import 'package:knight_os/core/world/adapters/weather_connector.dart';
 
+import 'package:knight_os/core/intelligence/domain/world_models.dart';
+
 class MockCalendarClient implements CalendarClient {
-  List<String> events = [];
+  List<CalendarEvent> events = [];
   @override
   Future<bool> checkAuth() async => true;
   @override
-  Future<List<String>> getUpcomingEvents() async => events;
+  Future<List<CalendarEvent>> fetchEvents(DateTime start, DateTime end) async => events;
+  @override
+  Future<bool> createEvent(CalendarEvent event) async => true;
 }
 
 class MockWeatherClient implements WeatherClient {
@@ -37,7 +40,14 @@ void main() {
 
   group('Autonomous World Perception (Sprint 1.2)', () {
     test('perceive merges data from parallel connectors', () async {
-      calClient.events = ['Event 1'];
+      calClient.events = [
+        CalendarEvent(
+          id: '1',
+          title: 'Event 1',
+          startTime: DateTime.now(),
+          endTime: DateTime.now().add(const Duration(hours: 1)),
+        )
+      ];
       weatherClient.weather = {'temp': 25, 'condition': 'Sunny'};
 
       final result = await engine.perceive();
@@ -60,12 +70,19 @@ void main() {
     });
 
     test('normalization creates history memories for calendar events', () async {
-      calClient.events = ['Lunch with Team'];
+      calClient.events = [
+        CalendarEvent(
+          id: '2',
+          title: 'Lunch with Team',
+          startTime: DateTime.now(),
+          endTime: DateTime.now().add(const Duration(hours: 1)),
+        )
+      ];
       
       final result = await engine.perceive();
 
-      expect(result.memories.any((m) => m.summary.contains('Lunch')), isTrue);
-      expect(result.memories.first.provenance, 'google-calendar');
+      expect(result.memories.any((m) => (m.summary ?? '').contains('Lunch')), isTrue);
+      expect(result.memories.first.metadata.provenance, 'google-calendar');
     });
   });
 }

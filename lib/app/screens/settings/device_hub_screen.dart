@@ -49,6 +49,8 @@ class _DeviceHubContent extends StatelessWidget {
                 const SizedBox(height: 32),
                 ...devices.map((d) => _DeviceTile(device: d)),
                 const SizedBox(height: 32),
+                const _ExternalIntegrationsSection(),
+                const SizedBox(height: 32),
                 _buildAddDeviceCard(context),
               ],
             ),
@@ -162,5 +164,87 @@ class _DeviceTile extends StatelessWidget {
       case DeviceStatus.away: return DesignColors.warning;
       case DeviceStatus.busy: return DesignColors.error;
     }
+  }
+}
+
+class _ExternalIntegrationsSection extends ConsumerWidget {
+  const _ExternalIntegrationsSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final integrationsAsync = ref.watch(externalIntegrationsProvider);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'EXTERNAL CONNECTORS',
+          style: TextStyle(
+            fontWeight: FontWeight.w900,
+            fontSize: 12,
+            letterSpacing: 2.0,
+            color: Colors.white24,
+          ),
+        ),
+        const SizedBox(height: 20),
+        integrationsAsync.when(
+          data: (integrations) => Column(
+            children: integrations.entries.map((e) => _IntegrationTile(name: e.key, isOnline: e.value)).toList(),
+          ),
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, s) => Text('Error loading connectors: $e'),
+        ),
+      ],
+    );
+  }
+}
+
+class _IntegrationTile extends StatelessWidget {
+  const _IntegrationTile({required this.name, required this.isOnline});
+  final String name;
+  final bool isOnline;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      decoration: BoxDecoration(
+        color: DesignColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: DesignColors.white05),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            name.contains('Calendar') ? Icons.calendar_today_rounded : 
+            name.contains('Weather') ? Icons.wb_sunny_rounded :
+            name.contains('Finance') ? Icons.trending_up_rounded :
+            Icons.mail_outline_rounded,
+            color: isOnline ? DesignColors.accentBlue : Colors.white24,
+            size: 20,
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(name, style: const TextStyle(fontWeight: FontWeight.w600)),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: isOnline ? DesignColors.success.withValues(alpha: 0.1) : DesignColors.error.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              isOnline ? 'CONNECTED' : 'OFFLINE',
+              style: TextStyle(
+                color: isOnline ? DesignColors.success : DesignColors.error,
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

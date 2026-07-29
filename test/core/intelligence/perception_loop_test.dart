@@ -23,6 +23,11 @@ class MockWorldService extends WorldService {
   }
 }
 
+class MockJsonValidationService extends Fake implements JsonValidationService {
+  @override
+  Future<void> validate(dynamic domain, dynamic content) async {}
+}
+
 void main() {
   late PerceptionScheduler scheduler;
   late MockWorldService worldService;
@@ -31,7 +36,7 @@ void main() {
     final bus = IntelligenceBus();
     final mem = MemoryEngine(
       repository: MockMemoryRepository(),
-      validationService: Fake(),
+      validationService: MockJsonValidationService(),
     );
     final engine = WorldEngine(bus: bus);
     worldService = MockWorldService(engine: engine, memoryEngine: mem);

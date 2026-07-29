@@ -6,6 +6,7 @@ import '../memory_metadata.dart';
 import '../memory_version.dart';
 import '../memory_domain.dart';
 import '../memory_category.dart';
+import '../memory_relation.dart';
 import '../evidence.dart';
 import 'memory_repository.dart';
 
@@ -103,6 +104,19 @@ class DriftMemoryRepository implements MemoryRepository {
     }
 
     return related;
+  }
+
+  @override
+  Future<List<MemoryRelation>> getAllRelations() async {
+    final list = await _dao.getAllRelations();
+    return list.map((d) => MemoryRelation(
+      id: d.id,
+      sourceId: d.sourceId,
+      targetId: d.targetId,
+      type: MemoryRelationType.values.byName(d.type),
+      strength: d.strength,
+      createdAt: d.createdAt,
+    )).toList();
   }
 
   @override

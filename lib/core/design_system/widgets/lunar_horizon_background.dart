@@ -13,10 +13,14 @@ class LunarHorizonBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? DesignColors.accentBlue : const Color(0xFF3B82F6);
+    final bgColor = Theme.of(context).scaffoldBackgroundColor;
+
     return Stack(
       children: [
-        // 1. Deep Space Base
-        Container(color: DesignColors.background),
+        // 1. Space Base
+        Container(color: bgColor),
 
         // 2. Cinematic Atmospheric Gradient
         Positioned.fill(
@@ -28,7 +32,7 @@ class LunarHorizonBackground extends StatelessWidget {
                   center: const Alignment(0, -0.4),
                   radius: 1.2,
                   colors: [
-                    DesignColors.accentBlue.withValues(alpha: 0.15),
+                    primaryColor.withValues(alpha: isDark ? 0.15 : 0.1),
                     Colors.transparent,
                   ],
                 ),
@@ -37,7 +41,7 @@ class LunarHorizonBackground extends StatelessWidget {
           ),
         ),
 
-        // 3. Lunar Horizon Line (The Earth/Moon edge)
+        // 3. Horizon Line
         Positioned(
           top: MediaQuery.of(context).size.height * 0.35,
           left: -MediaQuery.of(context).size.width * 0.5,
@@ -51,9 +55,9 @@ class LunarHorizonBackground extends StatelessWidget {
                   center: Alignment.topCenter,
                   radius: 0.5,
                   colors: [
-                    DesignColors.accentBlue.withValues(alpha: 0.3),
-                    DesignColors.background.withValues(alpha: 0.8),
-                    DesignColors.background,
+                    primaryColor.withValues(alpha: isDark ? 0.3 : 0.2),
+                    bgColor.withValues(alpha: 0.8),
+                    bgColor,
                   ],
                   stops: const [0.0, 0.15, 0.25],
                 ),
@@ -62,8 +66,8 @@ class LunarHorizonBackground extends StatelessWidget {
           ),
         ),
 
-        // 4. Subtle Stars
-        const Positioned.fill(child: _StarsOverlay()),
+        // 4. Subtle Stars (Only in Dark Mode)
+        if (isDark) const Positioned.fill(child: _StarsOverlay()),
 
         if (child != null) Positioned.fill(child: child!),
       ],

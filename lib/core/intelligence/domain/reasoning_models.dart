@@ -12,6 +12,7 @@ class KnightInsight {
     required this.confidence,
     required this.timestamp,
     this.sourceModule,
+    this.explanation,
   });
 
   final String id;
@@ -20,6 +21,7 @@ class KnightInsight {
   final double confidence;
   final DateTime timestamp;
   final String? sourceModule;
+  final String? explanation;
 }
 
 /// The consolidated result of a reasoning cycle.

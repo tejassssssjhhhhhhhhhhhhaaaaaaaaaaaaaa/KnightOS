@@ -2,32 +2,50 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/widgets/knight_page_scaffold.dart';
 import '../../../core/design_system/design_constants.dart';
+import '../../../core/intelligence/knight_context_models.dart';
+import '../../../core/intelligence/knight_context_provider.dart';
 
 class HealthDashboardScreen extends ConsumerWidget {
   const HealthDashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final contextAsync = ref.watch(currentContextNotifierProvider);
+
     return KnightPageScaffold(
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(DesignSpacing.m),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeader(context),
-            const SizedBox(height: 24),
-            _buildTabs(context),
-            const SizedBox(height: 32),
-            _buildScoreAndStats(context),
-            const SizedBox(height: 32),
-            _buildWorkoutSection(context),
-            const SizedBox(height: 32),
-            _buildSleepSection(context),
-            const SizedBox(height: 32),
-            _buildWaterIntake(context),
-            const SizedBox(height: 140),
-          ],
-        ),
+      body: contextAsync.when(
+        data: (knightContext) => _HealthContent(context: knightContext),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, s) => Center(child: Text('Error: $e')),
+      ),
+    );
+  }
+}
+
+class _HealthContent extends StatelessWidget {
+  const _HealthContent({required this.context});
+  final KnightContext context;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(DesignSpacing.m),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildHeader(context),
+          const SizedBox(height: 24),
+          _buildTabs(context),
+          const SizedBox(height: 32),
+          _buildScoreAndStats(context),
+          const SizedBox(height: 32),
+          _buildWorkoutSection(context),
+          const SizedBox(height: 32),
+          _buildSleepSection(context),
+          const SizedBox(height: 32),
+          _buildWaterIntake(context),
+          const SizedBox(height: 140),
+        ],
       ),
     );
   }
@@ -98,7 +116,7 @@ class HealthDashboardScreen extends ConsumerWidget {
                         width: 100,
                         height: 100,
                         child: CircularProgressIndicator(
-                          value: 0.82,
+                          value: 0.84, // Current benchmark
                           strokeWidth: 8,
                           backgroundColor: DesignColors.white05,
                           color: DesignColors.accentBlue,
@@ -106,7 +124,7 @@ class HealthDashboardScreen extends ConsumerWidget {
                       ),
                       const Column(
                         children: [
-                          Text('82%', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
+                          Text('84%', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
                           Text('Great', style: TextStyle(fontSize: 10, color: DesignColors.success)),
                         ],
                       ),
@@ -123,9 +141,9 @@ class HealthDashboardScreen extends ConsumerWidget {
           flex: 5,
           child: Column(
             children: [
-              _buildSmallStat(Icons.directions_run_rounded, 'Steps', '8,432', DesignColors.accentBlue),
+              _buildSmallStat(Icons.directions_run_rounded, 'Steps', '${this.context.steps}', DesignColors.accentBlue),
               const SizedBox(height: 12),
-              _buildSmallStat(Icons.local_fire_department_rounded, 'Calories', '1,200', DesignColors.achievements),
+              _buildSmallStat(Icons.local_fire_department_rounded, 'Calories', '${this.context.calories}', DesignColors.achievements),
               const SizedBox(height: 12),
               _buildSmallStat(Icons.timer_outlined, 'Active Mins', '45', DesignColors.success),
             ],
@@ -203,7 +221,7 @@ class HealthDashboardScreen extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text('SLEEP', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white38)),
-            const Text('6h 45m', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+            Text(this.context.sleepStatus.split(' ').first, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
           ],
         ),
         const SizedBox(height: 16),
@@ -227,11 +245,11 @@ class HealthDashboardScreen extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Row(
+        Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('WATER INTAKE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white38)),
-            Text('1.8 / 2.0 L', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+            const Text('WATER INTAKE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white38)),
+            Text('${this.context.waterIntake} / 2.0 L', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
           ],
         ),
         const SizedBox(height: 12),
@@ -244,7 +262,7 @@ class HealthDashboardScreen extends ConsumerWidget {
           ),
           child: FractionallySizedBox(
             alignment: Alignment.centerLeft,
-            widthFactor: 0.9,
+            widthFactor: (this.context.waterIntake / 2.0).clamp(0.0, 1.0),
             child: Container(
               decoration: BoxDecoration(
                 color: DesignColors.accentBlue,

@@ -6,7 +6,13 @@ import 'package:knight_os/core/intelligence/knight_context_service.dart';
 import 'package:knight_os/core/intelligence/services/planning_service.dart';
 import 'package:knight_os/features/knight/domain/knight_conversation.dart';
 import 'package:knight_os/features/knight/domain/knight_message.dart';
-import 'package:knight_os/core/intelligence/domain/cognitive_models.dart';
+import 'package:knight_os/core/intelligence/engines/ai_router.dart';
+import 'package:knight_os/core/intelligence/domain/ai_models.dart';
+import 'package:knight_os/core/intelligence/domain/knight_memory.dart';
+import 'package:knight_os/core/intelligence/domain/memory_category.dart';
+import 'package:knight_os/core/intelligence/engines/world_engine.dart';
+import 'package:knight_os/core/intelligence/services/world_service.dart';
+import 'package:knight_os/core/intelligence/intelligence_bus.dart';
 import 'package:knight_os/core/intelligence/engines/ai_provider.dart';
 import 'package:knight_os/core/intelligence/engines/intent_engine.dart';
 import 'package:knight_os/core/intelligence/engines/context_engine.dart';
@@ -14,7 +20,7 @@ import 'package:knight_os/core/intelligence/engines/reasoning_engine.dart';
 
 class MockAiProvider extends Fake implements KnightAiProvider {
   @override
-  Future<String> chat({required List<dynamic> context, required String prompt}) async => 'Response';
+  Future<String> chat({required List<KnightMemory> context, required String prompt}) async => 'Response';
 }
 
 void main() {
@@ -22,16 +28,20 @@ void main() {
 
   setUp(() {
     final ai = MockAiProvider();
+    final router = AiRouter();
+    router.registerProvider(ai, const ModelManifest(id: 'm1', name: 'M', capabilities: [AiCapability.fast], providerName: 'P'));
+
     final mem = FakeMemoryEngine();
     final ctx = KnightContextService();
-    final planEngine = FakePlanningEngine();
+    final world = WorldService(engine: WorldEngine(bus: IntelligenceBus()), memoryEngine: mem);
     final cog = KnightCognition(
       intentEngine: const IntentEngine(),
       contextEngine: ContextEngine(memoryEngine: mem),
       reasoningEngine: const ReasoningEngine(),
-      aiProvider: ai,
+      aiRouter: router,
       contextService: ctx,
       planningService: FakePlanningService(),
+      worldService: world,
     );
     
     service = CopilotService(
@@ -60,9 +70,9 @@ void main() {
 
 class FakeMemoryEngine extends Fake implements MemoryEngine {
   @override
-  Future<List<dynamic>> getByCategory(dynamic cat) async => [];
+  Future<List<KnightMemory>> getByCategory(BookCategory cat) async => [];
   @override
-  Future<List<dynamic>> search(String query) async => [];
+  Future<List<KnightMemory>> search(String query) async => [];
 }
 
 class FakePlanningEngine extends Fake {}

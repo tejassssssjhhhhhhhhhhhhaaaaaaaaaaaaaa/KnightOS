@@ -8,6 +8,7 @@ import 'package:knight_os/core/intelligence/domain/knight_memory.dart';
 import 'package:knight_os/core/intelligence/domain/memory_category.dart';
 import 'package:knight_os/core/intelligence/domain/memory_domain.dart';
 import 'package:knight_os/core/intelligence/services/json_validation_service.dart';
+import 'package:knight_os/core/intelligence/domain/memory_relation.dart';
 import 'package:knight_os/core/intelligence/domain/repositories/memory_repository.dart';
 import 'package:flutter/material.dart';
 
@@ -67,6 +68,8 @@ class FakeMemoryRepository implements MemoryRepository {
   }) async {}
   @override
   Future<List<KnightMemory>> getRelated(String id) async => [];
+  @override
+  Future<List<MemoryRelation>> getAllRelations() async => [];
   @override
   Stream<KnightMemory?> watchLatest(String id) => Stream.value(null);
   @override
