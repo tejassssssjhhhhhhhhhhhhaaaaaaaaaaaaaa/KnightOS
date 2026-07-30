@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/internal/utils/knight_logger.dart';
 import '../../../core/design_system/design_constants.dart';
 import '../../../core/design_system/widgets/entrance_fader.dart';
 import '../../../core/design_system/widgets/lunar_horizon_background.dart';
 import '../../../core/router/app_routes.dart';
+import '../../../core/storage/local_database.dart';
+import '../../../core/storage/storage_keys.dart';
 import 'widgets/knight_helmet_logo.dart';
 
 class WelcomeScreen extends ConsumerWidget {
@@ -12,9 +15,20 @@ class WelcomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    KnightLogger.info('[STARTUP 07] WelcomeScreen build()', category: KnightLogCategory.ui);
     return Scaffold(
       body: GestureDetector(
-        onTap: () => context.go(AppRoutes.auth),
+        onTap: () async {
+          KnightLogger.info('[STARTUP 08] WelcomeScreen Begin Tapped', category: KnightLogCategory.ui);
+          
+          // Version 4: Mark welcome as seen and go to Dashboard (Guest Mode)
+          const localDb = LocalDatabase();
+          await localDb.writeString(StorageKeys.welcomeSeen, 'true');
+          
+          if (context.mounted) {
+            context.go(AppRoutes.home);
+          }
+        },
         behavior: HitTestBehavior.opaque,
         child: Stack(
           children: [
@@ -32,8 +46,8 @@ class WelcomeScreen extends ConsumerWidget {
                       const Spacer(flex: 3),
                       
                       // Knight Helmet Logo
-                      EntranceFader(
-                        child: const KnightHelmetLogo(size: 120),
+                      const EntranceFader(
+                        child: KnightHelmetLogo(size: 120),
                       ),
                       
                       const SizedBox(height: DesignSpacing.xl),
@@ -49,6 +63,7 @@ class WelcomeScreen extends ConsumerWidget {
                                 fontSize: 24,
                                 letterSpacing: 8.0,
                                 fontWeight: FontWeight.w900,
+                                color: Colors.white,
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -82,9 +97,9 @@ class WelcomeScreen extends ConsumerWidget {
                       const Spacer(flex: 1),
                       
                       // Tap to begin
-                      EntranceFader(
-                        delay: const Duration(milliseconds: 1200),
-                        child: const _TapToBegin(),
+                      const EntranceFader(
+                        delay: Duration(milliseconds: 1200),
+                        child: _TapToBegin(),
                       ),
                       
                       const SizedBox(height: 60),

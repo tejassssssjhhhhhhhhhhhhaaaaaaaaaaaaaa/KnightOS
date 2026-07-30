@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/internal/utils/knight_logger.dart';
 import '../../core/providers/storage_providers.dart';
 import '../../core/repositories/authentication_repository.dart';
 import '../../core/router/app_routes.dart';
@@ -35,6 +36,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   }
 
   Future<void> _submit() async {
+    KnightLogger.info('[AUTH] Submit started, flow: $_flow', category: KnightLogCategory.ui);
     final email = _emailController.text.trim();
     final password = _passwordController.text;
     final displayName = _nameController.text.trim();
@@ -47,11 +49,13 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
     try {
       if (_flow == _AuthFlow.register) {
+        KnightLogger.info('[AUTH] Signing up: $email', category: KnightLogCategory.ui);
         await _authRepository.signUp(
           email: email,
           password: password,
           displayName: displayName,
         );
+        KnightLogger.info('[AUTH] Sign up successful', category: KnightLogCategory.ui);
         if (!mounted) return;
         setState(() {
           _flow = _AuthFlow.signIn;
@@ -72,23 +76,32 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         return;
       }
 
+      KnightLogger.info('[AUTH] Signing in: $email', category: KnightLogCategory.ui);
       final session = await _authRepository.signIn(
         email: email,
         password: password,
       );
+      KnightLogger.info('[AUTH] Sign in successful: ${session.displayName}', category: KnightLogCategory.ui);
       if (!mounted) return;
 
       final userRepository = ref.read(userRepositoryProvider);
+      KnightLogger.info('[AUTH] Loading profile...', category: KnightLogCategory.ui);
       final profile = await userRepository.loadProfile();
 
       if (!mounted) return;
       final onboardingComplete =
           profile != null && profile.completedSteps.isNotEmpty;
+      KnightLogger.info('[AUTH] Onboarding complete: $onboardingComplete', category: KnightLogCategory.ui);
+      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Welcome back, ${session.displayName}')),
       );
-      context.go(onboardingComplete ? AppRoutes.launch : AppRoutes.onboarding);
-    } catch (error) {
+      
+      const target = AppRoutes.home;
+      KnightLogger.info('[AUTH] Navigating to: $target', category: KnightLogCategory.ui);
+      context.go(target);
+    } catch (error, stack) {
+      KnightLogger.error('[AUTH ERR] Submit failed', error: error, stackTrace: stack, category: KnightLogCategory.ui);
       if (!mounted) return;
       setState(() => _error = _friendlyMessage(error));
     } finally {
@@ -129,6 +142,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
   @override
   Widget build(BuildContext context) {
+    KnightLogger.info('[STARTUP 09] AuthScreen build()', category: KnightLogCategory.ui);
     final theme = Theme.of(context);
     final isRegistration = _flow == _AuthFlow.register;
     final isForgotPassword = _flow == _AuthFlow.forgotEmail;

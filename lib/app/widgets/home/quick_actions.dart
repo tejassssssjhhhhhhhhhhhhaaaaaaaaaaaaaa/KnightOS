@@ -92,9 +92,9 @@ class _QuickActionsPanelState extends State<QuickActionsPanel> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: action.color.withValues(alpha: 0.1),
+              color: action.color.withOpacity(0.1),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: action.color.withValues(alpha: 0.2)),
+              border: Border.all(color: action.color.withOpacity(0.2)),
             ),
             child: Icon(action.icon, color: action.color, size: 24),
           ),

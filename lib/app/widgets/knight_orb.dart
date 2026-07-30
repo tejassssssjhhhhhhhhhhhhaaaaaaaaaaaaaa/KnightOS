@@ -42,7 +42,7 @@ class _KnightOrbState extends State<KnightOrb> with SingleTickerProviderStateMix
         if (_isExpanded)
           Positioned.fill(
             child: Material(
-              color: Colors.black.withValues(alpha: 0.9),
+              color: Colors.black.withOpacity(0.9),
               child: Stack(
                 children: [
                   GestureDetector(onTap: _toggle),
@@ -90,12 +90,12 @@ class _KnightOrbState extends State<KnightOrb> with SingleTickerProviderStateMix
                   shape: BoxShape.circle,
                   color: DesignColors.surfaceHigh,
                   border: Border.all(
-                    color: DesignColors.accentBlue.withValues(alpha: 0.5),
+                    color: DesignColors.accentBlue.withOpacity(0.5),
                     width: 2,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: DesignColors.accentBlue.withValues(alpha: 0.3 * _pulseController.value),
+                      color: DesignColors.accentBlue.withOpacity(0.3 * _pulseController.value),
                       blurRadius: 20,
                       spreadRadius: 2 * _pulseController.value,
                     ),

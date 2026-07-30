@@ -25,7 +25,7 @@ class _HelmetPainter extends CustomPainter {
       ..shader = LinearGradient(
         colors: [
           DesignColors.accentBlue,
-          DesignColors.accentBlue.withValues(alpha: 0.7),
+          DesignColors.accentBlue.withOpacity(0.7),
         ],
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
@@ -68,12 +68,12 @@ class _HelmetPainter extends CustomPainter {
     final finalPath = Path.combine(PathOperation.difference, path, opening);
     
     // Add some glow
-    canvas.drawShadow(finalPath, DesignColors.accentBlue.withValues(alpha: 0.5), 10, true);
+    canvas.drawShadow(finalPath, DesignColors.accentBlue.withOpacity(0.5), 10, true);
     canvas.drawPath(finalPath, paint);
     
     // Add a subtle border
     final borderPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.3)
+      ..color = Colors.white.withOpacity(0.3)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
     canvas.drawPath(finalPath, borderPaint);

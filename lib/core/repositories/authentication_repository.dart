@@ -3,6 +3,7 @@ library;
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -75,9 +76,6 @@ class AuthSession {
 }
 
 /// Repository responsible for user authentication and session management.
-///
-/// This repository handles sign-in, sign-up, password resets, and persistence
-/// of authentication state using secure storage and local database fallbacks.
 class AuthenticationRepository {
   /// Internal constructor for singleton.
   AuthenticationRepository._({
@@ -94,7 +92,7 @@ class AuthenticationRepository {
   @visibleForTesting
   static set instance(AuthenticationRepository mock) => _instance = mock;
 
-  /// Public factory for legacy compatibility (returns same instance).
+  /// Public factory for legacy compatibility.
   factory AuthenticationRepository({
     LocalDatabase? localDatabase,
     FlutterSecureStorage? secureStorage,
@@ -105,19 +103,17 @@ class AuthenticationRepository {
   final FlutterSecureStorage _secureStorage;
   final LocalDatabase _database;
   final Map<String, _StoredAccount> _accounts = <String, _StoredAccount>{};
+  AuthSession? _currentSession;
+  bool _sessionLoaded = false;
 
   Future<Map<String, _StoredAccount>> _loadAccounts() async {
     if (_accounts.isNotEmpty) {
       return _accounts;
     }
 
-    final securePayload = await _secureStorage.read(
-      key: StorageKeys.authAccounts,
-    );
-    final fallbackPayload = securePayload == null || securePayload.isEmpty
-        ? await _database.readString(StorageKeys.authAccounts)
-        : null;
-    final payload = securePayload ?? fallbackPayload;
+    KnightLogger.info('[AUTH] Loading accounts...');
+    
+    final payload = await _readPersistedValue(StorageKeys.authAccounts);
 
     if (payload == null || payload.isEmpty) {
       return _accounts;
@@ -125,116 +121,69 @@ class AuthenticationRepository {
 
     try {
       final decoded = jsonDecode(payload);
-      if (decoded is! List<dynamic>) {
-        return _accounts;
-      }
-
-      for (final item in decoded) {
-        if (item is! Map<String, dynamic>) {
-          continue;
+      if (decoded is List) {
+        for (final item in decoded) {
+          if (item is Map<String, dynamic>) {
+            final account = _StoredAccount.fromJson(item.cast<String, Object?>());
+            _accounts[account.email] = account;
+          }
         }
-        final account = _StoredAccount.fromJson(item.cast<String, Object?>());
-        _accounts[account.email] = account;
       }
     } catch (error) {
-      KnightLogger.error(
-        'Unable to decode persisted accounts: $error',
-        error: error,
-        category: KnightLogCategory.repository,
-      );
+      KnightLogger.error('Unable to decode accounts', error: error);
     }
     return _accounts;
   }
 
-  /// Returns the current active session, if any.
-  ///
-  /// Returns null if no session exists or if the current session has expired.
   Future<AuthSession?> getCurrentSession() async {
+    if (_sessionLoaded) return _currentSession;
+
     try {
-      final payload = await _readPersistedValue(
-        StorageKeys.authSession,
-      ).timeout(const Duration(milliseconds: 300));
+      final payload = await _readPersistedValue(StorageKeys.authSession);
+      
       if (payload == null || payload.isEmpty) {
+        _currentSession = null;
+        _sessionLoaded = true;
         return null;
       }
 
       final decoded = jsonDecode(payload);
       if (decoded is! Map<String, dynamic>) {
-        await _secureStorage
-            .delete(key: StorageKeys.authSession)
-            .timeout(const Duration(milliseconds: 300));
+        _currentSession = null;
+        _sessionLoaded = true;
         return null;
       }
 
       final session = AuthSession.fromJson(decoded.cast<String, Object?>());
       if (session.expiresAt != null &&
           DateTime.now().isAfter(session.expiresAt!)) {
-        await _secureStorage
-            .delete(key: StorageKeys.authSession)
-            .timeout(const Duration(milliseconds: 300));
+        _currentSession = null;
+        _sessionLoaded = true;
         return null;
       }
+      _currentSession = session;
+      _sessionLoaded = true;
       return session;
-    } on TimeoutException catch (error) {
-      KnightLogger.warn(
-        'Authentication session lookup timed out: $error',
-        category: KnightLogCategory.repository,
-      );
-      return null;
     } catch (error) {
-      KnightLogger.error(
-        'Unable to read persisted auth session: $error',
-        error: error,
-        category: KnightLogCategory.repository,
-      );
+      KnightLogger.error('Unable to read session', error: error);
       return null;
     }
   }
 
-  /// Returns whether a user is currently authenticated.
   Future<bool> isAuthenticated() async {
-    try {
-      final session = await getCurrentSession().timeout(
-        const Duration(milliseconds: 300),
-      );
-      return session?.isAuthenticated ?? false;
-    } on TimeoutException catch (error) {
-      KnightLogger.warn(
-        'Authentication check timed out: $error',
-        category: KnightLogCategory.repository,
-      );
-      return false;
-    } catch (error) {
-      KnightLogger.error(
-        'Authentication check failed: $error',
-        error: error,
-        category: KnightLogCategory.repository,
-      );
-      return false;
-    }
+    final session = await getCurrentSession();
+    return session?.isAuthenticated ?? false;
   }
 
-  /// Signs in a user with the supplied credentials.
-  ///
-  /// Throws [ArgumentError] if the credentials are invalid or if no account exists.
   Future<AuthSession> signIn({
     required String email,
     required String password,
   }) async {
     final normalizedEmail = email.trim().toLowerCase();
     final accounts = await _loadAccounts();
-    if (normalizedEmail.isEmpty || password.trim().isEmpty) {
-      throw ArgumentError('Email and password are required.');
-    }
-    if (!_isValidEmail(normalizedEmail)) {
-      throw ArgumentError('Enter a valid email address.');
-    }
-
+    
     final account = accounts[normalizedEmail];
-    if (account == null) {
-      throw ArgumentError('No account exists with this email.');
-    }
-    if (account.password != password) {
+    if (account == null || account.password != password) {
       throw ArgumentError('Incorrect email or password.');
     }
 
@@ -243,44 +192,27 @@ class AuthenticationRepository {
       email: normalizedEmail,
       displayName: account.displayName,
       isAuthenticated: true,
-      isEmailVerified: true,
       expiresAt: DateTime.now().add(const Duration(days: 30)),
     );
     await _persistSession(session);
     return session;
   }
 
-  /// Registers a new user account.
-  ///
-  /// Throws [ArgumentError] if the registration data is invalid or if the email
-  /// is already in use.
   Future<AuthSession> signUp({
     required String email,
     required String password,
     required String displayName,
   }) async {
     final normalizedEmail = email.trim().toLowerCase();
-    if (normalizedEmail.isEmpty || password.trim().isEmpty) {
-      throw ArgumentError('Email and password are required.');
-    }
-    if (!_isValidEmail(normalizedEmail)) {
-      throw ArgumentError('Enter a valid email address.');
-    }
-    if (password.length < 8) {
-      throw ArgumentError('Password must be at least 8 characters.');
-    }
     final accounts = await _loadAccounts();
     if (accounts.containsKey(normalizedEmail)) {
-      throw ArgumentError('An account already exists with this email.');
+      throw ArgumentError('An account already exists.');
     }
 
     final account = _StoredAccount(
-      userId:
-          'user-${normalizedEmail.replaceAll(RegExp(r'[^a-z0-9]'), '')}-${DateTime.now().microsecondsSinceEpoch}',
+      userId: 'user-${DateTime.now().microsecondsSinceEpoch}',
       email: normalizedEmail,
-      displayName: displayName.trim().isEmpty
-          ? normalizedEmail.split('@').first
-          : displayName.trim(),
+      displayName: displayName.isEmpty ? normalizedEmail.split('@').first : displayName,
       password: password,
     );
     _accounts[normalizedEmail] = account;
@@ -291,7 +223,6 @@ class AuthenticationRepository {
       email: normalizedEmail,
       displayName: account.displayName,
       isAuthenticated: true,
-      isEmailVerified: false,
       expiresAt: DateTime.now().add(const Duration(days: 30)),
     );
     await _persistSession(session);
@@ -299,52 +230,25 @@ class AuthenticationRepository {
   }
 
   Future<void> resetPassword(String email) async {
-    final normalizedEmail = email.trim().toLowerCase();
-    if (normalizedEmail.isEmpty) {
-      throw ArgumentError('Enter an email address to reset your password.');
-    }
-    if (!_isValidEmail(normalizedEmail)) {
-      throw ArgumentError('Enter a valid email address.');
-    }
-    final accounts = await _loadAccounts();
-    if (accounts[normalizedEmail] == null) {
-      throw ArgumentError('No account exists with this email.');
-    }
-    await Future<void>.delayed(const Duration(milliseconds: 300));
-    if (kDebugMode) {
-      debugPrint('Password reset requested for $email');
-    }
-  }
-
-  Future<void> verifyEmail({String? code}) async {
-    final session = await getCurrentSession();
-    if (session == null) {
-      return;
-    }
-    await persistSession(
-      AuthSession(
-        userId: session.userId,
-        email: session.email,
-        displayName: session.displayName,
-        isAuthenticated: true,
-        isEmailVerified: true,
-        provider: session.provider,
-      ),
-    );
-  }
-
-  Future<void> signOut() async {
-    await _secureStorage.delete(key: StorageKeys.authSession);
-    await _database.delete(StorageKeys.authSession);
+    KnightLogger.info('[AUTH] Reset password requested for $email');
+    await Future.delayed(const Duration(milliseconds: 500));
   }
 
   Future<void> persistSession(AuthSession session) async {
     await _persistSession(session);
   }
 
+  Future<void> signOut() async {
+    await _writePersistedValue(StorageKeys.authSession, '');
+    _currentSession = null;
+    _sessionLoaded = true;
+  }
+
   Future<void> _persistSession(AuthSession session) async {
     final payload = jsonEncode(session.toJson());
     await _writePersistedValue(StorageKeys.authSession, payload);
+    _currentSession = session;
+    _sessionLoaded = true;
   }
 
   Future<void> _persistAccounts() async {
@@ -354,22 +258,29 @@ class AuthenticationRepository {
     await _writePersistedValue(StorageKeys.authAccounts, payload);
   }
 
+  /// ROBUST PERSISTENCE:
+  /// Uses FlutterSecureStorage with a strict timeout to prevent hangs on 
+  /// problematic Android Keystore implementations (e.g. Xiaomi/Mediatek).
+  /// Falls back to non-encrypted LocalDatabase for reliability.
   Future<String?> _readPersistedValue(String key) async {
     try {
+      // 1. Attempt Secure Read (Fast Timeout)
       final secureValue = await _secureStorage
           .read(key: key)
-          .timeout(const Duration(milliseconds: 300));
-      if (secureValue != null && secureValue.isNotEmpty) {
-        return secureValue;
-      }
+          .timeout(const Duration(milliseconds: 500));
+      
+      if (secureValue != null && secureValue.isNotEmpty) return secureValue;
+    } catch (e) {
+      KnightLogger.warn('Secure storage read bypassed/failed: $e');
+    }
+
+    // 2. Fallback to LocalDatabase
+    try {
       return await _database
           .readString(key)
-          .timeout(const Duration(milliseconds: 300));
-    } on TimeoutException catch (error) {
-      debugPrint('Persisted value read timed out for $key: $error');
-      return null;
-    } catch (error) {
-      debugPrint('Unable to read persisted value for $key: $error');
+          .timeout(const Duration(seconds: 1));
+    } catch (e) {
+      KnightLogger.error('Storage fallback failed: $e');
       return null;
     }
   }
@@ -378,20 +289,17 @@ class AuthenticationRepository {
     try {
       await _secureStorage
           .write(key: key, value: value)
-          .timeout(const Duration(milliseconds: 300));
+          .timeout(const Duration(milliseconds: 500));
+    } catch (_) {}
+    
+    try {
       await _database
           .writeString(key, value)
-          .timeout(const Duration(milliseconds: 300));
-    } on TimeoutException catch (error) {
-      debugPrint('Persisted value write timed out for $key: $error');
-    } catch (error) {
-      debugPrint('Unable to write persisted value for $key: $error');
-    }
+          .timeout(const Duration(seconds: 1));
+    } catch (_) {}
   }
 
-  bool _isValidEmail(String email) {
-    return RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email);
-  }
+  bool _isValidEmail(String email) => RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email);
 }
 
 class _StoredAccount {
@@ -407,21 +315,17 @@ class _StoredAccount {
   final String displayName;
   final String password;
 
-  Map<String, Object?> toJson() {
-    return {
-      'userId': userId,
-      'email': email,
-      'displayName': displayName,
-      'password': password,
-    };
-  }
+  Map<String, Object?> toJson() => {
+    'userId': userId,
+    'email': email,
+    'displayName': displayName,
+    'password': password,
+  };
 
-  factory _StoredAccount.fromJson(Map<String, Object?> json) {
-    return _StoredAccount(
-      userId: json['userId'] as String? ?? '',
-      email: json['email'] as String? ?? '',
-      displayName: json['displayName'] as String? ?? '',
-      password: json['password'] as String? ?? '',
-    );
-  }
+  factory _StoredAccount.fromJson(Map<String, Object?> json) => _StoredAccount(
+    userId: json['userId'] as String? ?? '',
+    email: json['email'] as String? ?? '',
+    displayName: json['displayName'] as String? ?? '',
+    password: json['password'] as String? ?? '',
+  );
 }

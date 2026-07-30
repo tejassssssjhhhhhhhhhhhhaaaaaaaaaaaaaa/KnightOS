@@ -6,6 +6,7 @@ import '../domain/cognitive_models.dart';
 import '../domain/intelligence_models.dart';
 import '../engines/memory_engine.dart';
 import '../knight_context_service.dart';
+import '../../internal/utils/knight_logger.dart';
 import 'world_service.dart';
 import '../../platform/engine/engine_interfaces.dart';
 
@@ -32,6 +33,7 @@ class ReasoningService {
   Future<ReasoningResult> performReasoningCycle({
     required List<KnightFeatureModule> featureModules,
   }) async {
+    KnightLogger.info('[REASONING] Cycle started', category: KnightLogCategory.intelligence);
     // 1. Fetch relevant memories (e.g., identity, goals, recent history)
     final memories = await contextEngine.buildActiveContext(
       intent: KnightIntent.analysis,
@@ -46,11 +48,13 @@ class ReasoningService {
     );
 
     // 3. Reason with learned weights
-    return engine.reason(
+    final result = engine.reason(
       context: context, 
       memories: memories,
       weights: optimizationEngine.state.domainWeights,
     );
+    KnightLogger.info('[REASONING] Cycle complete: ${result.insights.length} insights', category: KnightLogCategory.intelligence);
+    return result;
   }
 
   /// Registers user feedback on an intelligence item to optimize future cycles.

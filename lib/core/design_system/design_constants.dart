@@ -64,8 +64,8 @@ class DesignGradients {
 
   static LinearGradient get glass => LinearGradient(
     colors: [
-      Colors.white.withValues(alpha: 0.08),
-      Colors.white.withValues(alpha: 0.02),
+      Colors.white.withOpacity(0.08),
+      Colors.white.withOpacity(0.02),
     ],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
@@ -110,7 +110,7 @@ class DesignShadows {
 
   static List<BoxShadow> get soft => [
     BoxShadow(
-      color: Colors.black.withValues(alpha: 0.5),
+      color: Colors.black.withOpacity(0.5),
       blurRadius: 30,
       offset: const Offset(0, 10),
     ),
@@ -126,7 +126,7 @@ class DesignShadows {
 
   static List<BoxShadow> get glowBlue => [
     BoxShadow(
-      color: DesignColors.accentBlue.withValues(alpha: 0.3),
+      color: DesignColors.accentBlue.withOpacity(0.3),
       blurRadius: 20,
       spreadRadius: 2,
     ),
@@ -134,7 +134,7 @@ class DesignShadows {
 
   static List<BoxShadow> get subtle => [
     BoxShadow(
-      color: Colors.black.withValues(alpha: 0.2),
+      color: Colors.black.withOpacity(0.2),
       blurRadius: 20,
       offset: const Offset(0, 10),
     ),
@@ -142,7 +142,7 @@ class DesignShadows {
 
   static List<BoxShadow> get highImpact => [
     BoxShadow(
-      color: DesignColors.accentBlue.withValues(alpha: 0.1),
+      color: DesignColors.accentBlue.withOpacity(0.1),
       blurRadius: 40,
       offset: const Offset(0, 0),
     ),

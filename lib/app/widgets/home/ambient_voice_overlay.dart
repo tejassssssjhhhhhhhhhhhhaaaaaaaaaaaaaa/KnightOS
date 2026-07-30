@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/design_system/design_constants.dart';
 import '../../../../core/intelligence/providers/intelligence_providers.dart';
 import '../../../../core/intelligence/services/voice_service.dart';
+import '../../../../core/internal/utils/knight_logger.dart';
 
 class AmbientVoiceOverlay extends ConsumerWidget {
   const AmbientVoiceOverlay({super.key});
@@ -11,13 +12,14 @@ class AmbientVoiceOverlay extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final voiceState = ref.watch(voiceServiceProvider);
     final isVisible = voiceState.mode != VoiceMode.idle;
+    KnightLogger.info('[UI] AmbientVoiceOverlay build() isVisible: $isVisible, mode: ${voiceState.mode}', category: KnightLogCategory.ui);
 
     return AnimatedSwitcher(
       duration: DesignAnimations.standard,
       child: isVisible
           ? Container(
               key: const ValueKey('voice_overlay'),
-              color: Colors.black.withValues(alpha: 0.85),
+              color: Colors.black.withOpacity(0.85),
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -138,7 +140,7 @@ class _VoicePulseState extends State<_VoicePulse>
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: DesignColors.accentBlue.withValues(alpha: 0.5),
+                    color: DesignColors.accentBlue.withOpacity(0.5),
                     blurRadius: 20 * scale,
                     spreadRadius: 5 * scale,
                   ),

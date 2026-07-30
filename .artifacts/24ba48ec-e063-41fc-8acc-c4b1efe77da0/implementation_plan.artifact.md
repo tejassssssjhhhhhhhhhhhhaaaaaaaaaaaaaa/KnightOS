@@ -1,48 +1,45 @@
-# Implementation Plan - Sprint 8: Stability & Quality Assurance
+# Implementation Plan - Version 4 Stabilization Sprint
 
-This plan focuses on resolving critical test failures and ensuring a stable startup sequence, moving the project towards its first Version 4 Release Candidate.
+This plan addresses reported bugs and UX issues to make Knight OS Version 4 production-ready.
 
 ## User Review Required
 
 > [!IMPORTANT]
-> This sprint involves fixing core mock implementations in tests. No production architectural changes are expected other than defensive `mounted` checks in the UI layer.
+> This sprint modifies the local storage directory logic to ensure data persistence across updates. It also reconciles duplicate Voice Service implementations.
 
 ## Proposed Changes
 
-### Core Intelligence Tests
+### 1. Account Persistence (Issue 1)
+- **Root Cause**: `LocalDatabase` (used for legacy auth) switched to `getApplicationSupportDirectory()` on Android, while previous versions and the new `KnightDatabase` (Drift) use `getApplicationDocumentsDirectory()`. This results in missing `auth_accounts.json` and `auth_session.json` after an update.
+- **Fix**: Update `LocalDatabase` to check both directories. Implement an automatic one-time migration of files from `Documents` to `Support` if they are found in the old location but missing in the new one.
 
-#### [MODIFY] [planning_service_test.dart](file:///C:/Users/tejas/knight_os/test/core/intelligence/planning_service_test.dart)
-#### [MODIFY] [reasoning_service_test.dart](file:///C:/Users/tejas/knight_os/test/core/intelligence/reasoning_service_test.dart)
-- Update `MockMemoryRepository` to implement:
-  - `getByCategory`
-  - `getByDomain`
-  - `getLatest`
-  - `watchLatest`
-  - `watchByCategory`
-  - `watchByDomain`
-- These will return default empty values to avoid `UnimplementedError` when services traverse the memory graph during reasoning cycles.
+### 2. Voice Interaction in Onboarding (Issue 2)
+- **Root Cause**: `VoiceService` in `features/voice` returns an empty string if called with an empty prompt (which `OnboardingFlowScreen` does). Additionally, there are two competing `VoiceService` classes.
+- **Fix**:
+    - Merge `features/voice/voice_service.dart` logic into the core `VoiceService`.
+    - Update `OnboardingFlowScreen` to use the `voiceControllerProvider` instead of manual instantiation.
+    - Ensure `VoiceService` provides a meaningful simulated transcript for onboarding steps.
 
-### Presentation Layer
-
-#### [MODIFY] [splash_screen.dart](file:///C:/Users/tejas/knight_os/lib/app/screens/splash_screen.dart)
-- Add `if (!mounted) return;` guards after every `await` in the `_initialize` method.
-- This prevents `ref` access after the widget has been disposed, which is a common cause of test failures and occasional production crashes during slow initialization.
-
-### Project Tracking
-
-#### [MODIFY] [08_Task_Index.md](file:///C:/Users/tejas/knight_os/docs/08_Task_Index.md)
-- Add `V4-024`: Sprint 8 - Stability & Quality Assurance.
-
-#### [MODIFY] [NEXT_TASK.md](file:///C:/Users/tejas/knight_os/docs/NEXT_TASK.md)
-- Breakdown Sprint 8 into specific checklist items.
+### 3. Navigation Stability (Issues 3 & 4)
+- **Root Cause**:
+    - `AuthScreen` navigates to `AppRoutes.launch` (`/launch`), which is defined in `AppRoutes` but missing from `AppRouter.routes`.
+    - `SettingsScreen` lacks a `title` in its `KnightPageScaffold`, resulting in no `AppBar`. Its manual header uses `Navigator.pop()`, which may fail or behave unexpectedly when combined with `GoRouter` shell routes.
+- **Fix**:
+    - Add `AppRoutes.launch` to `AppRouter` (mapping to `HomeScreen` or a transition screen).
+    - Update `SettingsScreen` to use `title: 'Settings'` in `KnightPageScaffold` for a consistent `AppBar`.
+    - Replace `Navigator.pop()` with `context.pop()` in `SettingsScreen`.
+    - Ensure all routes in `AppRouter` match `AppRoutes` constants.
 
 ## Verification Plan
 
 ### Automated Tests
-- `flutter test test/core/intelligence/planning_service_test.dart`
-- `flutter test test/core/intelligence/reasoning_service_test.dart`
+- `flutter test test/storage/local_database_migration_test.dart` (New test for directory migration)
+- `flutter test test/auth_flow_test.dart`
 - `flutter test test/widget_test.dart`
-- `flutter test` (Full suite verification)
+- `flutter test` (Full suite)
 
-### Static Analysis
-- `flutter analyze`
+### Manual Verification
+- Verify that logging in with an "old" account (simulated by placing files in Documents) works.
+- Verify "Skip" during onboarding leads to the Home screen.
+- Verify Settings icon leads to the Settings screen.
+- Verify "Voice answer" in onboarding updates the profile.

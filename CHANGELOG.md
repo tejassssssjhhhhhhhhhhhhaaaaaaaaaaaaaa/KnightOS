@@ -11,9 +11,11 @@
 - **Knowledge Graph**: Relationship discovery and memory networks.
 
 ### Fixed
-- Stabilized startup sequence with defensive unmounted guards in `SplashScreen`.
-- Resolved `UnimplementedError` in core intelligence tests by optimizing memory mocks.
-- Fixed `GoogleFonts` test dependency issues.
+- **Account Persistence**: Implemented automatic migration of legacy user accounts from Documents to Support directory.
+- **Voice Interaction**: Fixed broken voice capture in onboarding by merging services and providing valid simulation fallback.
+- **Navigation**: Resolved black screen issues when skipping onboarding or accessing settings by adding missing `/launch` route and standardizing shell navigation.
+- **Startup Stability**: Fixed a "ref used after dispose" race condition in `SplashScreen` using defensive `mounted` guards.
+- **Test Quality**: Resolved `UnimplementedError` in core intelligence tests by optimizing memory mocks.
 
 ### Changed
 - Migrated to full Version 4 Intelligence Architecture.

@@ -1,3 +1,8 @@
+// Resolve ANDROID_PREFS_ROOT vs ANDROID_USER_HOME conflict for AGP
+if (System.getenv("ANDROID_PREFS_ROOT") != null && System.getenv("ANDROID_USER_HOME") != null) {
+    System.setProperty("ANDROID_PREFS_ROOT", "")
+}
+
 pluginManagement {
     val flutterSdkPath =
         run {

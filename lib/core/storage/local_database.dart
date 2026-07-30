@@ -5,9 +5,13 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:path/path.dart' as p;
 
 class LocalDatabase {
   const LocalDatabase();
+
+  static Directory? _supportDir;
+  static Directory? _documentsDir;
 
   Future<String?> _readString(String fileName) async {
     try {
@@ -18,10 +22,25 @@ class LocalDatabase {
 
       debugPrint('Local storage reading $fileName');
       final file = await fileFor(fileName);
-      if (!await file.exists()) {
-        return null;
+      
+      if (await file.exists()) {
+        return await file.readAsString();
       }
-      return await file.readAsString();
+
+      // Migration check: If file missing in Support, check Documents (Legacy)
+      final legacyDir = await _getDocumentsDirectory();
+      final legacyFile = File(p.join(legacyDir.path, fileName));
+      
+      if (await legacyFile.exists()) {
+        debugPrint('Found legacy file for $fileName in Documents. Migrating to Support.');
+        final content = await legacyFile.readAsString();
+        await file.writeAsString(content);
+        // Delete legacy file after successful move to avoid duplicates
+        await legacyFile.delete();
+        return content;
+      }
+
+      return null;
     } catch (error) {
       debugPrint('Local storage read failed for $fileName: $error');
       return null;
@@ -33,7 +52,7 @@ class LocalDatabase {
       throw UnsupportedError('File storage is not supported on web.');
     }
 
-    final directory = await _appDataDirectory();
+    final directory = await _getSupportDirectory();
     if (!await directory.exists()) {
       await directory.create(recursive: true);
     }
@@ -41,14 +60,29 @@ class LocalDatabase {
     return File('${directory.path}${Platform.pathSeparator}$fileName');
   }
 
-  Future<Directory> _appDataDirectory() async {
+  Future<Directory> _getSupportDirectory() async {
+    if (_supportDir != null) return _supportDir!;
+    
+    // Test safe-mode: Use a predictable temp directory if in tests and not mocked
+    if (kDebugMode && Platform.environment.containsKey('FLUTTER_TEST')) {
+       try {
+         _supportDir = await getApplicationSupportDirectory();
+         return _supportDir!;
+       } catch (_) {
+         // Fallback to a system temp if path_provider fails in headless tests
+         _supportDir = Directory.systemTemp.createTempSync('knight_os_test_support');
+         return _supportDir!;
+       }
+    }
+
     try {
       if (Platform.isAndroid ||
           Platform.isIOS ||
           Platform.isWindows ||
           Platform.isLinux ||
           Platform.isMacOS) {
-        return await getApplicationSupportDirectory();
+        _supportDir = await getApplicationSupportDirectory();
+        return _supportDir!;
       }
     } catch (error) {
       debugPrint(
@@ -56,7 +90,25 @@ class LocalDatabase {
       );
     }
 
-    return getApplicationDocumentsDirectory();
+    _supportDir = await getApplicationDocumentsDirectory();
+    return _supportDir!;
+  }
+
+  Future<Directory> _getDocumentsDirectory() async {
+    if (_documentsDir != null) return _documentsDir!;
+
+    if (kDebugMode && Platform.environment.containsKey('FLUTTER_TEST')) {
+      try {
+        _documentsDir = await getApplicationDocumentsDirectory();
+        return _documentsDir!;
+      } catch (_) {
+        _documentsDir = Directory.systemTemp.createTempSync('knight_os_test_docs');
+        return _documentsDir!;
+      }
+    }
+
+    _documentsDir = await getApplicationDocumentsDirectory();
+    return _documentsDir!;
   }
 
   Future<String?> readString(String fileName) async {

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/design_system/design_constants.dart';
+import '../../core/providers/storage_providers.dart';
+import '../../core/router/app_routes.dart';
 import '../widgets/knight_page_scaffold.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -9,14 +12,15 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return KnightPageScaffold(
+      title: 'Settings',
+      showBackButton: true,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(DesignSpacing.m),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeader(context),
-            const SizedBox(height: 32),
-            _buildProfileCard(context),
+            const SizedBox(height: 12),
+            _buildProfileCard(context, ref),
             const SizedBox(height: 32),
             _buildSettingsList(context),
             const SizedBox(height: 140),
@@ -26,46 +30,80 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
-    return Row(
-      children: [
-        IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        const SizedBox(width: 8),
-        Text('Settings', style: Theme.of(context).textTheme.headlineMedium),
-      ],
-    );
-  }
+  Widget _buildProfileCard(BuildContext context, WidgetRef ref) {
+    final sessionAsync = ref.watch(authSessionProvider);
 
-  Widget _buildProfileCard(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: DesignColors.surfaceHigh,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: DesignColors.white05),
-      ),
-      child: Row(
-        children: [
-          const CircleAvatar(
-            radius: 28,
-            backgroundColor: DesignColors.accentBlue,
-            child: Text('TJ', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+    return sessionAsync.when(
+      data: (session) {
+        final isAuthenticated = session?.isAuthenticated ?? false;
+
+        return Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: DesignColors.surfaceHigh,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: DesignColors.white05),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Tejas Jha', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                Text('Senior Associate - Technical Support', style: TextStyle(fontSize: 12, color: Colors.white38)),
-              ],
-            ),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 28,
+                backgroundColor: DesignColors.accentBlue,
+                child: Text(
+                  isAuthenticated
+                      ? (session?.displayName.isNotEmpty == true
+                          ? session!.displayName[0].toUpperCase()
+                          : 'K')
+                      : 'G',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isAuthenticated
+                          ? (session?.displayName ?? 'Knight User')
+                          : 'Guest User',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      isAuthenticated
+                          ? (session?.email ?? '')
+                          : 'Sign in to enable all features',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.white38,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (!isAuthenticated)
+                FilledButton.icon(
+                  onPressed: () => context.push(AppRoutes.auth),
+                  icon: const Icon(Icons.login_rounded, size: 16),
+                  label: const Text('Sign In'),
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, s) => const Center(child: Text('Session status unavailable')),
     );
   }
 

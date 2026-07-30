@@ -3,6 +3,7 @@ import '../domain/memory_category.dart';
 import '../domain/cognitive_models.dart';
 import '../domain/world_models.dart';
 import '../domain/memory_domain.dart';
+import '../../internal/utils/knight_logger.dart';
 import 'memory_engine.dart';
 
 /// Intelligently assembles relevant context for AI reasoning.
@@ -17,6 +18,7 @@ class ContextEngine {
     KnightIntent? intent,
     WorldState? worldState,
   }) async {
+    KnightLogger.info('[CONTEXT] Building active context...', category: KnightLogCategory.intelligence);
     final List<KnightMemory> context = [];
 
     // TIER 0: External Context (Real-world state) - Sprint 5.1
@@ -25,24 +27,29 @@ class ContextEngine {
     }
 
     // TIER 1: Identity (Who I am) - Always Included
+    KnightLogger.info('[CONTEXT] Loading identity...', category: KnightLogCategory.intelligence);
     final identity = await memoryEngine.getByCategory(BookCategory.identity);
     context.addAll(identity);
 
     // TIER 2: Current Mission (What I'm doing today) - Mapped to Career/Ambitions
+    KnightLogger.info('[CONTEXT] Loading focus...', category: KnightLogCategory.intelligence);
     final focus = await memoryEngine.getByCategory(BookCategory.career);
     context.addAll(focus);
 
     // TIER 3: Rules & Constraints - Mapped to Philosophy
+    KnightLogger.info('[CONTEXT] Loading rules...', category: KnightLogCategory.intelligence);
     final rules = await memoryEngine.getByCategory(BookCategory.philosophy);
     context.addAll(rules);
 
     // TIER 4: Intent-Specific Data
     if (intent != null) {
+      KnightLogger.info('[CONTEXT] Loading intent data: $intent', category: KnightLogCategory.intelligence);
       final intentData = await _fetchIntentSpecificData(intent);
       context.addAll(intentData);
     }
 
     // TIER 5: Recency (What happened lately) - Mapped to History
+    KnightLogger.info('[CONTEXT] Loading recent...', category: KnightLogCategory.intelligence);
     final recent = await memoryEngine.getByCategory(BookCategory.history);
     context.addAll(recent.take(5));
 
@@ -52,7 +59,9 @@ class ContextEngine {
       context.addAll(relevant);
     }
 
-    return _rankAndDeduplicate(context);
+    final result = _rankAndDeduplicate(context);
+    KnightLogger.info('[CONTEXT] Context built: ${result.length} items', category: KnightLogCategory.intelligence);
+    return result;
   }
 
   Future<List<KnightMemory>> _fetchIntentSpecificData(

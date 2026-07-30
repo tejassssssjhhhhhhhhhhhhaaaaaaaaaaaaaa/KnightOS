@@ -11,18 +11,11 @@ class AuthGuard {
     try {
       final repository = AuthenticationRepository();
       final authenticated = await repository.isAuthenticated();
-      if (!authenticated) {
-        if (context.mounted) {
-          context.go(AppRoutes.auth);
-        }
-        return false;
-      }
-      return true;
+      // Version 4: Guests can access most routes.
+      // We only redirect if we explicitly want to force auth for a specific action.
+      return authenticated;
     } catch (error) {
       debugPrint('Auth guard failed: $error');
-      if (context.mounted) {
-        context.go(AppRoutes.auth);
-      }
       return false;
     }
   }

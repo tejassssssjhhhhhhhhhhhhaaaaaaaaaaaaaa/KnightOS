@@ -39,8 +39,8 @@ class KnightLogger {
 
   static void _log(String level, String message, KnightLogCategory category) {
     final timestamp = DateTime.now().toIso8601String().split('T').last;
-    debugPrint(
-      '[$timestamp] [$level] [${category.name.toUpperCase()}] $message',
-    );
+    final logMessage = '[$timestamp] [$level] [${category.name.toUpperCase()}] $message';
+    // Forced printing for Phase 4 Real Device Verification
+    print('KNIGHT: $logMessage');
   }
 }

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/internal/utils/knight_logger.dart';
 import '../../core/repositories/authentication_repository.dart';
 import '../../core/router/app_routes.dart';
 import '../../core/services/launch_experience_service.dart';
@@ -187,6 +188,7 @@ class _PremiumLaunchScreenState extends State<PremiumLaunchScreen>
 
   @override
   Widget build(BuildContext context) {
+    KnightLogger.info('[STARTUP 10] PremiumLaunchScreen build()', category: KnightLogCategory.ui);
     final theme = Theme.of(context);
     final topColor = _interpolatedColor(
       const Color(0xFF08101F),
@@ -225,8 +227,8 @@ class _PremiumLaunchScreenState extends State<PremiumLaunchScreen>
                         center: const Alignment(-0.6, -0.8),
                         radius: 1.6,
                         colors: [
-                          const Color(0xFF2C4D7C).withValues(alpha: 41),
-                          const Color(0xFF08101F).withValues(alpha: 0),
+                          const Color(0xFF2C4D7C).withOpacity(0.16),
+                          const Color(0xFF08101F).withOpacity(0),
                         ],
                         stops: [0.0, 0.85],
                       ),
@@ -254,10 +256,10 @@ class _PremiumLaunchScreenState extends State<PremiumLaunchScreen>
                             height: 128,
                             decoration: BoxDecoration(
                               color: theme.colorScheme.surfaceContainerHighest
-                                  .withValues(alpha: 56),
+                                  .withOpacity(0.22),
                               border: Border.all(
-                                color: theme.colorScheme.primary.withValues(
-                                  alpha: 46,
+                                color: theme.colorScheme.primary.withOpacity(
+                                  0.18,
                                 ),
                                 width: 1.4,
                               ),
@@ -294,14 +296,14 @@ class _PremiumLaunchScreenState extends State<PremiumLaunchScreen>
                                               begin: Alignment.centerLeft,
                                               end: Alignment.centerRight,
                                               colors: [
-                                                Colors.white.withValues(
-                                                  alpha: 0,
+                                                Colors.white.withOpacity(
+                                                  0,
                                                 ),
-                                                Colors.white.withValues(
-                                                  alpha: 0.18,
+                                                Colors.white.withOpacity(
+                                                  0.18,
                                                 ),
-                                                Colors.white.withValues(
-                                                  alpha: 0,
+                                                Colors.white.withOpacity(
+                                                  0,
                                                 ),
                                               ],
                                               stops: const [0.0, 0.5, 1.0],
@@ -392,7 +394,7 @@ class _PremiumLaunchScreenState extends State<PremiumLaunchScreen>
                                         color: theme
                                             .colorScheme
                                             .surfaceContainerHighest
-                                            .withValues(alpha: 46),
+                                            .withOpacity(0.18),
                                         borderRadius: BorderRadius.circular(20),
                                       ),
                                       child: Text(

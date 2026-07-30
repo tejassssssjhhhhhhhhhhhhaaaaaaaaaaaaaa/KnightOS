@@ -29,12 +29,12 @@ class StorageService {
     final stopwatch = Stopwatch()..start();
     try {
       KnightLogger.info(
-        'Initializing engine...',
+        '[DATABASE 01] Initializing engine...',
         category: KnightLogCategory.startup,
       );
       await engine.initialize();
       KnightLogger.info(
-        'Engine initialized (${stopwatch.elapsedMilliseconds}ms).',
+        '[DATABASE 02] Engine initialized (${stopwatch.elapsedMilliseconds}ms).',
         category: KnightLogCategory.startup,
       );
       _isInitialized = true;
@@ -46,7 +46,7 @@ class StorageService {
         await _checkAndPerformMigration();
       }
       KnightLogger.info(
-        'Total initialization complete (${stopwatch.elapsedMilliseconds}ms).',
+        '[DATABASE 03] Total initialization complete (${stopwatch.elapsedMilliseconds}ms).',
         category: KnightLogCategory.startup,
       );
     } catch (e, stack) {

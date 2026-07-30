@@ -121,9 +121,9 @@ class _AutonomousStatusIndicator extends ConsumerWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: DesignColors.accentBlue.withValues(alpha: 0.1),
+              color: DesignColors.accentBlue.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: DesignColors.accentBlue.withValues(alpha: 0.2)),
+              border: Border.all(color: DesignColors.accentBlue.withOpacity(0.2)),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,

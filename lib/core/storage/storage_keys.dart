@@ -17,4 +17,5 @@ class StorageKeys {
   static const String upcomingItems = 'upcoming_items.json';
   static const String knightConversations = 'knight_conversations.json';
   static const String timelineEntries = 'timeline_entries.json';
+  static const String welcomeSeen = 'welcome_seen.json';
 }

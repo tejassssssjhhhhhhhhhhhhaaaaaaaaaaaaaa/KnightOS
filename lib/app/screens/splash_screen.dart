@@ -70,24 +70,28 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   Future<void> _initialize() async {
     final start = DateTime.now();
     try {
-      // 1. Core Storage & DB Init
+      KnightLogger.info('[STARTUP 04] Attempting Storage Initialization', category: KnightLogCategory.startup);
+      
       await ref.read(storageInitializerProvider.future).timeout(
             const Duration(seconds: 10),
             onTimeout: () => throw TimeoutException('Initialization timed out'),
           );
 
       if (!mounted) return;
+      KnightLogger.info('[STARTUP 05] Storage Initialized', category: KnightLogCategory.startup);
 
       // 2. Auth & Profile Check
       final authRepository = ref.read(authenticationRepositoryProvider);
       final userRepository = ref.read(userRepositoryProvider);
       
+      KnightLogger.info('[STARTUP 06] Checking Authentication state', category: KnightLogCategory.startup);
       final authenticated = await authRepository.isAuthenticated();
       final profile = await userRepository.loadProfile();
 
       if (!mounted) return;
       
       final onboardingCompleted = profile?.isCompleted ?? false;
+      KnightLogger.info('[STARTUP 06] Auth: $authenticated, Onboarding: $onboardingCompleted', category: KnightLogCategory.startup);
 
       // 3. Cinematic minimum wait
       final elapsed = DateTime.now().difference(start);
@@ -98,17 +102,17 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
       if (!mounted) return;
 
-      // 4. Start Background Perception Loop (Sprint 2.3)
+      // 4. Start Background Perception Loop
+      KnightLogger.info('[STARTUP 06] Starting Perception Scheduler', category: KnightLogCategory.startup);
       ref.read(perceptionSchedulerProvider).start();
 
       // 5. Navigation
+      if (!mounted) return;
       if (authenticated) {
-        if (onboardingCompleted) {
-          context.go(AppRoutes.home);
-        } else {
-          context.go(AppRoutes.onboarding);
-        }
+        KnightLogger.info('[STARTUP 06] Navigating to HOME', category: KnightLogCategory.startup);
+        context.go(AppRoutes.home);
       } else {
+        KnightLogger.info('[STARTUP 06] Navigating to WELCOME', category: KnightLogCategory.startup);
         context.go(AppRoutes.welcome);
       }
     } catch (e, stack) {
@@ -141,6 +145,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: DesignColors.background,
       body: LunarHorizonBackground(
         child: AnimatedBuilder(
           animation: _controller,
@@ -169,6 +174,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                         fontSize: 24,
                         letterSpacing: 10.0,
                         fontWeight: FontWeight.w900,
+                        color: Colors.white,
                       ),
                     ),
                   ),
@@ -178,15 +184,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                   // Tagline
                   Opacity(
                     opacity: _taglineFade.value,
-                    child: Text(
+                    child: const Text(
                       'YOUR PERSONAL OPERATING SYSTEM',
                       style: TextStyle(
                         fontSize: 10,
                         letterSpacing: 4.0,
                         fontWeight: FontWeight.w600,
-                        color: Theme.of(context).brightness == Brightness.dark 
-                          ? Colors.white38 
-                          : Colors.black38,
+                        color: Colors.white38,
                       ),
                     ),
                   ),

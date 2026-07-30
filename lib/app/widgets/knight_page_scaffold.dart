@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/design_system/design_constants.dart';
 import '../../core/design_system/widgets/knight_background.dart';
+import '../../core/internal/utils/knight_logger.dart';
 import '../../core/router/app_routes.dart';
 
 class KnightPageScaffold extends StatelessWidget {
@@ -26,8 +27,9 @@ class KnightPageScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    KnightLogger.info('[UI] KnightPageScaffold build() - Start title: $title', category: KnightLogCategory.ui);
 
-    return Scaffold(
+    final result = Scaffold(
       backgroundColor: DesignColors.background,
       floatingActionButton: floatingActionButton,
       floatingActionButtonLocation: floatingActionButtonLocation,
@@ -85,6 +87,7 @@ class KnightPageScaffold extends StatelessWidget {
         child: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {
+              KnightLogger.info('[UI] KnightPageScaffold body LayoutBuilder constraints: $constraints', category: KnightLogCategory.ui);
               return Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 800),
@@ -96,5 +99,7 @@ class KnightPageScaffold extends StatelessWidget {
         ),
       ),
     );
+    KnightLogger.info('[UI] KnightPageScaffold build() - End', category: KnightLogCategory.ui);
+    return result;
   }
 }

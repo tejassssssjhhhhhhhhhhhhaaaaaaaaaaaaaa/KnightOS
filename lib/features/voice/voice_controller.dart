@@ -1,31 +1,27 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/intelligence/providers/intelligence_providers.dart';
 import 'domain/voice_models.dart';
 import 'voice_repository.dart';
-import 'voice_service.dart';
 
 class VoiceController extends Notifier<VoiceSession?> {
-  VoiceController({VoiceRepository? repository, VoiceService? service})
-    : _repository = repository ?? VoiceRepository(),
-      _service = service ?? const VoiceService();
-
-  final VoiceRepository _repository;
-  final VoiceService _service;
-
   @override
   VoiceSession? build() => null;
 
   String? get currentTranscript => state?.transcript;
 
   Future<void> captureSpeech({String? prompt}) async {
-    final transcript = await _service.captureSpeech(prompt: prompt);
+    final voiceService = ref.read(voiceServiceProvider.notifier);
+    final transcript = await voiceService.captureSpeech(prompt: prompt);
+    
     final session = VoiceSession(
       id: DateTime.now().microsecondsSinceEpoch.toString(),
       transcript: transcript,
       createdAt: DateTime.now(),
     );
     state = session;
-    await _repository.saveMemory(
+    
+    await VoiceRepository().saveMemory(
       VoiceMemory(
         id: session.id,
         transcript: transcript,

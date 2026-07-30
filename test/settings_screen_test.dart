@@ -11,7 +11,7 @@ void main() {
       const ProviderScope(child: MaterialApp(home: SettingsScreen())),
     );
 
-    expect(find.text('Settings'), findsOneWidget);
+    expect(find.text('SETTINGS'), findsOneWidget);
   });
 
   testWidgets('SettingsScreen displays profile information', (

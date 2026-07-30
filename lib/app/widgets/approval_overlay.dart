@@ -19,7 +19,7 @@ class ApprovalOverlay extends ConsumerWidget {
 
         return Positioned.fill(
           child: Container(
-            color: Colors.black.withValues(alpha: 0.8),
+            color: Colors.black.withOpacity(0.8),
             padding: const EdgeInsets.symmetric(horizontal: DesignSpacing.xl),
             child: Center(
               child: _ApprovalCard(request: request),
@@ -45,7 +45,7 @@ class _ApprovalCard extends ConsumerWidget {
       color: DesignColors.surfaceHigh,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24),
-        side: BorderSide(color: _getRiskColor().withValues(alpha: 0.3)),
+        side: BorderSide(color: _getRiskColor().withOpacity(0.3)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(24),

@@ -40,19 +40,37 @@ class VoiceState {
 /// Unified service for Speech-to-Text and Text-to-Speech orchestration.
 class VoiceService extends Notifier<VoiceState> {
   @override
-  VoiceState build() => const VoiceState();
+  VoiceState build() {
+    // ignore: avoid_print
+    print('KNIGHT: [VOICE] VoiceService build()');
+    return const VoiceState();
+  }
 
-  /// Starts listening for user speech.
-  Future<void> startListening() async {
+  /// Starts listening for user speech and returns the transcribed text.
+  Future<String> captureSpeech({String? prompt}) async {
     state = state.copyWith(mode: VoiceMode.listening);
 
     // Simulation of STT
     await Future.delayed(const Duration(seconds: 2));
-    
+
+    final transcript = (prompt == null || prompt.isEmpty)
+        ? "This is a simulated voice response for onboarding."
+        : prompt;
+
     state = state.copyWith(
       mode: VoiceMode.processing,
-      lastTranscribedText: "What is my focus for today?",
+      lastTranscribedText: transcript,
     );
+
+    await Future.delayed(const Duration(seconds: 1));
+    state = state.copyWith(mode: VoiceMode.idle);
+    
+    return transcript;
+  }
+
+  /// Starts listening for user speech (Broadcast version).
+  Future<void> startListening() async {
+    await captureSpeech();
   }
 
   /// Activates ambient noise monitoring.

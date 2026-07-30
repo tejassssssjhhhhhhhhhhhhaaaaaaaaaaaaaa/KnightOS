@@ -15,7 +15,12 @@ class LunarHorizonBackground extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryColor = isDark ? DesignColors.accentBlue : const Color(0xFF3B82F6);
-    final bgColor = Theme.of(context).scaffoldBackgroundColor;
+    
+    // ROOT CAUSE FIX: Horizon design system assumes a dark cinematic background.
+    // Using theme background in light mode causes white-on-white visibility issues
+    // because many welcome widgets hardcode light colors for cinematic effect.
+    // We force a deep Navy background regardless of theme to preserve visual integrity.
+    final bgColor = DesignColors.background;
 
     return Stack(
       children: [
@@ -32,7 +37,7 @@ class LunarHorizonBackground extends StatelessWidget {
                   center: const Alignment(0, -0.4),
                   radius: 1.2,
                   colors: [
-                    primaryColor.withValues(alpha: isDark ? 0.15 : 0.1),
+                    primaryColor.withOpacity(isDark ? 0.15 : 0.1),
                     Colors.transparent,
                   ],
                 ),
@@ -55,8 +60,8 @@ class LunarHorizonBackground extends StatelessWidget {
                   center: Alignment.topCenter,
                   radius: 0.5,
                   colors: [
-                    primaryColor.withValues(alpha: isDark ? 0.3 : 0.2),
-                    bgColor.withValues(alpha: 0.8),
+                    primaryColor.withOpacity(isDark ? 0.3 : 0.2),
+                    bgColor.withOpacity(0.8),
                     bgColor,
                   ],
                   stops: const [0.0, 0.15, 0.25],
@@ -66,8 +71,9 @@ class LunarHorizonBackground extends StatelessWidget {
           ),
         ),
 
-        // 4. Subtle Stars (Only in Dark Mode)
-        if (isDark) const Positioned.fill(child: _StarsOverlay()),
+        // 4. Subtle Stars (Only in Dark Mode or Force enabled)
+        // forced for cinematic feel
+        const Positioned.fill(child: _StarsOverlay()),
 
         if (child != null) Positioned.fill(child: child!),
       ],
@@ -91,7 +97,7 @@ class _StarsOverlay extends StatelessWidget {
 class _StarsPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = Colors.white.withValues(alpha: 0.2);
+    final paint = Paint()..color = Colors.white.withOpacity(0.2);
     
     // Deterministic random stars
     final List<Offset> points = [

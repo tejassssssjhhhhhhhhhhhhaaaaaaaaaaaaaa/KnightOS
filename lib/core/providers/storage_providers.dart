@@ -5,6 +5,7 @@ import '../platform/storage/storage_engine.dart';
 import '../repositories/authentication_repository.dart';
 import '../repositories/user_repository.dart';
 import '../intelligence/providers/intelligence_providers.dart';
+import '../internal/utils/knight_logger.dart';
 
 /// Flagship Storage Engine provider.
 final storageEngineProvider = Provider<StorageEngine>((ref) {
@@ -31,6 +32,15 @@ final authenticationRepositoryProvider = Provider<AuthenticationRepository>((
   ref,
 ) {
   return AuthenticationRepository();
+});
+
+/// Reactive provider for the current auth session.
+final authSessionProvider = FutureProvider<AuthSession?>((ref) async {
+  KnightLogger.info('[AUTH] authSessionProvider starting...', category: KnightLogCategory.riverpod);
+  final repo = ref.watch(authenticationRepositoryProvider);
+  final session = await repo.getCurrentSession();
+  KnightLogger.info('[AUTH] authSessionProvider complete: ${session != null}', category: KnightLogCategory.riverpod);
+  return session;
 });
 
 /// Public UserRepository provider.

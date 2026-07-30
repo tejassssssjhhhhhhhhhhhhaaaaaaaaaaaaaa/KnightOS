@@ -1,8 +1,14 @@
-- [ ] Sprint 8: Stability & Quality Assurance
-    - [ ] Fix `MockMemoryRepository` UnimplementedErrors
-        - [ ] Update `planning_service_test.dart`
-        - [ ] Update `reasoning_service_test.dart`
-    - [ ] Fix `SplashScreen` unmounted ref usage
-    - [ ] Verify Full Test Suite
-    - [ ] Update Task Index & Session State
-    - [ ] Prepare V4.0.0-rc1 Release Candidate
+- [ ] Version 4 Stabilization
+    - [ ] Fix Account Persistence (Directory Migration)
+        - [ ] Update `LocalDatabase` with migration logic
+        - [ ] Add regression test for migration
+    - [ ] Fix Voice Interaction in Onboarding
+        - [ ] Update `OnboardingFlowScreen` to use `voiceControllerProvider`
+        - [ ] Refactor `VoiceService` to avoid duplication and fix empty prompt issue
+    - [ ] Fix Navigation Issues
+        - [ ] Add missing `/launch` route to `AppRouter`
+        - [ ] Fix `SettingsScreen` rendering and navigation
+    - [ ] Verification
+        - [ ] Run full test suite
+        - [ ] Perform static analysis
+        - [ ] Final project build

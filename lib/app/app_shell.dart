@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/design_system/design_constants.dart';
+import '../core/internal/utils/knight_logger.dart';
 import '../core/router/app_routes.dart';
 import 'widgets/knight_orb.dart';
-import 'widgets/autonomous_monitor.dart';
-import 'widgets/approval_overlay.dart';
 
 class KnightShell extends StatelessWidget {
   const KnightShell({required this.child, super.key});
@@ -14,49 +13,29 @@ class KnightShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final location = GoRouterState.of(context).matchedLocation;
+    String location = '';
+    try {
+      location = GoRouterState.of(context).matchedLocation;
+    } catch (_) {}
 
     return Scaffold(
-      body: Stack(
-        children: [
-          // 1. Screen Content
-          Positioned.fill(child: child),
-
-          // 2. Global Knight AI FAB (Center Bottom)
-          const Positioned(
-            left: 0,
-            right: 0,
-            bottom: DesignSpacing.l,
-            child: Center(
-              child: KnightOrb(),
-            ),
-          ),
-
-          // 3. Autonomous Execution Overlay (Sprint 4.1)
-          const AutonomousMonitorOverlay(),
-
-          // 4. Approval Portal Overlay (Sprint 4.2)
-          const ApprovalOverlay(),
-
-          // 5. Consolidated Bottom Navigation (Home, Personal Hub, Settings)
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: _buildNavigation(context, location),
-          ),
-        ],
-      ),
+      backgroundColor: DesignColors.background,
+      body: child,
+      floatingActionButton: const KnightOrb(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: _buildNavigation(context, location),
     );
   }
 
   Widget _buildNavigation(BuildContext context, String location) {
     return Container(
+      height: 100,
       padding: const EdgeInsets.fromLTRB(DesignSpacing.xl, 0, DesignSpacing.xl, DesignSpacing.l),
+      color: Colors.transparent,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         decoration: BoxDecoration(
-          color: DesignColors.surface.withValues(alpha: 0.9),
+          color: DesignColors.surface.withOpacity(0.9),
           borderRadius: DesignRadius.pill,
           border: Border.all(color: DesignColors.white05),
           boxShadow: DesignShadows.subtle,

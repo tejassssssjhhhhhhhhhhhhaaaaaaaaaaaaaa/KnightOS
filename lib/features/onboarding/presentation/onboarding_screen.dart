@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/widgets/knight_page_scaffold.dart';
 import '../../../core/router/app_routes.dart';
+import '../../../core/internal/utils/knight_logger.dart';
+import '../../../core/repositories/authentication_repository.dart';
 import '../../voice/voice_controller.dart';
 import '../domain/onboarding_profile.dart';
 import '../domain/onboarding_step.dart';
@@ -23,7 +25,6 @@ class OnboardingFlowScreen extends ConsumerStatefulWidget {
 }
 
 class _OnboardingFlowScreenState extends ConsumerState<OnboardingFlowScreen> {
-  final VoiceController _voiceController = VoiceController();
   final List<OnboardingStep> _steps = OnboardingStep.values;
   int _currentIndex = 0;
 
@@ -354,16 +355,36 @@ class _OnboardingFlowScreenState extends ConsumerState<OnboardingFlowScreen> {
   }
 
   Future<void> _skipStep() async {
-    final allSteps = _steps.map((s) => s.name).toList();
-    final updatedProfile = _profile.copyWith(completedSteps: allSteps);
-    await ref.read(onboardingProfileProvider.notifier).saveProfile(updatedProfile);
-    if (!mounted) return;
-    context.go(AppRoutes.home);
+    KnightLogger.info('[ONBOARDING] Skip Button Pressed', category: KnightLogCategory.ui);
+    try {
+      final allSteps = _steps.map((s) => s.name).toList();
+      final updatedProfile = _profile.copyWith(completedSteps: allSteps);
+      
+      KnightLogger.info('[ONBOARDING] Saving profile with all steps completed...', category: KnightLogCategory.ui);
+      await ref.read(onboardingProfileProvider.notifier).saveProfile(updatedProfile);
+      
+      KnightLogger.info('[ONBOARDING] Profile saved. Checking authentication state...', category: KnightLogCategory.ui);
+      final auth = AuthenticationRepository.instance;
+      final session = await auth.getCurrentSession();
+      KnightLogger.info('[ONBOARDING] Session: ${session?.displayName ?? "none"}', category: KnightLogCategory.ui);
+
+      if (!mounted) return;
+      KnightLogger.info('[ONBOARDING] Navigating to Home: ${AppRoutes.home}', category: KnightLogCategory.ui);
+      context.go(AppRoutes.home);
+    } catch (e, s) {
+      KnightLogger.error('[ONBOARDING ERR] Skip failed', error: e, stackTrace: s, category: KnightLogCategory.ui);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Unable to skip onboarding: $e')),
+      );
+    }
   }
 
   Future<void> _captureVoiceAnswer() async {
-    await _voiceController.captureSpeech(prompt: '');
-    final transcript = _voiceController.currentTranscript ?? '';
+    final controller = ref.read(voiceControllerProvider.notifier);
+    await controller.captureSpeech(prompt: '');
+    final transcript = controller.currentTranscript ?? '';
+    
     if (transcript.isEmpty) {
       return;
     }
