@@ -60,6 +60,8 @@ class FakeMemoryRepository implements MemoryRepository {
   @override
   Future<List<KnightMemory>> search(String query) async => [];
   @override
+  Future<List<KnightMemory>> searchByDateRange(DateTime start, DateTime end) async => [];
+  @override
   Future<void> link(
     String s,
     String t,

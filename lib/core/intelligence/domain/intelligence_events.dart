@@ -1,11 +1,12 @@
 import 'package:flutter/foundation.dart';
+import '../../platform/engine/engine_types.dart';
 import 'knight_memory.dart';
 import 'cognitive_models.dart';
 import 'workflow_models.dart';
 
 /// Base class for all events that trigger intelligence recomputation.
 @immutable
-abstract class IntelligenceEvent {
+abstract class IntelligenceEvent extends KnightEngineEvent {
   const IntelligenceEvent({required this.timestamp});
   final DateTime timestamp;
 }
@@ -30,6 +31,18 @@ class ContextChangedEvent extends IntelligenceEvent {
   });
 
   final String contextLabel;
+}
+
+/// Emitted when the user's physical environment characteristics change.
+class EnvironmentChangedEvent extends IntelligenceEvent {
+  const EnvironmentChangedEvent({
+    required super.timestamp,
+    required this.environmentId,
+    this.metadata = const {},
+  });
+
+  final String environmentId;
+  final Map<String, dynamic> metadata;
 }
 
 /// Emitted when a user interacts with the system or explicitly asks a question.
@@ -131,4 +144,27 @@ class WorkflowHealingEvent extends IntelligenceEvent {
   final String planId;
   final String failedTaskId;
   final String? fallbackTaskId;
+}
+
+/// Base class for all intelligence requests sent via the bus.
+abstract class IntelligenceRequest<T> {
+  const IntelligenceRequest({required this.requestId, required this.timestamp});
+  final String requestId;
+  final DateTime timestamp;
+}
+
+/// Base class for all intelligence responses sent via the bus.
+abstract class IntelligenceResponse<T> {
+  const IntelligenceResponse({
+    required this.requestId, 
+    required this.data, 
+    this.error,
+    required this.timestamp,
+  });
+  final String requestId;
+  final T? data;
+  final String? error;
+  final DateTime timestamp;
+
+  bool get isSuccess => error == null;
 }

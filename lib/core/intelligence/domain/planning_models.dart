@@ -59,6 +59,11 @@ class KnightTask {
   final Map<String, dynamic> executionMetadata;
   final String? targetDeviceId;
 
+  bool get isOverdue {
+    if (isCompleted || scheduledStartTime == null) return false;
+    return scheduledStartTime!.isBefore(DateTime.now());
+  }
+
   KnightTask copyWith({
     bool? isCompleted,
     List<String>? dependencyIds,

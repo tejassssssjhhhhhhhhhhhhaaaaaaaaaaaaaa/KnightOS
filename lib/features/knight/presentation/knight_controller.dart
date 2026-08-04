@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/intelligence/providers/intelligence_providers.dart';
 import '../data/memory_knight_repository.dart';
@@ -29,9 +30,7 @@ class KnightController extends AsyncNotifier<KnightState> {
     final conversations = await _repository.getConversations();
 
     // Default to the latest conversation or create a new one
-    final active = conversations.isNotEmpty
-        ? conversations.first
-        : KnightConversation.empty;
+    final active = conversations.firstOrNull ?? KnightConversation.empty;
 
     return KnightState(
       activeConversation: active,
@@ -144,8 +143,10 @@ class KnightController extends AsyncNotifier<KnightState> {
     final current = state.value;
     if (current == null) return;
 
-    final conv = current.conversations.firstWhere((c) => c.id == id);
-    state = AsyncValue.data(current.copyWith(activeConversation: conv));
+    final conv = current.conversations.firstWhereOrNull((c) => c.id == id);
+    if (conv != null) {
+      state = AsyncValue.data(current.copyWith(activeConversation: conv));
+    }
   }
 
   /// PROMOTION: Confirms an inferred memory.
@@ -202,9 +203,7 @@ class KnightController extends AsyncNotifier<KnightState> {
     final conversations = await _repository.getConversations();
 
     if (state.value?.activeConversation.id == id) {
-      final active = conversations.isNotEmpty
-          ? conversations.first
-          : KnightConversation.empty;
+      final active = conversations.firstOrNull ?? KnightConversation.empty;
       state = AsyncValue.data(
         state.value!.copyWith(
           activeConversation: active,

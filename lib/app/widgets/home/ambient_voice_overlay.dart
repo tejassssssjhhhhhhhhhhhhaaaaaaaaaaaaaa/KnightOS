@@ -19,7 +19,7 @@ class AmbientVoiceOverlay extends ConsumerWidget {
       child: isVisible
           ? Container(
               key: const ValueKey('voice_overlay'),
-              color: Colors.black.withOpacity(0.85),
+              color: Colors.black.withValues(alpha: 0.85),
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -140,7 +140,7 @@ class _VoicePulseState extends State<_VoicePulse>
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: DesignColors.accentBlue.withOpacity(0.5),
+                    color: DesignColors.accentBlue.withValues(alpha: 0.5),
                     blurRadius: 20 * scale,
                     spreadRadius: 5 * scale,
                   ),

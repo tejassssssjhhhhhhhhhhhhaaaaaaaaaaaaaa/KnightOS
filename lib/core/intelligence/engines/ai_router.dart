@@ -24,7 +24,10 @@ class AiRouter {
       }
     }
 
-    // Fallback to first available
+    // Fallback to first available or throw handled error
+    if (_providers.isEmpty) {
+      throw Exception('AI Router: No providers registered.');
+    }
     return _providers.values.first;
   }
 

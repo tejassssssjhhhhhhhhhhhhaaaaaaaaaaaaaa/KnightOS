@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/design_system/design_constants.dart';
+import '../../../../core/router/app_routes.dart';
 
 class VaultUploadMenu extends StatelessWidget {
   const VaultUploadMenu({super.key});
@@ -44,12 +46,14 @@ class VaultUploadMenu extends StatelessWidget {
                   'PDF Document',
                   Icons.picture_as_pdf_rounded,
                   DesignColors.health,
+                  onTap: () => context.push(AppRoutes.dataCenter),
                 ),
                 _buildUploadOption(
                   context,
                   'Research Book',
                   Icons.auto_stories_rounded,
                   DesignColors.knowledge,
+                  onTap: () => context.push(AppRoutes.dataCenter),
                 ),
                 _buildUploadOption(
                   context,
@@ -74,6 +78,7 @@ class VaultUploadMenu extends StatelessWidget {
                   'Atomic Note',
                   Icons.description_rounded,
                   DesignColors.focus,
+                  onTap: () => context.push(AppRoutes.memory),
                 ),
               ],
             ),
@@ -88,8 +93,9 @@ class VaultUploadMenu extends StatelessWidget {
     BuildContext context,
     String label,
     IconData icon,
-    Color color,
-  ) {
+    Color color, {
+    VoidCallback? onTap,
+  }) {
     return Container(
       decoration: BoxDecoration(
         color: DesignColors.surface,
@@ -99,7 +105,10 @@ class VaultUploadMenu extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () => Navigator.pop(context),
+          onTap: () {
+             Navigator.pop(context);
+             if (onTap != null) onTap();
+          },
           borderRadius: BorderRadius.circular(DesignRadius.l),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: DesignSpacing.m),

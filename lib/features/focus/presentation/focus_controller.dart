@@ -37,10 +37,11 @@ class FocusController extends AsyncNotifier<List<FocusArea>> {
     final currentAreas = state.value;
     if (currentAreas == null) return;
 
+    FocusArea? updatedArea;
     final updatedList = [
       for (final area in currentAreas)
         if (area.category == category)
-          area.copyWith(
+          updatedArea = area.copyWith(
             completionProgress: progress.clamp(0.0, 1.0),
             lastUpdated: DateTime.now(),
           )
@@ -50,8 +51,9 @@ class FocusController extends AsyncNotifier<List<FocusArea>> {
 
     state = AsyncValue.data(updatedList);
 
-    final updatedArea = updatedList.firstWhere((e) => e.category == category);
-    await _repository.updateFocusArea(updatedArea);
+    if (updatedArea != null) {
+      await _repository.updateFocusArea(updatedArea);
+    }
   }
 
   /// Updates the status badge for a specific focus category.
@@ -59,17 +61,19 @@ class FocusController extends AsyncNotifier<List<FocusArea>> {
     final currentAreas = state.value;
     if (currentAreas == null) return;
 
+    FocusArea? updatedArea;
     final updatedList = [
       for (final area in currentAreas)
         if (area.category == category)
-          area.copyWith(statusBadge: status, lastUpdated: DateTime.now())
+          updatedArea = area.copyWith(statusBadge: status, lastUpdated: DateTime.now())
         else
           area,
     ];
 
     state = AsyncValue.data(updatedList);
 
-    final updatedArea = updatedList.firstWhere((e) => e.category == category);
-    await _repository.updateFocusArea(updatedArea);
+    if (updatedArea != null) {
+      await _repository.updateFocusArea(updatedArea);
+    }
   }
 }

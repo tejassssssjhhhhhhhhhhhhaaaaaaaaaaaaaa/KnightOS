@@ -8,6 +8,9 @@ import '../../core/repositories/authentication_repository.dart';
 import '../../core/router/app_routes.dart';
 import '../widgets/knight_page_scaffold.dart';
 
+import '../../core/services/google_auth_service.dart';
+import '../widgets/google_sign_in_button.dart';
+
 enum _AuthFlow { signIn, register, forgotEmail, forgotSuccess }
 
 class AuthScreen extends ConsumerStatefulWidget {
@@ -104,6 +107,41 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       KnightLogger.error('[AUTH ERR] Submit failed', error: error, stackTrace: stack, category: KnightLogCategory.ui);
       if (!mounted) return;
       setState(() => _error = _friendlyMessage(error));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _signInWithGoogle() async {
+    KnightLogger.info('[AUTH] Google Sign-In started', category: KnightLogCategory.ui);
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      final account = await GoogleAuthService.instance.signIn();
+      if (account == null) {
+        KnightLogger.info('[AUTH] Google Sign-In cancelled', category: KnightLogCategory.ui);
+        if (mounted) setState(() => _loading = false);
+        return;
+      }
+
+      KnightLogger.info('[AUTH] Google Sign-In successful: ${account.email}', category: KnightLogCategory.ui);
+      if (!mounted) return;
+
+      // In a real app, we would authenticate with our backend here using account.idToken
+      // For Milestone 7, we'll proceed to home.
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Welcome, ${account.displayName}')),
+      );
+
+      context.go(AppRoutes.home);
+    } catch (error, stack) {
+      KnightLogger.error('[AUTH ERR] Google Sign-In failed', error: error, stackTrace: stack, category: KnightLogCategory.ui);
+      if (!mounted) return;
+      setState(() => _error = 'Google Sign-In failed. Please try again.');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -281,6 +319,27 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                   ),
                 ),
               ),
+            if (!isForgotSuccess) ...[
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  const Expanded(child: Divider(color: Colors.white10)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      'OR',
+                      style: theme.textTheme.labelSmall?.copyWith(color: Colors.white24),
+                    ),
+                  ),
+                  const Expanded(child: Divider(color: Colors.white10)),
+                ],
+              ),
+              const SizedBox(height: 24),
+              GoogleSignInButton(
+                onPressed: _loading ? null : _signInWithGoogle,
+                loading: _loading,
+              ),
+            ],
             const SizedBox(height: 12),
             Wrap(
               spacing: 12,

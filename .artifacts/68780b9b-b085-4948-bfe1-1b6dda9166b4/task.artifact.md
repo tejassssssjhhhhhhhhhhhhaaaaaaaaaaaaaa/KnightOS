@@ -1,0 +1,21 @@
+# KnightOS Milestone 1: Platform Foundation Task List
+
+- [ ] `[ ]` **CORE-01: Unified Identity & Auth Service**
+    - [ ] Define `Identity` and `AuthUser` entities in `lib/core/domain/entities/`.
+    - [ ] Implement `IAuthRepository` interface.
+    - [ ] Refactor `GoogleAuthService` into a `GoogleAuthProvider` implementing a common interface.
+    - [ ] Create `AuthService` (Core) to orchestrate multiple providers.
+    - [ ] Implement `IdentityService` to manage the unified user profile.
+- [ ] `[ ]` **CORE-02: Privacy Vault (Local Encryption)**
+    - [ ] Define `PrivacyClassification` levels.
+    - [ ] Enhance `SecureStorage` to support tiered encryption keys.
+    - [ ] Implement `PrivacyVault` service in `lib/core/storage/`.
+    - [ ] Add encryption/decryption utilities for sensitive payloads.
+- [ ] `[ ]` **CORE-03: Universal Data Schema (UDS) Persistence**
+    - [ ] Implement Isar/SQLite schemas for `Evidence`, `TimelineEvent`, and `Mission`.
+    - [ ] Setup `LocalDatabase` initialization with migration support.
+    - [ ] Implement base `Repository` patterns for graph-like traversal.
+- [ ] `[ ]` **CORE-04: Evidence Service**
+    - [ ] Implement `EvidenceRepository`.
+    - [ ] Create `EvidenceService` for verification logic and graph mapping.
+    - [ ] Add unit tests for Evidence verification.

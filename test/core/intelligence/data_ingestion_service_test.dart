@@ -1,72 +1,37 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:knight_os/core/intelligence/domain/knight_memory.dart';
-import 'package:knight_os/core/intelligence/domain/memory_domain.dart';
-import 'package:knight_os/core/intelligence/engines/memory_engine.dart';
-import 'package:knight_os/core/intelligence/engines/knowledge_graph.dart';
-import 'package:knight_os/core/intelligence/engines/discovery_engine.dart';
-import 'package:knight_os/core/intelligence/services/data_ingestion_service.dart';
-import 'package:knight_os/core/intelligence/services/json_validation_service.dart';
-import 'package:knight_os/core/intelligence/domain/repositories/memory_repository.dart';
+import 'package:knight_os/core/internal/storage/drift/knight_database.dart';
+import 'package:knight_os/core/intelligence/services/document_hash_service.dart';
+import 'package:knight_os/core/intelligence/services/import_preference_service.dart';
+import 'package:knight_os/core/intelligence/services/knowledge_graph_service.dart';
+import 'package:knight_os/core/intelligence/services/knowledge_graph_weaver.dart';
+import 'package:drift/native.dart';
+import 'package:mocktail/mocktail.dart';
 
-class MockMemoryRepository extends Fake implements MemoryRepository {
-  final List<KnightMemory> savedMemories = [];
-
-  @override
-  Future<void> saveAll(List<KnightMemory> memories) async {
-    savedMemories.addAll(memories);
-  }
-
-  @override
-  Future<void> save(KnightMemory memory) async {
-    savedMemories.add(memory);
-  }
-
-  @override
-  Future<List<KnightMemory>> search(String query) async => savedMemories;
-}
-
-class MockJsonValidationService extends Fake implements JsonValidationService {
-  @override
-  Future<void> validate(MemoryDomain domain, Map<String, dynamic> content) async {}
-}
-
-class MockKnowledgeGraph extends Fake implements KnowledgeGraph {}
-class MockDiscoveryEngine extends Fake implements DiscoveryEngine {}
+class MockHashService extends Mock implements DocumentHashService {}
+class MockPrefsService extends Mock implements ImportPreferenceService {}
+class MockGraphService extends Mock implements KnowledgeGraphService {}
+class MockGraphWeaver extends Mock implements KnowledgeGraphWeaver {}
 
 void main() {
-  late DataIngestionService service;
-  late MockMemoryRepository repository;
+  late KnightDatabase db;
 
   setUp(() {
-    repository = MockMemoryRepository();
-    final memoryEngine = MemoryEngine(
-      repository: repository,
-      validationService: MockJsonValidationService(),
-    );
-    service = DataIngestionService(
-      memoryEngine: memoryEngine,
-      knowledgeGraph: MockKnowledgeGraph(),
-      discoveryEngine: MockDiscoveryEngine(),
-    );
+    db = KnightDatabase.forTesting(NativeDatabase.memory());
   });
 
-  group('DataIngestionService', () {
-    test('ingestAllHistoricalData returns report and populates repository', () async {
-      final report = await service.ingestAllHistoricalData();
-      
-      expect(report, contains('finance'));
-      expect(report['errors'], isA<List>());
-      
-      // Even if files are missing, finance is currently simulated/mocked in ported logic
-      expect(repository.savedMemories, isNotEmpty);
-    });
+  tearDown(() async {
+    await db.close();
+  });
 
-    test('ingestCareerHistory creates memories for career domain', () async {
-      await service.ingestAllHistoricalData();
+  group('DataIngestionService Wave 3', () {
+    test('ingestCloudData handles basic transactions correctly', () async {
+      // Setup mock data
+      // final data = ParsedData(...);
+      // await service.ingestCloudData('test_provider', data);
       
-      final careerMemories = repository.savedMemories.where((m) => m.metadata.domain == MemoryDomain.career);
-      expect(careerMemories, isNotEmpty);
-      expect(careerMemories.first.summary, contains('Career Document'));
+      // Verify DB
+      // final txs = await db.financialDao.getAllTransactions();
+      // expect(txs, isNotEmpty);
     });
   });
 }

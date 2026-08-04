@@ -69,7 +69,8 @@ class MyPlaceScreen extends ConsumerWidget {
       _HubItem('Finance', 'Track, plan and grow', Icons.account_balance_wallet_outlined, DesignColors.finance, AppRoutes.finance),
       _HubItem('Career', 'Skills, goals and growth', Icons.work_outline_rounded, DesignColors.career, AppRoutes.work),
       _HubItem('Knowledge', 'Learn, capture and apply', Icons.psychology_outlined, DesignColors.knowledge, AppRoutes.knowledgeVault),
-      _HubItem('Documents', 'Secure, store, access anywhere', Icons.description_outlined, DesignColors.travel, AppRoutes.documents),
+      _HubItem('Travel', 'Explore, track and remember', Icons.flight_takeoff_rounded, DesignColors.travel, AppRoutes.travelHome),
+      _HubItem('Documents', 'Secure, store, access anywhere', Icons.description_outlined, Colors.orangeAccent, AppRoutes.documents),
     ];
 
     return GridView.builder(
@@ -87,7 +88,7 @@ class MyPlaceScreen extends ConsumerWidget {
         return Card(
           color: DesignColors.surfaceHigh.withValues(alpha: 0.5),
           child: InkWell(
-            onTap: () => context.go(item.route),
+            onTap: () => context.push(item.route),
             borderRadius: DesignRadius.card,
             child: Padding(
               padding: const EdgeInsets.all(20.0),

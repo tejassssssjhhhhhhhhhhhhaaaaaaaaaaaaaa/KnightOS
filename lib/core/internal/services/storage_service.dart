@@ -1,3 +1,4 @@
+import 'health_migration_service.dart';
 import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../platform/storage/storage_engine.dart';
@@ -134,6 +135,15 @@ class StorageService {
           'Memory migration already completed.',
           category: KnightLogCategory.database,
         );
+      }
+
+      // 3. Health Migration
+      final healthReport = await driftEngine.migrationDao.getByModule('health_v1');
+      if (healthReport == null || healthReport.status != 'success') {
+        KnightLogger.info('Running health migration...');
+        final healthMigrator = HealthMigrationService(db: driftEngine.database);
+        await healthMigrator.runMigration();
+        await _recordMigration(driftEngine, 'health_v1', 1, 0, 'success');
       }
     } finally {
       stopwatch.stop();

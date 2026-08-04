@@ -9,7 +9,7 @@ import '../graph/causal_reasoning_engine.dart';
 import '../graph/correlation_engine.dart';
 import '../graph/prediction_engine.dart';
 
-class KnowledgeGraphModule implements IntelligenceModule {
+class KnowledgeGraphModule extends IntelligenceModule {
   KnowledgeGraphModule({required this.retrieval, required this.memoryEngine}) {
     discovery = RelationshipDiscoveryEngine(
       memoryEngine: memoryEngine,

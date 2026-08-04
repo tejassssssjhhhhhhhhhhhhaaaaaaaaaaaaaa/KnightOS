@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../design_system/design_constants.dart';
+import '../internal/services/greeting_service.dart';
 
 class AppTheme {
   const AppTheme._();
@@ -89,7 +90,7 @@ class AppTheme {
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: DesignRadius.card,
-          side: BorderSide(color: Colors.black.withOpacity(0.05)),
+          side: BorderSide(color: Colors.black.withValues(alpha: 0.05)),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
@@ -103,7 +104,7 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: Colors.black.withOpacity(0.03),
+        fillColor: Colors.black.withValues(alpha: 0.03),
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
@@ -115,7 +116,7 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.black.withOpacity(0.1)),
+          borderSide: BorderSide(color: Colors.black.withValues(alpha: 0.1)),
         ),
         labelStyle: const TextStyle(color: Color(0xFF64748B)),
         hintStyle: const TextStyle(color: Colors.black26),
@@ -188,7 +189,7 @@ class AppTheme {
         bodyLarge: TextStyle(
           fontSize: 16,
           height: 1.5,
-          color: Colors.white.withOpacity(0.9),
+          color: Colors.white.withValues(alpha: 0.9),
         ),
         bodyMedium: const TextStyle(
           fontSize: 14,
@@ -245,5 +246,52 @@ class AppTheme {
         space: 1,
       ),
     );
+  }
+
+  /// Adaptive "Time-Aware" Theme Decoration
+  static BoxDecoration dynamicBackground(KnightDayPeriod period) {
+    switch (period) {
+      case KnightDayPeriod.dawn:
+        return const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF0F172A), Color(0xFF020408), Color(0xFF1E1B4B)],
+          ),
+        );
+      case KnightDayPeriod.day:
+        return const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF020617), Color(0xFF020408), Color(0xFF0C4A6E)],
+          ),
+        );
+      case KnightDayPeriod.dusk:
+        return const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF020408), Color(0xFF1E1B4B), Color(0xFF312E81)],
+          ),
+        );
+      case KnightDayPeriod.night:
+        return const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF000000), Color(0xFF020408), Color(0xFF020617)],
+          ),
+        );
+    }
+  }
+
+  static Color accentForPeriod(KnightDayPeriod period) {
+    switch (period) {
+      case KnightDayPeriod.dawn: return const Color(0xFF818CF8); // Indigo
+      case KnightDayPeriod.day: return const Color(0xFF0EA5E9); // Sky Blue
+      case KnightDayPeriod.dusk: return const Color(0xFFF43F5E); // Rose
+      case KnightDayPeriod.night: return const Color(0xFF6366F1); // Indigo Radiant
+    }
   }
 }

@@ -62,46 +62,64 @@ class VaultDocumentCard extends StatelessWidget {
                       Row(
                         children: [
                           Text(
-                            item.category.label,
+                            item.category.label.toUpperCase(),
                             style: Theme.of(context).textTheme.labelSmall
                                 ?.copyWith(
-                                  color: Colors.white24,
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 9,
+                                  color: DesignColors.accentBlue,
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 8,
+                                  letterSpacing: 1.0,
                                 ),
                           ),
-                          if (item.fileSize != null) ...[
-                            const SizedBox(width: 8),
-                            Container(
-                              width: 2,
-                              height: 2,
-                              color: Colors.white10,
+                          const SizedBox(width: 8),
+                          Text(
+                            item.fileSize ?? '0 records',
+                            style: const TextStyle(
+                              color: Colors.white24,
+                              fontSize: 9,
                             ),
-                            const SizedBox(width: 8),
-                            Text(
-                              item.fileSize!,
-                              style: Theme.of(context).textTheme.labelSmall
-                                  ?.copyWith(
-                                    color: Colors.white24,
-                                    fontSize: 9,
-                                  ),
-                            ),
-                          ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      // Relationship Badges
+                      Row(
+                        children: [
+                          _buildMiniBadge(Icons.link_rounded, 'Woven'),
+                          const SizedBox(width: 8),
+                          _buildMiniBadge(Icons.auto_awesome_rounded, 'AI Indexed'),
                         ],
                       ),
                     ],
                   ),
                 ),
-                if (item.isFavorite)
-                  const Icon(
-                    Icons.star_rounded,
-                    size: 16,
-                    color: DesignColors.achievements,
-                  ),
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  size: 16,
+                  color: Colors.white10,
+                ),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildMiniBadge(IconData icon, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 8, color: Colors.white24),
+          const SizedBox(width: 4),
+          Text(label, style: const TextStyle(fontSize: 7, color: Colors.white24, fontWeight: FontWeight.bold)),
+        ],
       ),
     );
   }

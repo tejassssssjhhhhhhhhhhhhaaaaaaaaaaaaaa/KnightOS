@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import '../../domain/intelligence_module.dart';
 import '../../domain/intelligence_events.dart';
 import '../../domain/intelligence_models.dart';
@@ -6,7 +7,7 @@ import '../../domain/memory_domain.dart';
 import '../memory_retrieval_engine.dart';
 import '../../domain/cognitive_models.dart';
 
-class InsightModule implements IntelligenceModule {
+class InsightModule extends IntelligenceModule {
   InsightModule({required this.retrieval});
 
   final MemoryRetrievalEngine retrieval;
@@ -34,14 +35,17 @@ class InsightModule implements IntelligenceModule {
     final health = await retrieval.getByCategory(BookCategory.health);
     final timeline = await retrieval.getByDomain(MemoryDomain.travel);
 
-    if (health.isNotEmpty && timeline.isNotEmpty) {
+    final h = health.firstOrNull;
+    final t = timeline.firstOrNull;
+
+    if (h != null && t != null) {
       insights.add(
         IntelligenceResult(
           id: 'insight-health-travel-${DateTime.now().millisecondsSinceEpoch}',
           data: 'Stress levels are 20% lower when visiting parks.',
           trace: ReasoningTrace(
             intent: KnightIntent.analysis,
-            memoriesUsed: [health.first.memoryId, timeline.first.memoryId],
+            memoriesUsed: [h.memoryId, t.memoryId],
             rulesApplied: [],
             goalsConsidered: [],
             thoughtChain: [

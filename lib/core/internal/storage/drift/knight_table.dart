@@ -9,7 +9,19 @@ abstract class KnightTable extends Table {
   IntColumn get version => integer().withDefault(const Constant(1))();
   BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
   DateTimeColumn get deletedAt => dateTime().nullable()();
-  TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
+  
+  /// pending, synced, error, local_only
+  TextColumn get syncStatus => text().withDefault(const Constant('local_only'))();
+  
+  /// cloud_provider, onedrive_local, health_connect, etc.
+  TextColumn get sourceProvider => text().nullable()();
+  
+  /// The unique ID from the source provider (e.g., file path, API ID).
+  TextColumn get sourceIdentifier => text().nullable()();
+  
+  /// hash of the content for duplicate detection.
+  TextColumn get contentHash => text().nullable()();
+  
   TextColumn get deviceId => text().nullable()();
 
   @override

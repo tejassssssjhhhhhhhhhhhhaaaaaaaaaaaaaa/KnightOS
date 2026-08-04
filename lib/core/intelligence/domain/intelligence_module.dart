@@ -1,6 +1,9 @@
 import 'intelligence_events.dart';
 import 'intelligence_models.dart';
 import 'memory_category.dart';
+import '../../platform/engine/scoring_interfaces.dart';
+import '../../platform/engine/recommendation_interfaces.dart';
+import '../../platform/engine/analytics_interfaces.dart';
 
 /// The contract for all domain-specific reasoning plugins in KnightOS.
 abstract class IntelligenceModule {
@@ -23,6 +26,15 @@ abstract class IntelligenceModule {
   /// Generates actionable recommendations.
   Future<List<IntelligenceResult>> getRecommendations();
 
-  /// Generates the module's contribution to the daily briefing.
+  /// Generates briefing items for the daily dashboard.
   Future<List<String>> getBriefingItems();
+
+  /// Optional: Exposes a platform score provider.
+  KnightScoreProvider? get scoreProvider => null;
+
+  /// Optional: Exposes a platform recommendation provider.
+  KnightRecommendationProvider? get recommendationProvider => null;
+
+  /// Optional: Exposes a platform analytics provider.
+  KnightAnalyticsProvider? get analyticsProvider => null;
 }

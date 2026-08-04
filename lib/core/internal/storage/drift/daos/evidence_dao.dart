@@ -1,7 +1,6 @@
 import 'package:drift/drift.dart';
 import '../knight_database.dart';
 import '../tables/evidence.dart';
-import '../base_dao.dart';
 
 part 'evidence_dao.g.dart';
 

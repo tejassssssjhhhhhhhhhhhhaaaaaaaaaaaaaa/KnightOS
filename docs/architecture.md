@@ -1,104 +1,38 @@
-# KnightOS architecture
+# KnightOS System Architecture
 
-## Product direction
+## Core Philosophy: Single Source of Truth (SSoT)
+Every real-world fact exists exactly once in the `MemoryTable`. Modules query the `MemoryEngine` for canonical facts.
 
-KnightOS is a personal operating system for decision support. It combines data from sleep, work, finance, fitness, planning, goals, and life context to generate proactive insights and recommendations.
+## System Components
 
-## Architectural principles
+### 1. Intelligence Platform (The Brain)
+- **Intelligence Bus**: Event-driven hub for `DataChangedEvent`.
+- **Orchestrator**: Plugin-based brain managing layered reasoning.
+- **Perception Engine**: Real-time sensor and data monitoring.
 
-- Feature-first modular structure
-- Clean Architecture boundaries
-- Cross-cutting AI layer for every module
-- Dark-first, premium Material 3 experience
-- Offline-first local cache with optional cloud sync
-- Responsive and accessible UI
+### 2. Knowledge Graph (The Weaver)
+- **Memory Infrastructure**: Reactive data layer built on Drift.
+- **Confidence Lifecycle**: Promotion from Inferred (0.4) to User Confirmed (1.0).
+- **Explainability**: Every inference includes Evidence, Explanation, and Provenance.
 
-## Updated module map
+### 3. Context Engine
+- **KnightContext**: Global state of the user's environment.
+- **Proactivity**: Automated triggers based on context shifts.
 
-lib/
-- core/
-  - app/
-  - theme/
-  - router/
-  - services/
-  - constants/
-  - utils/
-  - shared/
-  - extensions/
-  - models/
-  - engines/
-  - providers/
-  - ai/
-- features/
-  - onboarding/
-  - dashboard/
-  - sleep/
-  - work/
-  - finance/
-  - fitness/
-  - planner/
-  - goals/
-  - analytics/
-  - memory/
-  - integrations/
-  - automation/
-  - ai/
-  - settings/
-  - auth/
+### 4. Visual Language (Horizon)
+- Atmospheric UI using gradients, glows, and the "Knight Orb".
+- Data points represented as "Stars" and "Constellations".
 
-## Cross-cutting intelligence
+## Data Flow
+```mermaid
+graph TD
+    A[Data Sources] --> B[Connectors]
+    B --> C[Memory Engine]
+    C --> D[Intelligence Platform]
+    D --> E[Knowledge Graph]
+    E --> F[Context Engine]
+    F --> G[Proactive UI]
+```
 
-The intelligence layer is no longer owned by one screen or one feature. It lives in the core engines layer and is consumed by every module.
-
-### Core engines
-- core/engines/knight_score_engine.dart
-- core/engines/insight_engine.dart
-- core/engines/recommendation_engine.dart
-- core/engines/prediction_engine.dart
-
-These engines combine signals from multiple domains to produce:
-- a daily Knight Score
-- narrative insights
-- actionable recommendations
-- tomorrow-level predictions
-
-## New modules
-
-### features/integrations
-Used for future integrations with Google Calendar, Health Connect, SmartThings, Gmail, and wearables.
-
-### features/automation
-Used for intelligent automations, workflows, and scheduled experiences.
-
-### features/memory
-Replaces the prior knowledge module. This is the long-term memory and second brain for the user.
-
-## AI layer
-
-AI is a cross-cutting concern and is used by:
-- onboarding
-- dashboard
-- sleep
-- work
-- finance
-- fitness
-- planner
-- goals
-- analytics
-- memory
-- integrations
-- automation
-- settings
-
-The AI experience is exposed through core services and shared engines rather than a single assistant screen.
-
-## Phase 1 scope
-
-Phase 1 focuses on the foundation layer only:
-- app shell
-- theming
-- router
-- provider scaffolding
-- AI engine scaffolding
-- module entrypoints
-- navigation structure
+---
+*Version: 4.0.0 Stable | Last Updated: 2026-08-03*

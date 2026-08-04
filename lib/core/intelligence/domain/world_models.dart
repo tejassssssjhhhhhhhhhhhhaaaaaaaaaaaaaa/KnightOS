@@ -42,7 +42,7 @@ class WorldState {
     required this.weather,
     required this.calendarEvents,
     required this.marketStatus,
-    required this.lastSync,
+    this.lastSync,
     this.emailThreads = const [],
     this.sourceData = const {},
   });
@@ -51,7 +51,7 @@ class WorldState {
   final List<CalendarEvent> calendarEvents;
   final List<EmailThread> emailThreads;
   final String marketStatus;
-  final DateTime lastSync;
+  final DateTime? lastSync;
   final Map<String, dynamic> sourceData;
 
   /// Semantic titles of upcoming events (for simple UI display).

@@ -4,7 +4,6 @@ import '../knight_database.dart';
 import '../tables/memories.dart';
 import '../tables/memory_relations.dart';
 import '../tables/attachments.dart';
-import '../base_dao.dart';
 
 part 'memory_dao.g.dart';
 
@@ -41,6 +40,14 @@ class MemoryDao extends BaseDao<MemoryTable, MemoryTableData>
   Future<List<MemoryTableData>> getLatestByCategory(int categoryId) {
     return (select(memoryTable)
           ..where((t) => t.categoryId.equals(categoryId))
+          ..where((t) => t.isLatest.equals(true)))
+        .get();
+  }
+
+  /// Retrieves memories by date range.
+  Future<List<MemoryTableData>> getByDateRange(DateTime start, DateTime end) {
+    return (select(memoryTable)
+          ..where((t) => t.effectiveAt.isBetweenValues(start, end))
           ..where((t) => t.isLatest.equals(true)))
         .get();
   }
@@ -96,13 +103,20 @@ class MemoryDao extends BaseDao<MemoryTable, MemoryTableData>
       await (update(memoryTable)..where((t) => t.memoryId.isIn(memoryIds)))
           .write(const MemoryTableCompanion(isLatest: Value(false)));
 
-      // 2. Insert new versions
+      // 2. Insert new versions, ensuring only one latest per memoryId
       final now = DateTime.now();
-      for (final companion in companions) {
+      final seenIds = <String>{};
+      // Process in reverse to mark only the most recent one in the batch as latest
+      final reversedCompanions = companions.reversed.toList();
+      
+      for (final companion in reversedCompanions) {
+        final memId = companion.memoryId.value;
+        final isLatestInBatch = seenIds.add(memId);
+        
         await into(memoryTable).insert(
           companion.copyWith(
             id: Value(const Uuid().v4()),
-            isLatest: const Value(true),
+            isLatest: Value(isLatestInBatch),
             recordedAt: Value(now),
           ),
         );
@@ -194,3 +208,4 @@ class MemoryDao extends BaseDao<MemoryTable, MemoryTableData>
         .watch();
   }
 }
+

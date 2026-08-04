@@ -8,15 +8,34 @@ import 'domain/memory_domain.dart';
 import 'intelligence_bus.dart';
 import 'engines/memory_engine.dart';
 import '../internal/utils/knight_logger.dart';
+import '../platform/engine/scoring_engine.dart';
+import '../platform/engine/recommendation_engine.dart';
+import '../platform/engine/analytics_engine.dart';
+import '../platform/engine/edge_ai_orchestrator.dart';
+import 'engines/ranking_engine.dart';
 
 /// The brain of KnightOS. Coordinates all specialized intelligence engines.
 class IntelligenceOrchestrator {
-  IntelligenceOrchestrator({required this.bus, required this.memoryEngine}) {
+  IntelligenceOrchestrator({
+    required this.bus, 
+    required this.memoryEngine,
+    this.scoringEngine,
+    this.recommendationEngine,
+    this.analyticsEngine,
+    this.rankingEngine = const RankingEngine(),
+    this.edgeAi,
+  }) {
     _init();
   }
 
   final IntelligenceBus bus;
   final MemoryEngine memoryEngine;
+  final PlatformScoringEngine? scoringEngine;
+  final PlatformRecommendationEngine? recommendationEngine;
+  final AnalyticsEngine? analyticsEngine;
+  final RankingEngine rankingEngine;
+  final EdgeAiOrchestrator? edgeAi;
+
   final List<IntelligenceModule> _modules = [];
   final Map<String, List<IntelligenceResult>> _insightCache = {};
   final Map<String, List<IntelligenceResult>> _recommendationCache = {};
@@ -31,6 +50,19 @@ class IntelligenceOrchestrator {
   void registerModule(IntelligenceModule module) {
     _modules.add(module);
     _modules.sort((a, b) => b.priority.compareTo(a.priority));
+
+    // Register platform providers
+    if (module.scoreProvider != null) {
+      scoringEngine?.registerProvider(module.scoreProvider!);
+    }
+    if (module.recommendationProvider != null) {
+      recommendationEngine?.registerProvider(module.recommendationProvider!);
+    }
+    if (module.analyticsProvider != null) {
+      analyticsEngine?.registerProvider(module.analyticsProvider!);
+    }
+
+    KnightLogger.info('[ORCHESTRATOR] Registered module: ${module.id}', category: KnightLogCategory.intelligence);
   }
 
   Future<void> _handleEvent(IntelligenceEvent event) async {
@@ -42,6 +74,11 @@ class IntelligenceOrchestrator {
     // In a production app, we would parallelize this with Isolates for heavy work.
     for (final module in _modules) {
       try {
+        if (edgeAi != null) {
+          // Offload to Isolate if orchestrator is present
+          await edgeAi!.compute('module_process', {'moduleId': module.id, 'event': event});
+        }
+        
         await module.onEvent(event);
 
         // Update caches after event processing
@@ -65,26 +102,7 @@ class IntelligenceOrchestrator {
       all.addAll(insights);
     }
 
-    // RANKING ENGINE LOGIC
-    all.sort((a, b) {
-      // 1. Confidence Weight
-      final scoreA = a.trace.confidence;
-      final scoreB = b.trace.confidence;
-
-      // 2. Freshness (Simulated)
-
-      // 3. Feedback Penalty
-      final feedbackA = a.feedback == IntelligenceFeedback.notHelpful
-          ? 0.5
-          : 1.0;
-      final feedbackB = b.feedback == IntelligenceFeedback.notHelpful
-          ? 0.5
-          : 1.0;
-
-      return (scoreB * feedbackB).compareTo(scoreA * feedbackA);
-    });
-
-    return all;
+    return rankingEngine.rank(all);
   }
 
   /// Returns all cached recommendations.

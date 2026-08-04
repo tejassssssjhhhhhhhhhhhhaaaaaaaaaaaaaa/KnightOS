@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import '../domain/memory_category.dart';
 import '../domain/memory_domain.dart';
 import '../domain/intelligence_models.dart';
@@ -22,7 +23,10 @@ class SynthesisEngine {
     final visits = await retrieval.getByDomain(MemoryDomain.travel);
     final transactions = await retrieval.getByCategory(BookCategory.finance);
 
-    if (visits.isNotEmpty && transactions.isNotEmpty) {
+    final v = visits.firstOrNull;
+    final t = transactions.firstOrNull;
+
+    if (v != null && t != null) {
       // In a real implementation, we would perform temporal and spatial joins.
       // For Phase 8, we demonstrate the synthesis logic pattern.
 
@@ -33,7 +37,7 @@ class SynthesisEngine {
               'Synthesis: Frequent visits to high-density commercial zones correlate with 15% higher discretionary spending.',
           trace: ReasoningTrace(
             intent: KnightIntent.analysis,
-            memoriesUsed: [visits.first.memoryId, transactions.first.memoryId],
+            memoriesUsed: [v.memoryId, t.memoryId],
             rulesApplied: [],
             goalsConsidered: [],
             thoughtChain: [
@@ -59,7 +63,10 @@ class SynthesisEngine {
     final health = await retrieval.getByCategory(BookCategory.health);
     final activity = await retrieval.getByDomain(MemoryDomain.travel);
 
-    if (health.isNotEmpty && activity.isNotEmpty) {
+    final h = health.firstOrNull;
+    final a = activity.firstOrNull;
+
+    if (h != null && a != null) {
       insights.add(
         IntelligenceResult(
           id: 'synth-health-activity-${DateTime.now().millisecondsSinceEpoch}',
@@ -67,7 +74,7 @@ class SynthesisEngine {
               'Synthesis: Stress levels are consistently 20% lower on days with outdoor activity.',
           trace: ReasoningTrace(
             intent: KnightIntent.analysis,
-            memoriesUsed: [health.first.memoryId, activity.first.memoryId],
+            memoriesUsed: [h.memoryId, a.memoryId],
             rulesApplied: [],
             goalsConsidered: [],
             thoughtChain: [
@@ -128,14 +135,17 @@ class SynthesisEngine {
     final finance = await retrieval.getByCategory(BookCategory.finance);
     final ambitions = await retrieval.getByCategory(BookCategory.ambitions);
 
-    if (finance.isNotEmpty && ambitions.isNotEmpty) {
+    final f = finance.firstOrNull;
+    final firstAmbition = ambitions.firstOrNull;
+
+    if (f != null && firstAmbition != null) {
       results.add(
         IntelligenceResult(
           id: 'synth-finance-ambitions',
           data: 'Cross-Chapter Insight: Current financial burn rate supports ${ambitions.length} active missions for the next 6 months.',
           trace: ReasoningTrace(
             intent: KnightIntent.analysis,
-            memoriesUsed: [finance.first.memoryId, ambitions.first.memoryId],
+            memoriesUsed: [f.memoryId, firstAmbition.memoryId],
             rulesApplied: ['finance-ambition-bridge'],
             goalsConsidered: ambitions.map((a) => a.memoryId).toList(),
             thoughtChain: ['Aggregated total assets.', 'Calculated mission resource requirements.', 'Projected runway based on historical expenditure.'],

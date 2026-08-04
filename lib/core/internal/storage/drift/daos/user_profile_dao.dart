@@ -1,6 +1,5 @@
 import 'package:drift/drift.dart';
 import '../knight_database.dart';
-import '../base_dao.dart';
 import '../tables/user_profiles.dart';
 
 part 'user_profile_dao.g.dart';

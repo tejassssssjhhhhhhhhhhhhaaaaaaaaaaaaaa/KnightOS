@@ -1,0 +1,10 @@
+[
+  {"name": "Litti Chokha", "calories": 350, "protein": 12, "carbs": 50, "fat": 15, "fiber": 8, "region": "Bihar", "tags": "dinner, lunch"},
+  {"name": "Sattu Paratha", "calories": 280, "protein": 10, "carbs": 40, "fat": 12, "fiber": 6, "region": "Bihar", "tags": "breakfast"},
+  {"name": "Dal Bhat", "calories": 400, "protein": 15, "carbs": 65, "fat": 8, "fiber": 10, "region": "Bihar", "tags": "lunch, dinner"},
+  {"name": "Thekua", "calories": 150, "protein": 2, "carbs": 25, "fat": 6, "fiber": 1, "region": "Bihar", "tags": "snack"},
+  {"name": "Paneer Tikka", "calories": 250, "protein": 18, "carbs": 8, "fat": 16, "fiber": 2, "region": "North", "tags": "snack, dinner"},
+  {"name": "Dosa", "calories": 180, "protein": 5, "carbs": 30, "fat": 6, "fiber": 3, "region": "South", "tags": "breakfast"},
+  {"name": "Idli", "calories": 60, "protein": 2, "carbs": 12, "fat": 0.5, "fiber": 1, "region": "South", "tags": "breakfast"},
+  {"name": "Chicken Curry", "calories": 320, "protein": 25, "carbs": 10, "fat": 20, "fiber": 2, "region": "General", "tags": "dinner, lunch"}
+]

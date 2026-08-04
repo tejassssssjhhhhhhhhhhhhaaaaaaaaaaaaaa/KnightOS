@@ -1,3 +1,5 @@
+import 'package:collection/collection.dart';
+
 class StreakEngine {
   const StreakEngine();
 
@@ -17,11 +19,20 @@ class StreakEngine {
     final sortedDates = activeDates.toSet().toList()..sort();
     var longestStreak = 0;
     var streakLength = 0;
-    var previousDate = sortedDates.first;
+    var previousDate = sortedDates.firstOrNull;
+
+    if (previousDate == null) {
+       return const StreakSummary(
+        currentStreak: 0,
+        longestStreak: 0,
+        lastActive: null,
+        daysMissed: 0,
+      );
+    }
 
     for (final date in sortedDates) {
       final normalizedDate = DateTime(date.year, date.month, date.day);
-      if (normalizedDate.difference(previousDate).inDays == 1) {
+      if (normalizedDate.difference(previousDate!).inDays == 1) {
         streakLength += 1;
       } else {
         streakLength = 1;

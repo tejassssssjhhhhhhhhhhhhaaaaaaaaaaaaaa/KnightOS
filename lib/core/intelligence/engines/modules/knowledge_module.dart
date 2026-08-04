@@ -10,7 +10,7 @@ import '../../services/embedding_service.dart';
 import '../knowledge_synthesis_engine.dart';
 import '../../../internal/utils/knight_logger.dart';
 
-class KnowledgeModule implements IntelligenceModule {
+class KnowledgeModule extends IntelligenceModule {
   KnowledgeModule({
     required this.retrieval,
     required this.memoryEngine,

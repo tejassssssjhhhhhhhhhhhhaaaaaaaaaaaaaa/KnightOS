@@ -1,10 +1,11 @@
+import 'package:collection/collection.dart';
 import '../../domain/intelligence_module.dart';
 import '../../domain/intelligence_events.dart';
 import '../../domain/intelligence_models.dart';
 import '../../domain/memory_category.dart';
 import '../memory_retrieval_engine.dart';
 
-class DailyBriefingModule implements IntelligenceModule {
+class DailyBriefingModule extends IntelligenceModule {
   DailyBriefingModule({required this.retrieval});
 
   final MemoryRetrievalEngine retrieval;
@@ -40,20 +41,23 @@ class DailyBriefingModule implements IntelligenceModule {
 
     // 1. Priorities
     final focus = await retrieval.getByCategory(BookCategory.career);
-    if (focus.isNotEmpty) {
-      items.add('Today\'s Focus: ${focus.first.summary}');
+    final firstFocus = focus.firstOrNull;
+    if (firstFocus != null) {
+      items.add('Today\'s Focus: ${firstFocus.summary}');
     }
 
     // 2. Health
     final health = await retrieval.getByCategory(BookCategory.health);
-    if (health.isNotEmpty) {
-      items.add('Wellness Note: ${health.first.summary}');
+    final firstHealth = health.firstOrNull;
+    if (firstHealth != null) {
+      items.add('Wellness Note: ${firstHealth.summary}');
     }
 
     // 3. Finance
     final money = await retrieval.getByCategory(BookCategory.finance);
-    if (money.isNotEmpty) {
-      items.add('Budget Status: ₹${money.first.content['amount']} remaining');
+    final firstMoney = money.firstOrNull;
+    if (firstMoney != null) {
+      items.add('Budget Status: ₹${firstMoney.content['amount']} remaining');
     }
 
     return items;

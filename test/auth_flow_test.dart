@@ -38,6 +38,7 @@ void main() {
   });
 
   setUp(() async {
+    LocalDatabase.resetForTesting();
     FlutterSecureStorage.setMockInitialValues({});
     await const LocalDatabase().delete(StorageKeys.authAccounts);
     await const LocalDatabase().delete(StorageKeys.authSession);

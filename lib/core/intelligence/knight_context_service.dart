@@ -1,3 +1,6 @@
+import 'package:collection/collection.dart';
+import 'domain/activity_feed_models.dart';
+import '../internal/storage/drift/knight_database.dart';
 import '../platform/engine/engine_interfaces.dart';
 import '../platform/engine/recommendation_models.dart';
 import '../platform/engine/scoring_models.dart';
@@ -7,6 +10,8 @@ import 'domain/memory_category.dart';
 import 'domain/world_models.dart';
 import 'domain/reasoning_models.dart';
 import 'domain/planning_models.dart';
+import 'domain/health_models.dart';
+import '../internal/services/greeting_service.dart';
 
 /// Aggregates feature module state and life status into a unified KnightContext.
 class KnightContextService {
@@ -23,7 +28,7 @@ class KnightContextService {
     KnightTravelSummary? travelSummary,
     KnightWorkSummary? workSummary,
     DateTime? lastSyncTime,
-    String healthStatus = 'Good',
+    String healthStatus = 'Active',
     String dataFreshness = 'Live',
     String applicationVersion = '0.1.0',
     DateTime? timestamp,
@@ -37,6 +42,21 @@ class KnightContextService {
     ReasoningResult? reasoning,
     PlanningResult? planning,
     List<KnightMemory> relatedMemories = const [],
+    double totalBalance = 0.0,
+    int steps = 0,
+    double waterIntake = 0.0,
+    int calories = 0,
+    int activeMinutes = 0,
+    String? greeting,
+    List<TimelineEventData> recentTimelineEvents = const [],
+    List<TransactionData> recentTransactions = const [],
+    List<ActivityItem> activityFeed = const [],
+    Map<String, DeviceHealthData> deviceHealth = const {},
+    int pendingReminders = 0,
+    double contextHealthScore = 1.0,
+    List<TripData> activeTrips = const [],
+    HealthScores? healthScores,
+    String activeActivity = 'stationary',
   }) {
     final now = timestamp ?? DateTime.now();
     final registeredModules = featureModules
@@ -62,9 +82,7 @@ class KnightContextService {
             ? 'Vitals synchronized'
             : 'Vital signs nominal');
 
-    // Stats Calculation from Memories (Sprint 6.2)
-    final totalSteps = _calculateSteps(recentMemories);
-    final totalBalance = _calculateBalance(recentMemories);
+    final finalGreeting = greeting ?? const GreetingService().getGreeting(overrideHour: now.hour);
 
     return KnightContext(
       registeredModules: registeredModules,
@@ -82,7 +100,7 @@ class KnightContextService {
       travelSummary: travelSummary ?? _defaultTravelSummary(),
       workSummary: workSummary ?? _defaultWorkSummary(),
       timestamp: now,
-      greeting: _calculateGreeting(now),
+      greeting: finalGreeting,
       sleepStatus: sleepStatus ?? 'Optimal recovery detected',
       upcomingEvents: List<String>.unmodifiable(
         upcomingEvents ?? worldState?.upcomingEvents ?? ['No upcoming events'],
@@ -95,34 +113,26 @@ class KnightContextService {
       worldState: worldState ?? WorldState.empty,
       reasoning: reasoning,
       planning: planning,
-      focusScore: 0.87, // Future: Dynamic scoring engine
+      focusScore: 0.87, 
       energyLevel: 'High',
       mood: 'Focused',
-      steps: totalSteps,
-      waterIntake: 1.8,
-      calories: 1200,
+      steps: steps,
+      waterIntake: waterIntake,
+      calories: calories,
+      activeMinutes: activeMinutes,
       totalBalance: totalBalance,
       recentMemoriesCount: recentMemories.length,
       relatedMemories: relatedMemories,
+      recentTimelineEvents: recentTimelineEvents,
+      recentTransactions: recentTransactions,
+      activityFeed: activityFeed,
+      deviceHealth: deviceHealth,
+      pendingReminders: pendingReminders,
+      contextHealthScore: contextHealthScore,
+      activeTrips: activeTrips,
+      healthScores: healthScores,
+      activeActivity: activeActivity,
     );
-  }
-
-  int _calculateSteps(List<KnightMemory> memories) {
-    // Ported from hydration audit: extract steps from daily_log.csv memories
-    return 8432; // Simplified for this sprint, pulls from memory in V4
-  }
-
-  double _calculateBalance(List<KnightMemory> memories) {
-    // Pulls from finance memories
-    return 245680.0;
-  }
-
-  String _calculateGreeting(DateTime time) {
-    final hour = time.hour;
-    if (hour >= 5 && hour < 12) return 'Morning';
-    if (hour >= 12 && hour < 17) return 'Afternoon';
-    if (hour >= 17 && hour < 21) return 'Evening';
-    return 'Night';
   }
 
   KnightAnalyticsSummary _buildAnalyticsSummary(
@@ -148,11 +158,12 @@ class KnightContextService {
     final recommendationProviders = featureModules
         .where((module) => module.recommendationProvider != null)
         .length;
+    final firstRec = currentRecommendations.firstOrNull;
     return KnightRecommendationSummary(
       recommendationProviderCount: recommendationProviders,
       recommendationCount: currentRecommendations.length,
-      topRecommendationPlaceholder: currentRecommendations.isNotEmpty
-          ? currentRecommendations.first.title
+      topRecommendationPlaceholder: firstRec != null
+          ? firstRec.title
           : 'No recommendations yet — add activity to unlock tailored guidance',
     );
   }

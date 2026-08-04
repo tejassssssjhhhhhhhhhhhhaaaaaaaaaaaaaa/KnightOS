@@ -1,11 +1,12 @@
+import 'domain/activity_feed_models.dart';
+import '../internal/storage/drift/knight_database.dart';
 import '../platform/engine/feature_interfaces.dart';
 import '../platform/engine/scoring_models.dart';
 import 'domain/knight_memory.dart';
 import 'domain/reasoning_models.dart';
 import 'domain/planning_models.dart';
 import 'domain/world_models.dart';
-
-/// Immutable context summary for an individual feature module.
+import 'domain/health_models.dart';
 
 /// Immutable context summary for an individual feature module.
 class KnightModuleContext {
@@ -158,28 +159,63 @@ class KnightModuleHealth {
 /// The unified Knight Context that aggregates feature module state.
 class KnightContext {
   KnightContext({
-    required this.registeredModules,
-    required this.currentScores,
-    required this.analyticsSummary,
-    required this.recommendationSummary,
-    required this.recentActivity,
-    required this.searchSummary,
-    required this.moduleHealth,
-    required this.lastSyncTime,
-    required this.healthStatus,
-    required this.dataFreshness,
-    required this.applicationVersion,
-    required this.fitnessSummary,
-    required this.travelSummary,
-    required this.workSummary,
-    required this.timestamp,
-    required this.greeting,
-    required this.sleepStatus,
-    required this.upcomingEvents,
-    required this.currentGoals,
-    required this.healthSummary,
-    required this.weather,
-    WorldState? worldState,
+    this.registeredModules = const [],
+    this.currentScores = const [],
+    this.analyticsSummary = const KnightAnalyticsSummary(
+      analyticsProviderCount: 0,
+      snapshotsPlaceholder: '',
+      weeklySummaryPlaceholder: '',
+      monthlySummaryPlaceholder: '',
+    ),
+    this.recommendationSummary = const KnightRecommendationSummary(
+      recommendationProviderCount: 0,
+      recommendationCount: 0,
+      topRecommendationPlaceholder: '',
+    ),
+    this.recentActivity = const [],
+    this.searchSummary = const KnightSearchSummary(
+      searchProviderCount: 0,
+      indexedModules: 0,
+      lastSearchPlaceholder: '',
+    ),
+    this.moduleHealth = const [],
+    DateTime? lastSyncTime,
+    this.healthStatus = 'Active',
+    this.dataFreshness = 'Live',
+    this.applicationVersion = '4.0.0',
+    this.fitnessSummary = const KnightFitnessSummary(
+      gymProfileExists: false,
+      equipmentCount: 0,
+      capabilityPlaceholder: '',
+      workoutPlaceholder: '',
+    ),
+    this.travelSummary = const KnightTravelSummary(
+      visited: 0,
+      wishlist: 0,
+      planned: 0,
+      favoritePlaces: 0,
+      upcomingTripsPlaceholder: '',
+    ),
+    this.workSummary = const KnightWorkSummary(
+      currentShiftPlaceholder: '',
+      questions: 0,
+      calls: 0,
+      chats: 0,
+      dailyTarget: 0,
+      productivityPlaceholder: '',
+    ),
+    DateTime? timestamp,
+    this.greeting = 'System Active',
+    this.sleepStatus = 'Unknown',
+    this.upcomingEvents = const [],
+    this.currentGoals = const [],
+    this.healthSummary = 'Nominal',
+    this.weather = 'Unknown',
+    this.worldState = const WorldState(
+      weather: 'Unknown',
+      calendarEvents: [],
+      marketStatus: 'Closed',
+    ),
     this.reasoning,
     this.planning,
     this.focusScore = 0.0,
@@ -190,8 +226,111 @@ class KnightContext {
     this.calories = 0,
     this.totalBalance = 0.0,
     this.recentMemoriesCount = 0,
+    this.activeMinutes = 0,
     this.relatedMemories = const [],
-  }) : worldState = worldState ?? WorldState.empty;
+    this.recentTimelineEvents = const [],
+    this.recentTransactions = const [],
+    this.activityFeed = const [],
+    this.deviceHealth = const {},
+    this.pendingReminders = 0,
+    this.contextHealthScore = 1.0,
+    this.activeTrips = const [],
+    this.healthScores,
+    this.activeActivity = 'stationary',
+  }) : lastSyncTime = lastSyncTime ?? DateTime.fromMillisecondsSinceEpoch(0),
+       timestamp = timestamp ?? DateTime.now();
+
+  KnightContext copyWith({
+    List<KnightModuleContext>? registeredModules,
+    List<KnightScoreValue>? currentScores,
+    KnightAnalyticsSummary? analyticsSummary,
+    KnightRecommendationSummary? recommendationSummary,
+    List<String>? recentActivity,
+    KnightSearchSummary? searchSummary,
+    List<KnightModuleHealth>? moduleHealth,
+    DateTime? lastSyncTime,
+    String? healthStatus,
+    String? dataFreshness,
+    String? applicationVersion,
+    KnightFitnessSummary? fitnessSummary,
+    KnightTravelSummary? travelSummary,
+    KnightWorkSummary? workSummary,
+    DateTime? timestamp,
+    String? greeting,
+    String? sleepStatus,
+    List<String>? upcomingEvents,
+    List<String>? currentGoals,
+    String? healthSummary,
+    String? weather,
+    WorldState? worldState,
+    ReasoningResult? reasoning,
+    PlanningResult? planning,
+    double? focusScore,
+    String? energyLevel,
+    String? mood,
+    int? steps,
+    double? waterIntake,
+    int? calories,
+    int? activeMinutes,
+    double? totalBalance,
+    int? recentMemoriesCount,
+    List<KnightMemory>? relatedMemories,
+    List<TimelineEventData>? recentTimelineEvents,
+    List<TransactionData>? recentTransactions,
+    List<ActivityItem>? activityFeed,
+    Map<String, DeviceHealthData>? deviceHealth,
+    int? pendingReminders,
+    double? contextHealthScore,
+    List<TripData>? activeTrips,
+    HealthScores? healthScores,
+    String? activeActivity,
+  }) {
+    return KnightContext(
+      registeredModules: registeredModules ?? this.registeredModules,
+      currentScores: currentScores ?? this.currentScores,
+      analyticsSummary: analyticsSummary ?? this.analyticsSummary,
+      recommendationSummary: recommendationSummary ?? this.recommendationSummary,
+      recentActivity: recentActivity ?? this.recentActivity,
+      searchSummary: searchSummary ?? this.searchSummary,
+      moduleHealth: moduleHealth ?? this.moduleHealth,
+      lastSyncTime: lastSyncTime ?? this.lastSyncTime,
+      healthStatus: healthStatus ?? this.healthStatus,
+      dataFreshness: dataFreshness ?? this.dataFreshness,
+      applicationVersion: applicationVersion ?? this.applicationVersion,
+      fitnessSummary: fitnessSummary ?? this.fitnessSummary,
+      travelSummary: travelSummary ?? this.travelSummary,
+      workSummary: workSummary ?? this.workSummary,
+      timestamp: timestamp ?? this.timestamp,
+      greeting: greeting ?? this.greeting,
+      sleepStatus: sleepStatus ?? this.sleepStatus,
+      upcomingEvents: upcomingEvents ?? this.upcomingEvents,
+      currentGoals: currentGoals ?? this.currentGoals,
+      healthSummary: healthSummary ?? this.healthSummary,
+      weather: weather ?? this.weather,
+      worldState: worldState ?? this.worldState,
+      reasoning: reasoning ?? this.reasoning,
+      planning: planning ?? this.planning,
+      focusScore: focusScore ?? this.focusScore,
+      energyLevel: energyLevel ?? this.energyLevel,
+      mood: mood ?? this.mood,
+      steps: steps ?? this.steps,
+      waterIntake: waterIntake ?? this.waterIntake,
+      calories: calories ?? this.calories,
+      activeMinutes: activeMinutes ?? this.activeMinutes,
+      totalBalance: totalBalance ?? this.totalBalance,
+      recentMemoriesCount: recentMemoriesCount ?? this.recentMemoriesCount,
+      relatedMemories: relatedMemories ?? this.relatedMemories,
+      recentTimelineEvents: recentTimelineEvents ?? this.recentTimelineEvents,
+      recentTransactions: recentTransactions ?? this.recentTransactions,
+      activityFeed: activityFeed ?? this.activityFeed,
+      deviceHealth: deviceHealth ?? this.deviceHealth,
+      pendingReminders: pendingReminders ?? this.pendingReminders,
+      contextHealthScore: contextHealthScore ?? this.contextHealthScore,
+      activeTrips: activeTrips ?? this.activeTrips,
+      healthScores: healthScores ?? this.healthScores,
+      activeActivity: activeActivity ?? this.activeActivity,
+    );
+  }
 
   final List<KnightModuleContext> registeredModules;
   final List<KnightScoreValue> currentScores;
@@ -208,7 +347,6 @@ class KnightContext {
   final KnightTravelSummary travelSummary;
   final KnightWorkSummary workSummary;
 
-  /// New Version 3 Sprint 1 fields for User Life Context.
   final DateTime timestamp;
   final String greeting;
   final String sleepStatus;
@@ -218,7 +356,6 @@ class KnightContext {
   final String weather;
   final WorldState worldState;
 
-  /// AI-First Dashboard data (Sprint 6.2)
   final ReasoningResult? reasoning;
   final PlanningResult? planning;
   final double focusScore;
@@ -227,7 +364,17 @@ class KnightContext {
   final int steps;
   final double waterIntake;
   final int calories;
+  final int activeMinutes;
   final double totalBalance;
   final int recentMemoriesCount;
   final List<KnightMemory> relatedMemories;
+  final List<TimelineEventData> recentTimelineEvents;
+  final List<TransactionData> recentTransactions;
+  final List<ActivityItem> activityFeed;
+  final Map<String, DeviceHealthData> deviceHealth;
+  final int pendingReminders;
+  final double contextHealthScore;
+  final List<TripData> activeTrips;
+  final HealthScores? healthScores;
+  final String activeActivity;
 }

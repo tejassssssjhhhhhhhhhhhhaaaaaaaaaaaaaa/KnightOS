@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import '../../domain/intelligence_module.dart';
 import '../../domain/intelligence_events.dart';
 import '../../domain/intelligence_models.dart';
@@ -11,8 +12,13 @@ import '../mission/mission_forecasting_engine.dart';
 import '../mission/blocker_detection_engine.dart';
 import '../mission/mission_recommendation_engine.dart';
 import '../../domain/cognitive_models.dart';
+import '../../../platform/engine/scoring_interfaces.dart';
+import '../../../platform/engine/scoring_models.dart';
+import '../../../platform/engine/recommendation_interfaces.dart';
+import '../../../platform/engine/recommendation_models.dart';
+import '../../../platform/engine/analytics_models.dart';
 
-class MissionModule implements IntelligenceModule {
+class MissionModule extends IntelligenceModule {
   MissionModule({required this.retrieval, required this.memoryEngine}) {
     planning = MissionPlanningEngine(memoryEngine: memoryEngine);
     progress = ProgressIntelligenceEngine(retrieval: retrieval);
@@ -43,6 +49,12 @@ class MissionModule implements IntelligenceModule {
 
   @override
   double get priority => 0.85;
+
+  @override
+  KnightScoreProvider? get scoreProvider => _MissionScoreProvider(progress, retrieval);
+
+  @override
+  KnightRecommendationProvider? get recommendationProvider => _MissionRecommendationProvider(recommendationEngine, planning, _getAllMissions);
 
   @override
   Future<void> onEvent(IntelligenceEvent event) async {
@@ -88,11 +100,11 @@ class MissionModule implements IntelligenceModule {
 
   @override
   Future<List<IntelligenceResult>> getRecommendations() async {
-    // In a real implementation, we'd fetch current context
     final missions = await _getAllMissions();
-    if (missions.isEmpty) return [];
+    final firstMission = missions.firstOrNull;
+    if (firstMission == null) return [];
 
-    final adaptiveRecs = await planning.adaptPlan(missions.first, []);
+    final adaptiveRecs = await planning.adaptPlan(firstMission, []);
     return recommendationEngine.generateRecommendations(adaptiveRecs);
   }
 
@@ -115,5 +127,96 @@ class MissionModule implements IntelligenceModule {
         .where((m) => m.missionDataType == 'mission')
         .map((m) => m.toMission()!)
         .toList();
+  }
+}
+
+class _MissionScoreProvider implements KnightScoreProvider {
+  _MissionScoreProvider(this.progress, this.retrieval);
+  final ProgressIntelligenceEngine progress;
+  final MemoryRetrievalEngine retrieval;
+
+  @override
+  String get id => 'mission_score_provider';
+  @override
+  String get name => 'Mission Completion Score';
+  @override
+  KnightScoreCategory get category => KnightScoreCategory.goals;
+
+  @override
+  Future<KnightScoreValue> requestScore() async {
+    final memories = await retrieval.getByCategory(BookCategory.ambitions);
+    final missions = memories.where((m) => m.missionDataType == 'mission').toList();
+    
+    if (missions.isEmpty) {
+      return KnightScoreValue(
+        value: 0,
+        category: category,
+        grade: const KnightScoreGrade(label: 'N/A', rank: 0),
+        confidence: const KnightScoreConfidence(value: 1.0),
+        timestamp: DateTime.now(),
+        source: const KnightScoreSource(name: 'Mission Intelligence'),
+      );
+    }
+
+    double totalComp = 0;
+    for (final m in missions) {
+      totalComp += await progress.calculateCompletion(m.id);
+    }
+    final avg = (totalComp / missions.length) * 100;
+
+    return KnightScoreValue(
+      value: avg,
+      category: category,
+      grade: _calculateGrade(avg),
+      confidence: const KnightScoreConfidence(value: 0.95),
+      timestamp: DateTime.now(),
+      source: const KnightScoreSource(name: 'Mission Intelligence'),
+    );
+  }
+
+  KnightScoreGrade _calculateGrade(double value) {
+    if (value >= 90) return const KnightScoreGrade(label: 'Excellent', rank: 5);
+    if (value >= 70) return const KnightScoreGrade(label: 'Good', rank: 3);
+    return const KnightScoreGrade(label: 'Steady', rank: 2);
+  }
+}
+
+class _MissionRecommendationProvider implements KnightRecommendationProvider {
+  _MissionRecommendationProvider(this.engine, this.planning, this.getMissions);
+  final MissionRecommendationEngine engine;
+  final MissionPlanningEngine planning;
+  final Future<List<Mission>> Function() getMissions;
+
+  @override
+  String get id => 'mission_recommendation_provider';
+  @override
+  String get name => 'Mission Recommendations';
+  @override
+  String get moduleId => 'mission_intelligence';
+
+  @override
+  Future<List<KnightRecommendation>> requestRecommendations({
+    required List<KnightScoreValue> scores,
+    required List<KnightAnalyticsSnapshot> analytics,
+  }) async {
+    final missions = await getMissions();
+    final firstMission = missions.firstOrNull;
+    if (firstMission == null) return [];
+
+    final adaptiveRecs = await planning.adaptPlan(firstMission, []);
+    final results = await engine.generateRecommendations(adaptiveRecs);
+    
+    return results.map((r) => KnightRecommendation(
+      id: r.id,
+      title: r.data.toString(),
+      description: r.trace.thoughtChain.join(' '),
+      category: KnightRecommendationCategory.goals,
+      priority: KnightRecommendationPriority.high,
+      confidence: KnightRecommendationConfidence(value: r.trace.confidence),
+      reason: KnightRecommendationReason(summary: r.trace.thoughtChain.firstOrNull ?? 'Strategic mission planning'),
+      source: const KnightRecommendationSource(name: 'Mission Intelligence'),
+      action: const KnightRecommendationAction(label: 'Take Action'),
+      timestamp: r.generatedAt,
+    )).toList();
   }
 }

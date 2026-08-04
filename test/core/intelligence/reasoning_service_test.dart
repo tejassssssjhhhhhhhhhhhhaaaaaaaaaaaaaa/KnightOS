@@ -13,6 +13,8 @@ import 'package:knight_os/core/intelligence/engines/context_engine.dart';
 import 'package:knight_os/core/intelligence/engines/optimization_engine.dart';
 import 'package:knight_os/core/intelligence/domain/repositories/memory_repository.dart';
 import 'package:knight_os/core/intelligence/services/json_validation_service.dart';
+import 'package:knight_os/core/intelligence/services/knowledge_graph_service.dart';
+import 'package:mocktail/mocktail.dart';
 
 class MockMemoryRepository extends Fake implements MemoryRepository {
   @override
@@ -42,6 +44,8 @@ class MockJsonValidationService extends Fake implements JsonValidationService {
   Future<void> validate(MemoryDomain domain, Map<String, dynamic> content) async {}
 }
 
+class MockGraphService extends Mock implements KnowledgeGraphService {}
+
 void main() {
   late ReasoningService service;
   late ReasoningEngine engine;
@@ -50,7 +54,7 @@ void main() {
   late WorldService worldService;
 
   setUp(() {
-    engine = const ReasoningEngine();
+    engine = ReasoningEngine();
     memoryEngine = MemoryEngine(
       repository: MockMemoryRepository(),
       validationService: MockJsonValidationService(),
@@ -67,6 +71,7 @@ void main() {
       worldService: worldService,
       contextEngine: ContextEngine(memoryEngine: memoryEngine),
       optimizationEngine: OptimizationEngine(bus: IntelligenceBus()),
+      graphService: MockGraphService(),
     );
   });
 

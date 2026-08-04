@@ -7,7 +7,7 @@ import '../memory_retrieval_engine.dart';
 import '../../../world/engines/device_intelligence.dart';
 import '../../../world/domain/world_models.dart';
 
-class WorldContextModule implements IntelligenceModule {
+class WorldContextModule extends IntelligenceModule {
   WorldContextModule({
     required this.retrieval,
     required this.deviceIntelligence,

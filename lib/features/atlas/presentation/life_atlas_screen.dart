@@ -3,149 +3,144 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/widgets/knight_page_scaffold.dart';
 import '../../../core/design_system/design_constants.dart';
+import '../../../core/intelligence/knight_context_provider.dart';
+import '../../../core/internal/storage/drift/knight_database.dart';
 
 class LifeAtlasScreen extends ConsumerWidget {
   const LifeAtlasScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final contextAsync = ref.watch(currentContextNotifierProvider);
+
     return KnightPageScaffold(
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(DesignSpacing.m),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeader(context),
-            const SizedBox(height: 24),
-            _buildTabs(context),
-            const SizedBox(height: 32),
-            _buildTimelineList(context),
-            const SizedBox(height: 140),
-          ],
-        ),
+      title: 'Life Atlas',
+      showBackButton: true,
+      body: contextAsync.when(
+        data: (knightContext) => _LifeAtlasContent(events: knightContext.recentTimelineEvents),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, s) => Center(child: Text('Error: $e')),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        backgroundColor: DesignColors.accentBlue,
-        child: const Icon(Icons.add_rounded, color: Colors.white),
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          children: [
-            IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            const SizedBox(width: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Life Atlas', style: Theme.of(context).textTheme.headlineMedium),
-                const Text('Your Life. Mapped.', style: TextStyle(fontSize: 12, color: Colors.white38)),
-              ],
-            ),
-          ],
-        ),
-        IconButton(
-          icon: const Icon(Icons.search_rounded),
-          onPressed: () {},
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTabs(BuildContext context) {
-    final tabs = ['Timeline', 'Events', 'Milestones', 'Map'];
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: tabs.map((tab) {
-          final isActive = tab == 'Timeline';
-          return Container(
-            margin: const EdgeInsets.only(right: 12),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            decoration: BoxDecoration(
-              color: isActive ? Colors.white : Colors.transparent,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              tab,
-              style: TextStyle(
-                color: isActive ? Colors.black : Colors.white38,
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildTimelineList(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildDateGroup(context, 'Today', [
-          _TItem('Gym Workout', '6:00 PM', Icons.fitness_center_rounded, DesignColors.success),
-          _TItem('Project Completed', '4:30 PM', Icons.check_circle_outline_rounded, DesignColors.accentPurple),
-        ]),
-        const SizedBox(height: 32),
-        _buildDateGroup(context, 'Yesterday', [
-          _TItem('Read 20 Pages', '9:15 PM', Icons.menu_book_rounded, DesignColors.knowledge),
-          _TItem('Work Shift', '7 PM - 4 AM', Icons.work_outline_rounded, DesignColors.career),
-        ]),
-        const SizedBox(height: 32),
-        _buildDateGroup(context, 'Jul 28, 2025', [
-          _TItem('Met with Team', '3:00 PM', Icons.groups_outlined, DesignColors.accentCyan),
-          _TItem('Dinner with Family', '8:30 PM', Icons.restaurant_rounded, DesignColors.health),
-        ]),
-      ],
-    );
-  }
-
-  Widget _buildDateGroup(BuildContext context, String date, List<_TItem> items) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(date, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white70)),
-        const SizedBox(height: 16),
-        ...items.map((item) => Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          decoration: BoxDecoration(
-            color: DesignColors.surfaceHigh.withValues(alpha: 0.5),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: DesignColors.white05),
-          ),
-          child: ListTile(
-            leading: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: item.color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(item.icon, color: item.color, size: 20),
-            ),
-            title: Text(item.title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-            trailing: Text(item.time, style: const TextStyle(fontSize: 11, color: Colors.white24)),
-            onTap: () {},
-          ),
-        )),
-      ],
     );
   }
 }
 
-class _TItem {
-  const _TItem(this.title, this.time, this.icon, this.color);
+class _LifeAtlasContent extends StatelessWidget {
+  const _LifeAtlasContent({required this.events});
+  final List<TimelineEventData> events;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(DesignSpacing.m),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildMapStub(),
+          const SizedBox(height: 32),
+          const Text('CHRONOLOGICAL JOURNEY', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white38, letterSpacing: 1.0)),
+          const SizedBox(height: 16),
+          if (events.isEmpty)
+             _buildEmptyState()
+          else
+            ...events.map((e) => _TimelineItem(
+              title: e.title,
+              time: '${e.startTime.hour}:${e.startTime.minute.toString().padLeft(2, '0')}',
+              type: e.type,
+              isLast: e == events.last,
+            )),
+          const SizedBox(height: 140),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMapStub() {
+    return Container(
+      height: 220,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: DesignColors.surfaceHigh,
+        borderRadius: DesignRadius.card,
+        border: Border.all(color: DesignColors.white05),
+      ),
+      child: const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.map_outlined, size: 48, color: Colors.white10),
+            SizedBox(height: 12),
+            Text('Relational Map view offline.', style: TextStyle(color: Colors.white24, fontSize: 12)),
+            Text('Connect GPS for real-time tracking.', style: TextStyle(color: Colors.white10, fontSize: 10)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+     return Center(
+       child: Padding(
+         padding: const EdgeInsets.symmetric(vertical: 40),
+         child: Column(
+           children: [
+             const Icon(Icons.history_toggle_off_rounded, size: 48, color: Colors.white10),
+             const SizedBox(height: 16),
+             const Text('No location history found.', style: TextStyle(color: Colors.white24)),
+             TextButton(onPressed: () {}, child: const Text('Import Google Timeline')),
+           ],
+         ),
+       ),
+     );
+  }
+}
+
+class _TimelineItem extends StatelessWidget {
+  const _TimelineItem({required this.title, required this.time, required this.type, this.isLast = false});
   final String title;
   final String time;
-  final IconData icon;
-  final Color color;
+  final String type;
+  final bool isLast;
+
+  @override
+  Widget build(BuildContext context) {
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Column(
+            children: [
+              Icon(
+                type == 'visit' ? Icons.location_on_rounded : Icons.directions_run_rounded,
+                color: DesignColors.accentPurple,
+                size: 20,
+              ),
+              if (!isLast)
+                Expanded(
+                  child: Container(
+                    width: 2,
+                    margin: const EdgeInsets.symmetric(vertical: 4),
+                    color: Colors.white.withValues(alpha: 0.05),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                  const SizedBox(height: 4),
+                  Text(time, style: const TextStyle(fontSize: 12, color: Colors.white38)),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

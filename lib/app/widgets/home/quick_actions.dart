@@ -51,12 +51,12 @@ class _QuickActionsPanelState extends State<QuickActionsPanel> {
     final actions = [
       _ActionItem(Icons.psychology_rounded, 'Memory', AppRoutes.memory, DesignColors.knowledge),
       _ActionItem(Icons.task_alt_rounded, 'Task', AppRoutes.planner, DesignColors.focus),
-      _ActionItem(Icons.flag_rounded, 'Goal', AppRoutes.mission, DesignColors.career),
+      _ActionItem(Icons.business_center_rounded, 'Career', AppRoutes.career, DesignColors.career),
       _ActionItem(Icons.timer_outlined, 'Focus', AppRoutes.work, DesignColors.accentBlue),
       _ActionItem(Icons.account_balance_wallet_rounded, 'Finance', AppRoutes.finance, DesignColors.finance),
       _ActionItem(Icons.favorite_rounded, 'Health', AppRoutes.health, DesignColors.health),
       _ActionItem(Icons.explore_rounded, 'Atlas', AppRoutes.lifeAtlas, DesignColors.travel),
-      _ActionItem(Icons.auto_awesome_rounded, 'Ask Knight', null, DesignColors.accentPurple),
+      _ActionItem(Icons.auto_awesome_rounded, 'Intelligence', AppRoutes.intelligence, DesignColors.accentPurple),
     ];
 
     return GridView.builder(
@@ -92,9 +92,9 @@ class _QuickActionsPanelState extends State<QuickActionsPanel> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: action.color.withOpacity(0.1),
+              color: action.color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: action.color.withOpacity(0.2)),
+              border: Border.all(color: action.color.withValues(alpha: 0.2)),
             ),
             child: Icon(action.icon, color: action.color, size: 24),
           ),

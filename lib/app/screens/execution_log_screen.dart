@@ -20,8 +20,6 @@ class ExecutionLogScreen extends ConsumerWidget {
       body: activeAsync.when(
         data: (states) {
           final state = states.firstWhere((s) => s.planId == planId, orElse: () {
-             // If not active, maybe it finished? 
-             // For now we just return the last known state if possible or a message
              return WorkflowState(planId: planId, status: WorkflowStatus.queued, currentTaskId: null);
           });
 

@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import '../domain/knight_memory.dart';
 import '../domain/memory_relation.dart';
 import 'memory_engine.dart';
@@ -44,9 +45,8 @@ class KnowledgeGraph {
       // Logic: Find first neighbor with a causal link type
       // Note: getRelated currently doesn't return the edge type.
       // In a real V4 impl, we'd query for links of type 'causedBy' or 'influences'.
-      if (neighbors.isEmpty) break;
-
-      final influencer = neighbors.first; // Simplified for now
+      final influencer = neighbors.firstOrNull; // Simplified for now
+      if (influencer == null) break;
       if (!visited.contains(influencer.memoryId)) {
         visited.add(influencer.memoryId);
         chain.add(influencer);

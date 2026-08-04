@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:collection/collection.dart';
 import '../../../features/import/domain/import_models.dart';
 import '../../../features/import/infrastructure/import_manager.dart';
 import '../../../features/import/infrastructure/import_registry.dart';
@@ -16,9 +17,14 @@ class ImportProcessor {
       return;
     }
 
-    final provider = ImportRegistry.providers.firstWhere(
+    final provider = ImportRegistry.providers.firstWhereOrNull(
       (p) => p.id == 'google_timeline',
     );
+
+    if (provider == null) {
+      debugPrint('IMPORT ERROR: Google Timeline provider not found in registry.');
+      return;
+    }
 
     debugPrint('STARTING MISSION: Ingesting Google Timeline...');
     final job = await ImportManager.executeMission(file, provider, engine);

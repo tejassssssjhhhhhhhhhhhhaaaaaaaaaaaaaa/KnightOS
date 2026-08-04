@@ -104,6 +104,11 @@ void main() {
       await repository.save(memory);
 
       final saved = await repository.getLatest(memory.memoryId);
+      print('DEBUG: saved is null? ${saved == null}');
+      if (saved != null) {
+        print('DEBUG: saved.state: ${saved.state}');
+        print('DEBUG: saved.updatedAt: ${saved.updatedAt}');
+      }
       expect(saved?.state, KnowledgeState.inferred);
       expect(saved?.explanation, contains('night'));
       expect(saved?.updatedAt, isNotNull);

@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:knight_os/core/router/app_router.dart';
-import 'package:knight_os/core/router/app_routes.dart';
 import 'package:knight_os/core/repositories/authentication_repository.dart';
 import 'package:knight_os/core/internal/storage/drift/knight_database.dart';
 import 'package:knight_os/core/providers/storage_providers.dart';
-import 'package:knight_os/core/intelligence/providers/intelligence_providers.dart';
+import 'package:knight_os/core/providers/database_provider.dart';
+import 'package:knight_os/core/providers/preferences_provider.dart';
 import 'package:knight_os/core/storage/local_database.dart';
 import 'package:knight_os/core/storage/storage_keys.dart';
 import 'package:drift/native.dart';
@@ -25,10 +25,12 @@ class MockAuthRepo extends Fake implements AuthenticationRepository {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   late MockAuthRepo mockAuth;
+  late SharedPreferences prefs;
 
   setUp(() async {
     PathProviderPlatform.instance = MockPathProvider();
     SharedPreferences.setMockInitialValues({});
+    prefs = await SharedPreferences.getInstance();
     mockAuth = MockAuthRepo();
     AuthenticationRepository.instance = mockAuth;
     
@@ -45,9 +47,14 @@ void main() {
         overrides: [
           knightDatabaseProvider.overrideWith((ref) => KnightDatabase.forTesting(NativeDatabase.memory())),
           storageInitializerProvider.overrideWith((ref) => Future.value()),
+          sharedPreferencesProvider.overrideWithValue(prefs),
         ],
-        child: MaterialApp.router(
-          routerConfig: AppRouter.router,
+        child: Consumer(
+          builder: (context, ref, child) {
+            return MaterialApp.router(
+              routerConfig: ref.watch(AppRouter.provider),
+            );
+          },
         ),
       ),
     );
@@ -85,9 +92,14 @@ void main() {
         overrides: [
           knightDatabaseProvider.overrideWith((ref) => KnightDatabase.forTesting(NativeDatabase.memory())),
           storageInitializerProvider.overrideWith((ref) => Future.value()),
+          sharedPreferencesProvider.overrideWithValue(prefs),
         ],
-        child: MaterialApp.router(
-          routerConfig: AppRouter.router,
+        child: Consumer(
+          builder: (context, ref, child) {
+            return MaterialApp.router(
+              routerConfig: ref.watch(AppRouter.provider),
+            );
+          },
         ),
       ),
     );

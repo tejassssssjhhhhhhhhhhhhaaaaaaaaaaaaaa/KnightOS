@@ -20,7 +20,7 @@ class UserRepository extends KnightRepository<UserProfile> {
   Future<void> upsert(UserProfile entity) async {
     await super.upsert(entity);
 
-    // Legacy integration: Keep Authentication Session in sync
+    // Sync with local session
     final session = await _authenticationRepository.getCurrentSession();
     if (session != null) {
       await _authenticationRepository.persistSession(
@@ -31,8 +31,6 @@ class UserRepository extends KnightRepository<UserProfile> {
               ? entity.fullName
               : entity.preferredName,
           isAuthenticated: true,
-          isEmailVerified: session.isEmailVerified,
-          provider: session.provider,
         ),
       );
     }

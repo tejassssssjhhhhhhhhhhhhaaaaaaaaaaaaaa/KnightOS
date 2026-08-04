@@ -1,197 +1,223 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../../core/design_system/design_constants.dart';
-import '../../../core/design_system/widgets/knight_background.dart';
-import '../../../core/design_system/widgets/knight_layout.dart';
-import '../../../core/design_system/widgets/entrance_fader.dart';
+import 'package:go_router/go_router.dart';
 import '../../../app/widgets/knight_page_scaffold.dart';
-import '../infrastructure/import_registry.dart';
-import '../../atlas/presentation/life_atlas_controller.dart';
-import '../../knowledge/presentation/knowledge_vault_controller.dart';
-import '../../../core/internal/utils/import_processor.dart';
-import '../../../core/intelligence/providers/intelligence_providers.dart';
-import 'widgets/import_source_card.dart';
+import 'controllers/manual_import_controller.dart';
+import 'providers/import_history_provider.dart';
+
+import 'widgets/connector_card.dart';
 
 class ImportCenterScreen extends ConsumerWidget {
   const ImportCenterScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final providers = ImportRegistry.providers;
+    final state = ref.watch(manualImportControllerProvider);
+    final controller = ref.read(manualImportControllerProvider.notifier);
+    final history = ref.watch(importHistoryProvider);
 
     return KnightPageScaffold(
-      floatingActionButton: EntranceFader(
-        delay: const Duration(milliseconds: 1000),
-        child: FloatingActionButton.extended(
-          onPressed: () async {
-            final engine = ref.read(memoryEngineProvider);
-            await ImportProcessor.processLocalTimeline(engine);
-            // Refresh dependent providers
-            ref.invalidate(atlasEventsProvider);
-            ref.invalidate(vaultItemsProvider);
-
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    'MISSION SUCCESS: Digital footprint integrated.',
-                  ),
-                ),
-              );
-            }
-          },
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.black,
-          icon: const Icon(Icons.bolt_rounded),
-          label: const Text('Process Local Mission'),
+      title: 'Import Center',
+      showBackButton: true,
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.inbox),
+          tooltip: 'Evidence Inbox',
+          onPressed: () => context.push('/evidence/inbox'),
         ),
-      ),
-      body: KnightBackground(
-        child: CustomScrollView(
-          clipBehavior: Clip.none,
-          slivers: [
-            // 1. HORIZON HERO
-            SliverToBoxAdapter(
-              child: EntranceFader(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    DesignSpacing.m,
-                    DesignSpacing.xl,
-                    DesignSpacing.m,
-                    DesignSpacing.l,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'DATA INGESTION',
-                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: DesignColors.travel,
-                          letterSpacing: 3.0,
-                        ),
-                      ),
-                      const SizedBox(height: DesignSpacing.m),
-                      Text(
-                        'Import History',
-                        style: Theme.of(
-                          context,
-                        ).textTheme.displayLarge?.copyWith(fontSize: 34),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'Securely integrate your digital footprint into the KnightOS ecosystem.',
-                        style: Theme.of(
-                          context,
-                        ).textTheme.bodyLarge?.copyWith(color: Colors.white38),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+      ],
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Cloud Connectors',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Automate evidence collection from your trusted cloud providers.',
+              style: TextStyle(color: Colors.grey),
+            ),
+            const SizedBox(height: 16),
+            const ConnectorCard(),
+            
+            const SizedBox(height: 32),
+            const Text(
+              'Manual Evidence Ingestion',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            
+            _ImportTypeGrid(
+              onSelected: (type) => controller.pickAndImport(type),
+              isLoading: state.isImporting,
             ),
 
-            // 2. PROVIDERS (PLUGINS)
-            SliverToBoxAdapter(
-              child: EntranceFader(
-                delay: const Duration(milliseconds: 100),
-                child: const KnightSectionHeader(title: 'Available Sources'),
-              ),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: DesignSpacing.m),
-              sliver: SliverGrid(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: DesignSpacing.m,
-                  crossAxisSpacing: DesignSpacing.m,
-                  childAspectRatio: 1.3,
-                ),
-                delegate: SliverChildBuilderDelegate(
-                  (context, i) => EntranceFader(
-                    delay: Duration(milliseconds: 200 + (i * 100)),
-                    child: ImportSourceCard(
-                      provider: providers[i],
-                      onImport: () {},
-                    ),
-                  ),
-                  childCount: providers.length,
-                ),
-              ),
-            ),
+            if (state.error != null) ...[
+              const SizedBox(height: 24),
+              _ErrorCard(message: state.error!),
+            ],
 
-            // 3. AUDIT LOG (MANIFESTS)
-            SliverToBoxAdapter(
-              child: EntranceFader(
-                delay: const Duration(milliseconds: 500),
-                child: const KnightSectionHeader(title: 'Mission Manifests'),
-              ),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: DesignSpacing.m),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, i) => EntranceFader(
-                    delay: Duration(milliseconds: 600 + (i * 50)),
-                    child: _buildManifestItem(context),
-                  ),
-                  childCount: 3,
-                ),
-              ),
-            ),
+            if (state.lastImportedId != null) ...[
+              const SizedBox(height: 24),
+              _SuccessCard(id: state.lastImportedId!),
+            ],
 
-            const SliverToBoxAdapter(child: SizedBox(height: 140)),
+            const SizedBox(height: 32),
+            const Text(
+              'Recent Imports',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            history.when(
+              data: (items) => items.isEmpty 
+                ? const Text('No recent manual imports.')
+                : ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: items.length,
+                    itemBuilder: (context, index) {
+                      final item = items[index];
+                      return ListTile(
+                        leading: const Icon(Icons.history),
+                        title: Text(item.originalName),
+                        subtitle: Text('Imported: ${item.ingestedAt.toLocal()}'),
+                      );
+                    },
+                  ),
+              loading: () => const CircularProgressIndicator(),
+              error: (err, stack) => Text('Error loading history: $err'),
+            ),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildManifestItem(BuildContext context) {
+class _ImportTypeGrid extends StatelessWidget {
+  const _ImportTypeGrid({required this.onSelected, required this.isLoading});
+  final Function(String) onSelected;
+  final bool isLoading;
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      crossAxisSpacing: 12,
+      mainAxisSpacing: 12,
+      childAspectRatio: 1.5,
+      children: [
+        _TypeTile(
+          title: 'Resume',
+          icon: Icons.description,
+          onTap: () => onSelected('resume'),
+          isLoading: isLoading,
+        ),
+        _TypeTile(
+          title: 'Certificate',
+          icon: Icons.verified,
+          onTap: () => onSelected('certificate'),
+          isLoading: isLoading,
+        ),
+        _TypeTile(
+          title: 'CSV Data',
+          icon: Icons.table_chart,
+          onTap: () => onSelected('csv'),
+          isLoading: isLoading,
+        ),
+        _TypeTile(
+          title: 'Image',
+          icon: Icons.image,
+          onTap: () => onSelected('image'),
+          isLoading: isLoading,
+        ),
+      ],
+    );
+  }
+}
+
+class _TypeTile extends StatelessWidget {
+  const _TypeTile({required this.title, required this.icon, required this.onTap, required this.isLoading});
+  final String title;
+  final IconData icon;
+  final VoidCallback onTap;
+  final bool isLoading;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: isLoading ? null : onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Spacer(),
+            Icon(icon, size: 32, color: Theme.of(context).primaryColor),
+            const SizedBox(height: 8),
+            Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
+            const Spacer(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ErrorCard extends StatelessWidget {
+  const _ErrorCard({required this.message});
+  final String message;
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(DesignSpacing.l),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: DesignColors.surface,
-        borderRadius: DesignRadius.card,
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        color: Colors.red.shade50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.red.shade200),
       ),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(DesignSpacing.s),
-            decoration: BoxDecoration(
-              color: DesignColors.finance.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.verified_rounded,
-              color: DesignColors.finance,
-              size: 16,
-            ),
-          ),
-          const SizedBox(width: DesignSpacing.m),
+          const Icon(Icons.error_outline, color: Colors.red),
+          const SizedBox(width: 12),
+          Expanded(child: Text(message, style: const TextStyle(color: Colors.red))),
+        ],
+      ),
+    );
+  }
+}
+
+class _SuccessCard extends StatelessWidget {
+  const _SuccessCard({required this.id});
+  final String id;
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.green.shade50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.green.shade200),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.check_circle_outline, color: Colors.green),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Statement_July.pdf',
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
-                ),
-                Text(
-                  'PARSER: FINANCE v1.0 • 84 RECORDS',
-                  style: Theme.of(context).textTheme.labelLarge,
-                ),
+                const Text('Import Successful', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                Text('Evidence ID: $id', style: const TextStyle(fontSize: 12)),
               ],
-            ),
-          ),
-          const Text(
-            'TODAY',
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w900,
-              color: Colors.white24,
             ),
           ),
         ],

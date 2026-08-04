@@ -24,6 +24,9 @@ enum KnightScoreCategory {
   /// General health and wellbeing.
   health,
 
+  /// Missions and goal achievement.
+  goals,
+
   /// A custom category for future extension.
   custom,
 }

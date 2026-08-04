@@ -8,10 +8,11 @@ import '../engines/memory_engine.dart';
 import '../knight_context_service.dart';
 import '../../internal/utils/knight_logger.dart';
 import 'world_service.dart';
+import 'knowledge_graph_service.dart';
 import '../../platform/engine/engine_interfaces.dart';
 
 /// The public analytical API for KnightOS.
-/// Assembles data from Context and Memory layers to feed the Reasoning Engine.
+/// Assembles data from Context, Memory, and Knowledge Graph layers to feed the Reasoning Engine.
 class ReasoningService {
   const ReasoningService({
     required this.engine,
@@ -20,6 +21,7 @@ class ReasoningService {
     required this.worldService,
     required this.contextEngine,
     required this.optimizationEngine,
+    required this.graphService,
   });
 
   final ReasoningEngine engine;
@@ -28,31 +30,39 @@ class ReasoningService {
   final WorldService worldService;
   final ContextEngine contextEngine;
   final OptimizationEngine optimizationEngine;
+  final KnowledgeGraphService graphService;
 
-  /// Performs a full reasoning cycle based on current system state.
+  /// Performs a full reasoning cycle based on current system state and graph relationships.
   Future<ReasoningResult> performReasoningCycle({
     required List<KnightFeatureModule> featureModules,
   }) async {
     KnightLogger.info('[REASONING] Cycle started', category: KnightLogCategory.intelligence);
-    // 1. Fetch relevant memories (e.g., identity, goals, recent history)
+    
+    // 1. Fetch relevant memories
     final memories = await contextEngine.buildActiveContext(
       intent: KnightIntent.analysis,
       worldState: worldService.currentState,
     );
 
-    // 2. Build current context
+    // 2. Query Graph for situational links (e.g. are we at a "Place" from the graph?)
+    final currentState = worldService.currentState;
+    // Heuristic: check if any recent timeline event visit matches a known graph node
+    // Simplified for Wave 2
+
+    // 3. Build current context
     final context = contextService.buildContext(
       featureModules: featureModules,
       recentMemories: memories,
-      worldState: worldService.currentState,
+      worldState: currentState,
     );
 
-    // 3. Reason with learned weights
-    final result = engine.reason(
-      context: context, 
+    // 4. Reason with learned weights and Graph awareness
+    final result = await engine.reason(
+      context: context,
       memories: memories,
       weights: optimizationEngine.state.domainWeights,
     );
+    
     KnightLogger.info('[REASONING] Cycle complete: ${result.insights.length} insights', category: KnightLogCategory.intelligence);
     return result;
   }
@@ -64,7 +74,6 @@ class ReasoningService {
 
   /// Specialized: Evaluate specific risk of an action.
   Future<List<String>> evaluateActionRisks(String actionLabel) async {
-    // Placeholder for targeted rule evaluation
     return [];
   }
 }

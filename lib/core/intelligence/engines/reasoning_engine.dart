@@ -1,21 +1,28 @@
+import 'package:collection/collection.dart';
+import '../domain/activity_feed_models.dart';
 import '../domain/knight_memory.dart';
 import '../domain/memory_category.dart';
 import '../domain/cognitive_models.dart';
 import '../domain/reasoning_models.dart';
 import '../knight_context_models.dart';
+import 'local_llm_engine.dart';
+import '../domain/workspace_models.dart';
 import '../../platform/engine/recommendation_models.dart';
 
 /// Pure logic layer for KnightOS deductions.
 /// Processes [KnightContext] and [KnightMemory] to find patterns and risks.
 class ReasoningEngine {
-  const ReasoningEngine();
+  const ReasoningEngine({this.llmEngine});
+
+  final LocalLlmEngine? llmEngine;
 
   /// Deterministically reasons over the current situation.
-  ReasoningResult reason({
+  Future<ReasoningResult> reason({
     required KnightContext context,
     required List<KnightMemory> memories,
     Map<String, double> weights = const {},
-  }) {
+    bool useAdvancedReasoning = false,
+  }) async {
     final List<String> thoughts = [];
     final List<KnightInsight> insights = [];
     final List<KnightRecommendation> recommendations = [];
@@ -23,6 +30,14 @@ class ReasoningEngine {
     final List<String> opportunities = [];
 
     thoughts.add('Initiating weighted reasoning cycle at ${context.timestamp}');
+
+    if (useAdvancedReasoning && llmEngine != null) {
+      thoughts.add('Augmenting reasoning with local LLM inference...');
+      final llmPrompt = _buildLlmPrompt(context, memories);
+      final llmResult = await llmEngine!.reason(llmPrompt);
+      thoughts.add('LLM Insight: ${llmResult.text}');
+      // In a real system, we'd parse the LLM output into structured insights.
+    }
 
     // 1. Daily Summary / Greeting Logic
     final summary = _generateSummary(context);
@@ -33,6 +48,14 @@ class ReasoningEngine {
 
     // 3. Rule: Financial Awareness
     _applyFinancialRules(context, memories, thoughts);
+
+    // 3.5. Structured Data Insights (V4)
+    _applyStructuredDataInsights(context, insights, thoughts);
+
+    // 3.6. Knowledge Graph Foundation (V5 Readiness)
+    if (context.activityFeed.any((item) => item.type == ActivityType.import)) {
+       thoughts.add('Graph Awareness: Relationships detected between structured imports and system nodes.');
+    }
 
     // 4. Rule: Mission Momentum
     _applyMissionRules(memories, insights, thoughts);
@@ -57,7 +80,13 @@ class ReasoningEngine {
     // 9. Multimodal Tone (Sprint 7)
     _applyVoiceRules(context, thoughts);
 
-    // 10. Apply Behavioral Learning Weights (Sprint 5.2)
+    // 9.5. Perception Rules (Milestone 3)
+    _applyPerceptionRules(context, thoughts, recommendations);
+
+    // 10. Workspace Memory Awareness (Milestone 7)
+    _applyWorkspaceReasoning(memories, insights, recommendations, warnings, thoughts);
+
+    // 11. Apply Behavioral Learning Weights (Sprint 5.2)
     final filteredInsights = _applyWeightsToInsights(insights, weights, thoughts);
     final filteredRecommendations = _applyWeightsToRecommendations(recommendations, weights, thoughts);
 
@@ -79,12 +108,12 @@ class ReasoningEngine {
   }
 
   /// Reasons specifically about why a workflow failed and suggests recovery.
-  ReasoningResult reasonFailure({
+  Future<ReasoningResult> reasonFailure({
     required String planId,
     required String taskId,
     required String error,
     required KnightContext context,
-  }) {
+  }) async {
     final List<String> thoughts = [
       'Analyzing failure in plan $planId at task $taskId',
       'Reported error: $error',
@@ -134,12 +163,12 @@ class ReasoningEngine {
   }
 
   /// Suggests a detailed repair strategy for a failed workflow.
-  ReasoningResult suggestRepairPlan({
+  Future<ReasoningResult> suggestRepairPlan({
     required String planId,
     required String taskId,
     required String error,
     required KnightContext context,
-  }) {
+  }) async {
     final List<String> thoughts = [
       'Task $taskId in plan $planId failed: $error',
       'No pre-defined fallbacks found. Initiating dynamic healing.',
@@ -181,6 +210,12 @@ class ReasoningEngine {
 
   String _generateSummary(KnightContext context) {
     return 'It is ${context.greeting}. ${context.healthSummary}. System state is ${context.healthStatus}.';
+  }
+
+  String _buildLlmPrompt(KnightContext context, List<KnightMemory> memories) {
+    return 'Context: ${context.healthStatus}, ${context.sleepStatus}. '
+           'Memories: ${memories.map((m) => m.summary).join(", ")}. '
+           'Analyze the situation and suggest a primary focus.';
   }
 
   void _applyHealthRules(
@@ -231,6 +266,48 @@ class ReasoningEngine {
     }
   }
 
+  void _applyStructuredDataInsights(
+    KnightContext context,
+    List<KnightInsight> insights,
+    List<String> thoughts,
+  ) {
+    // 1. Spending Insight
+    if (context.totalBalance < 0) {
+      insights.add(KnightInsight(
+        id: 'insight-finance-negative',
+        title: 'Negative Cash Flow',
+        description: 'Your current total balance is negative (₹${context.totalBalance.toInt().abs()}). Prioritize essential expenses.',
+        confidence: 1.0,
+        timestamp: DateTime.now(),
+      ));
+      thoughts.add('Rule triggered: Negative balance detected.');
+    } else if (context.totalBalance > 10000) {
+       insights.add(KnightInsight(
+        id: 'insight-finance-healthy',
+        title: 'Healthy Savings',
+        description: 'Total balance looks stable. Consider allocating extra funds to your active goals.',
+        confidence: 0.8,
+        timestamp: DateTime.now(),
+      ));
+      thoughts.add('Rule triggered: Healthy balance detected.');
+    }
+
+    // 2. Timeline Insight
+    if (context.recentTimelineEvents.isNotEmpty) {
+      final workVisits = context.recentTimelineEvents.where((e) => e.title.contains('Work') || e.type == 'visit').length;
+      if (workVisits > 3) {
+         insights.add(KnightInsight(
+          id: 'insight-timeline-busy',
+          title: 'High Activity Week',
+          description: 'You\'ve had multiple work-site visits recently. Ensure you capture key takeaways in the Knowledge Vault.',
+          confidence: 0.7,
+          timestamp: DateTime.now(),
+        ));
+        thoughts.add('Rule triggered: High timeline activity detected.');
+      }
+    }
+  }
+
   void _applyMissionRules(
     List<KnightMemory> memories,
     List<KnightInsight> insights,
@@ -245,13 +322,14 @@ class ReasoningEngine {
             )
             .toList();
 
-    if (activeMissions.isNotEmpty) {
+    final firstMission = activeMissions.firstOrNull;
+    if (firstMission != null) {
       insights.add(
         KnightInsight(
           id: 'insight-mission-focus',
           title: 'Mission Alignment',
           description:
-              'You have ${activeMissions.length} active missions. Current environment supports deep work on "${activeMissions.first.summary}".',
+              'You have ${activeMissions.length} active missions. Current environment supports deep work on "${firstMission.summary}".',
           confidence: 0.9,
           timestamp: DateTime.now(),
           explanation: 'Work-ready context identified in morning hours.',
@@ -305,8 +383,8 @@ class ReasoningEngine {
               e.startTime.isBefore(now.add(const Duration(hours: 4)));
         }).toList();
 
-    if (nextMeetings.isNotEmpty) {
-      final next = nextMeetings.first;
+    final next = nextMeetings.firstOrNull;
+    if (next != null) {
       thoughts.add('Rule triggered: Upcoming meeting - ${next.title}');
 
       insights.add(
@@ -372,8 +450,8 @@ class ReasoningEngine {
       (m.content['estimatedCost'] ?? 0) > totalBalance
     ).toList();
 
-    if (highCostMissions.isNotEmpty) {
-      final m = highCostMissions.first;
+    final m = highCostMissions.firstOrNull;
+    if (m != null) {
       thoughts.add('Rule triggered: Finance-Mission conflict - ${m.summary}');
       warnings.add('Financial Constraint: Mission "${m.summary}" exceeds currently liquid assets.');
 
@@ -390,6 +468,14 @@ class ReasoningEngine {
   void _applyVoiceRules(KnightContext context, List<String> thoughts) {
     if (context.energyLevel == 'Low') {
       thoughts.add('Rule triggered: Low energy detected. Recommend gentle voice tone.');
+    }
+  }
+
+  void _applyPerceptionRules(KnightContext context, List<String> thoughts, List<KnightRecommendation> recommendations) {
+    if (context.activeActivity == 'pocket_or_covered') {
+       thoughts.add('Perception: Device is likely in a pocket or bag. Proactive suggestions will be muted until device is active.');
+    } else if (context.activeActivity == 'moving_vibrant') {
+       thoughts.add('Perception: User is highly active. Focusing on concise, time-sensitive updates.');
     }
   }
 
@@ -440,6 +526,61 @@ class ReasoningEngine {
     if (id.contains('mail')) return 'work';
     if (id.contains('sleep')) return 'sleep';
     return 'custom';
+  }
+
+  void _applyWorkspaceReasoning(
+    List<KnightMemory> memories,
+    List<KnightInsight> insights,
+    List<KnightRecommendation> recommendations,
+    List<String> warnings,
+    List<String> thoughts,
+  ) {
+    final workspaceMemories = memories.where((m) => m.tags.contains('workspace')).toList();
+    if (workspaceMemories.isEmpty) return;
+
+    thoughts.add('Analyzing ${workspaceMemories.length} workspace-origin memories.');
+
+    for (final memory in workspaceMemories) {
+      final dataType = memory.content['workspaceDataType'] as String?;
+      
+      // 1. Unread High-Importance Emails
+      if (dataType == 'email') {
+        final email = WorkspaceEmail.fromJson(memory.content);
+        if (email.isUnread && (email.importance == 'high' || email.importance == 'critical')) {
+          insights.add(KnightInsight(
+            id: 'insight-workspace-urgent-email-${email.id}',
+            title: 'Urgent Workspace Item',
+            description: 'Actionable email from ${email.sender}: "${email.subject}"',
+            confidence: memory.confidence,
+            timestamp: DateTime.now(),
+            explanation: 'Detected high-importance unread communication in Workspace context.',
+          ));
+        }
+      }
+
+      // 2. Calendar Event conflicts or upcoming preps
+      if (dataType == 'calendar_event') {
+        final event = WorkspaceCalendarEvent.fromJson(memory.content);
+        final now = DateTime.now();
+        if (event.startTime.isAfter(now) && event.startTime.isBefore(now.add(const Duration(hours: 12)))) {
+          // Check for preparation docs in Drive
+          final relatedDocs = workspaceMemories.where((m) => 
+            m.content['workspaceDataType'] == 'drive_file' &&
+            m.content['name'].toString().toLowerCase().contains(event.title.toLowerCase())
+          ).toList();
+
+          if (relatedDocs.isNotEmpty) {
+             recommendations.add(_createRecommendation(
+              id: 'rec-workspace-prep-${event.id}',
+              title: 'Prepare for ${event.title}',
+              description: 'I found ${relatedDocs.length} related documents in your Drive. Would you like to review them?',
+              category: KnightRecommendationCategory.work,
+              priority: KnightRecommendationPriority.high,
+            ));
+          }
+        }
+      }
+    }
   }
 
   KnightRecommendation _createRecommendation({

@@ -113,3 +113,9 @@ class KnightEngineErrorEvent extends KnightEngineEvent {
   /// Optional underlying exception or failure.
   final Object? error;
 }
+
+/// Raised when the platform data should be refreshed.
+class KnightDataRefreshEvent extends KnightEngineEvent {
+  /// Creates a data-refresh event.
+  const KnightDataRefreshEvent();
+}

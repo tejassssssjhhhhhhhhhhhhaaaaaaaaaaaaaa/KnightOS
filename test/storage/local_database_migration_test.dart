@@ -15,6 +15,7 @@ void main() {
   late LocalDatabase database;
 
   setUp(() async {
+    LocalDatabase.resetForTesting();
     final mock = MockPathProvider();
     PathProviderPlatform.instance = mock;
     

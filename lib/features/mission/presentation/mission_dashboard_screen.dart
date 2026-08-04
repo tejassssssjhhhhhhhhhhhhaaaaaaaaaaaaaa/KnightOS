@@ -2,27 +2,45 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/widgets/knight_page_scaffold.dart';
 import '../../../core/design_system/design_constants.dart';
+import '../../../core/intelligence/providers/intelligence_providers.dart';
+import '../../../core/repositories/mission_repository.dart';
 
 class MissionDashboardScreen extends ConsumerWidget {
   const MissionDashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final missionsAsync = ref.watch(_missionsWithProgressProvider);
+
     return KnightPageScaffold(
+      title: 'Missions',
+      showBackButton: true,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(DesignSpacing.m),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeader(context),
-            const SizedBox(height: 24),
-            _buildTabs(context),
+            missionsAsync.when(
+              data: (missions) {
+                if (missions.isEmpty) {
+                  return _buildEmptyState();
+                }
+                final top = missions.first; 
+                return _buildActiveMission(top);
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, s) => Center(child: Text('Error: $e')),
+            ),
             const SizedBox(height: 32),
-            _buildCurrentRole(context),
-            const SizedBox(height: 32),
-            _buildPerformance(context),
-            const SizedBox(height: 32),
-            _buildSkills(context),
+            const Text('UPCOMING OBJECTIVES', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white38, letterSpacing: 1.0)),
+            const SizedBox(height: 16),
+            missionsAsync.when(
+              data: (missions) => Column(
+                children: missions.skip(1).map((m) => _buildMissionTile(m)).toList(),
+              ),
+              loading: () => const SizedBox.shrink(),
+              error: (e, s) => const SizedBox.shrink(),
+            ),
             const SizedBox(height: 140),
           ],
         ),
@@ -30,171 +48,74 @@ class MissionDashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-          onPressed: () => Navigator.of(context).pop(),
+  Widget _buildEmptyState() {
+    return Card(
+      color: DesignColors.surfaceHigh.withValues(alpha: 0.3),
+      child: const Padding(
+        padding: EdgeInsets.all(40),
+        child: Center(
+          child: Column(
+            children: [
+              Icon(Icons.rocket_launch_rounded, size: 48, color: Colors.white10),
+              SizedBox(height: 16),
+              Text('No active missions.', style: TextStyle(color: Colors.white24)),
+              Text('Initialize a new objective to begin.', style: TextStyle(fontSize: 12, color: Colors.white10)),
+            ],
+          ),
         ),
-        Text('Career', style: Theme.of(context).textTheme.headlineMedium),
-        IconButton(
-          icon: const Icon(Icons.more_vert_rounded),
-          onPressed: () {},
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTabs(BuildContext context) {
-    final tabs = ['Overview', 'Goals', 'Skills', 'Performance'];
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: tabs.map((tab) {
-          final isActive = tab == 'Overview';
-          return Container(
-            margin: const EdgeInsets.only(right: 12),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            decoration: BoxDecoration(
-              color: isActive ? Colors.white : Colors.transparent,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              tab,
-              style: TextStyle(
-                color: isActive ? Colors.black : Colors.white38,
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
-              ),
-            ),
-          );
-        }).toList(),
       ),
     );
   }
 
-  Widget _buildCurrentRole(BuildContext context) {
+  Widget _buildActiveMission(MissionWithProgress mwp) {
     return Card(
       color: DesignColors.surfaceHigh,
       child: Padding(
         padding: const EdgeInsets.all(24),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('CURRENT ROLE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white38)),
-                  const SizedBox(height: 12),
-                  const Text('Specialist', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                  const Text('Technical Support', style: TextStyle(fontSize: 14, color: Colors.white38)),
-                ],
-              ),
-            ),
-            Stack(
-              alignment: Alignment.center,
+            const Text('ACTIVE MISSION', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white38)),
+            const SizedBox(height: 16),
+            Text(mwp.mission.title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            Text(mwp.mission.description ?? '', style: const TextStyle(fontSize: 13, color: Colors.white70)),
+            const SizedBox(height: 24),
+            Row(
               children: [
-                SizedBox(
-                  width: 70,
-                  height: 70,
-                  child: CircularProgressIndicator(
-                    value: 0.75,
-                    strokeWidth: 6,
-                    backgroundColor: DesignColors.white05,
+                Expanded(
+                  child: LinearProgressIndicator(
+                    value: mwp.progress,
+                    backgroundColor: Colors.white10,
                     color: DesignColors.accentBlue,
+                    borderRadius: BorderRadius.circular(4),
                   ),
                 ),
-                const Column(
-                  children: [
-                    Text('75%', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
-                    Text('Growth', style: TextStyle(fontSize: 8, color: Colors.white38)),
-                  ],
-                ),
+                const SizedBox(width: 16),
+                Text('${(mwp.progress * 100).toInt()}%', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900)),
               ],
             ),
+            const SizedBox(height: 8),
+            Text('${mwp.completedTasks}/${mwp.totalTasks} tasks completed', style: const TextStyle(fontSize: 10, color: Colors.white24)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildPerformance(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('THIS WEEK', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white38)),
-        const SizedBox(height: 16),
-        _buildPerfRow('Tasks Completed', '18 / 25', 0.72, DesignColors.accentBlue),
-        const SizedBox(height: 20),
-        _buildPerfRow('Calls Handled', '12', 0.5, DesignColors.success),
-        const SizedBox(height: 20),
-        _buildPerfRow('Chats Handled', '26', 0.8, DesignColors.accentPurple),
-      ],
-    );
-  }
-
-  Widget _buildPerfRow(String label, String value, double progress, Color color) {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(label, style: const TextStyle(fontSize: 13, color: Colors.white70)),
-            Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-          ],
-        ),
-        const SizedBox(height: 8),
-        LinearProgressIndicator(
-          value: progress,
-          backgroundColor: DesignColors.white05,
-          color: color,
-          minHeight: 4,
-          borderRadius: BorderRadius.circular(2),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSkills(BuildContext context) {
-    final skills = ['Technical Support', 'Networking', 'Troubleshooting', 'Customer Service'];
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('SKILLS', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white38)),
-        const SizedBox(height: 16),
-        Wrap(
-          spacing: 8,
-          runSpacing: 12,
-          children: [
-            ...skills.map((s) => Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: DesignColors.surfaceHigh,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: DesignColors.white05),
-              ),
-              child: Text(s, style: const TextStyle(fontSize: 12, color: Colors.white70)),
-            )),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white10, style: BorderStyle.solid),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.add_rounded, size: 14, color: Colors.white24),
-                  SizedBox(width: 4),
-                  Text('Add Skill', style: TextStyle(fontSize: 12, color: Colors.white24)),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ],
+  Widget _buildMissionTile(MissionWithProgress mwp) {
+    return Card(
+      color: DesignColors.surface.withValues(alpha: 0.4),
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ListTile(
+        title: Text(mwp.mission.title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+        subtitle: Text(mwp.mission.status.toUpperCase(), style: const TextStyle(fontSize: 10, color: DesignColors.accentPurple, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+        trailing: Text('${(mwp.progress * 100).toInt()}%', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.white24)),
+      ),
     );
   }
 }
+
+final _missionsWithProgressProvider = FutureProvider<List<MissionWithProgress>>((ref) async {
+  return ref.watch(missionRepositoryProvider).getMissionsWithProgress();
+});

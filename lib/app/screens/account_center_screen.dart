@@ -5,7 +5,10 @@ import 'package:go_router/go_router.dart';
 import '../../core/providers/current_user_provider.dart';
 import '../../core/repositories/authentication_repository.dart';
 import '../../core/router/app_routes.dart';
+import '../../core/design_system/widgets/knight_circuit_shield.dart';
+import '../../core/internal/services/greeting_service.dart';
 import '../widgets/knight_page_scaffold.dart';
+import '../widgets/google_account_card.dart';
 
 class AccountCenterScreen extends ConsumerWidget {
   const AccountCenterScreen({super.key});
@@ -20,15 +23,18 @@ class AccountCenterScreen extends ConsumerWidget {
       showBackButton: true,
       body: currentUser.when(
         data: (user) => ListView(
+          padding: const EdgeInsets.all(16),
           children: [
             Card(
               child: ListTile(
-                leading: const CircleAvatar(child: Icon(Icons.person_rounded)),
-                title: Text(user.displayName),
+                leading: const KnightCircuitShield(size: 32, period: KnightDayPeriod.day),
+                title: const Text('Knight'),
                 subtitle: Text(user.profileSummary),
               ),
             ),
             const SizedBox(height: 16),
+            const GoogleAccountCard(),
+            const SizedBox(height: 24),
             ListTile(
               leading: const Icon(Icons.person_outline),
               title: const Text('Profile'),

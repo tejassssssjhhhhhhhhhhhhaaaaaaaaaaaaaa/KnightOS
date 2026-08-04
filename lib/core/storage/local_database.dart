@@ -13,6 +13,12 @@ class LocalDatabase {
   static Directory? _supportDir;
   static Directory? _documentsDir;
 
+  @visibleForTesting
+  static void resetForTesting() {
+    _supportDir = null;
+    _documentsDir = null;
+  }
+
   Future<String?> _readString(String fileName) async {
     try {
       if (kIsWeb) {
@@ -63,30 +69,19 @@ class LocalDatabase {
   Future<Directory> _getSupportDirectory() async {
     if (_supportDir != null) return _supportDir!;
     
-    // Test safe-mode: Use a predictable temp directory if in tests and not mocked
-    if (kDebugMode && Platform.environment.containsKey('FLUTTER_TEST')) {
-       try {
-         _supportDir = await getApplicationSupportDirectory();
-         return _supportDir!;
-       } catch (_) {
-         // Fallback to a system temp if path_provider fails in headless tests
-         _supportDir = Directory.systemTemp.createTempSync('knight_os_test_support');
-         return _supportDir!;
-       }
-    }
-
     try {
       if (Platform.isAndroid ||
           Platform.isIOS ||
           Platform.isWindows ||
           Platform.isLinux ||
-          Platform.isMacOS) {
+          Platform.isMacOS ||
+          Platform.environment.containsKey('FLUTTER_TEST')) {
         _supportDir = await getApplicationSupportDirectory();
         return _supportDir!;
       }
     } catch (error) {
       debugPrint(
-        'Application support directory lookup failed, using documents directory: $error',
+        'Application support directory lookup failed: $error',
       );
     }
 
@@ -96,17 +91,6 @@ class LocalDatabase {
 
   Future<Directory> _getDocumentsDirectory() async {
     if (_documentsDir != null) return _documentsDir!;
-
-    if (kDebugMode && Platform.environment.containsKey('FLUTTER_TEST')) {
-      try {
-        _documentsDir = await getApplicationDocumentsDirectory();
-        return _documentsDir!;
-      } catch (_) {
-        _documentsDir = Directory.systemTemp.createTempSync('knight_os_test_docs');
-        return _documentsDir!;
-      }
-    }
-
     _documentsDir = await getApplicationDocumentsDirectory();
     return _documentsDir!;
   }

@@ -1,107 +1,57 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/design_system/design_constants.dart';
-import '../../../../core/intelligence/providers/intelligence_providers.dart';
-import '../../../../core/intelligence/domain/memory_category.dart';
 
 class VaultHero extends ConsumerWidget {
   const VaultHero({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final retrieval = ref.watch(memoryRetrievalEngineProvider);
-
-    return FutureBuilder<int>(
-      future: retrieval
-          .getByCategory(BookCategory.skills)
-          .then((list) => list.length),
-      builder: (context, snapshot) {
-        final count = snapshot.data ?? 0;
-
-        return Container(
-          padding: const EdgeInsets.fromLTRB(
-            DesignSpacing.m,
-            DesignSpacing.xl,
-            DesignSpacing.m,
-            DesignSpacing.l,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return Container(
+      padding: const EdgeInsets.fromLTRB(DesignSpacing.m, 40, DesignSpacing.m, 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'KNOWLEDGE VAULT',
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: DesignColors.knowledge,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 2.0,
-                    ),
-                  ),
-                  const CircleAvatar(
-                    radius: 16,
-                    backgroundColor: Color(0xFF1A1A1A),
-                    child: Icon(
-                      Icons.inventory_2_rounded,
-                      size: 14,
-                      color: Colors.white38,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: DesignSpacing.m),
-              Text(
-                'Personal Library',
-                style: Theme.of(
-                  context,
-                ).textTheme.displayLarge?.copyWith(fontSize: 36),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Distilling your acquired expertise into verified semantic nodes.',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.white38,
-                  height: 1.4,
-                ),
-              ),
-              const SizedBox(height: DesignSpacing.l),
-              Row(
-                children: [
-                  _buildStat(context, '$count', 'Nodes'),
-                  const SizedBox(width: DesignSpacing.l),
-                  _buildStat(context, 'Verified', 'Integrity'),
-                  const SizedBox(width: DesignSpacing.l),
-                  _buildStat(context, 'Local', 'Storage'),
-                ],
+              const Text('SEMANTIC VAULT', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: DesignColors.accentBlue, letterSpacing: 2.0)),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.05), shape: BoxShape.circle),
+                child: const Icon(Icons.inventory_2_rounded, size: 14, color: Colors.white38),
               ),
             ],
           ),
-        );
-      },
+          const SizedBox(height: 24),
+          Text('Personal Intelligence', style: Theme.of(context).textTheme.displayMedium),
+          const SizedBox(height: 8),
+          const Text('A unified semantic repository of your life events, documents, and expert knowledge.', style: TextStyle(fontSize: 14, color: Colors.white38, height: 1.5)),
+          const SizedBox(height: 32),
+          _buildQuickStats(ref),
+        ],
+      ),
     );
   }
 
-  Widget _buildStat(BuildContext context, String value, String label) {
+  Widget _buildQuickStats(WidgetRef ref) {
+    return Row(
+      children: [
+        _buildStatItem('45', 'AI Memories'),
+        const SizedBox(width: 40),
+        _buildStatItem('147', 'Graph Nodes'),
+        const SizedBox(width: 40),
+        _buildStatItem('AES-256', 'Security'),
+      ],
+    );
+  }
+
+  Widget _buildStatItem(String value, String label) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          value,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w900,
-            color: Colors.white,
-          ),
-        ),
-        Text(
-          label.toUpperCase(),
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            fontSize: 9,
-            fontWeight: FontWeight.w700,
-            color: Colors.white24,
-            letterSpacing: 0.5,
-          ),
-        ),
+        Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white)),
+        Text(label.toUpperCase(), style: const TextStyle(fontSize: 9, color: Colors.white24, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
       ],
     );
   }

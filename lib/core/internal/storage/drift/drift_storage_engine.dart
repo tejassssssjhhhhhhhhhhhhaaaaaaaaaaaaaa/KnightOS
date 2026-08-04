@@ -11,6 +11,7 @@ class DriftStorageEngine implements StorageEngine {
   DriftStorageEngine({required KnightDatabase database}) : _db = database;
 
   final KnightDatabase _db;
+  KnightDatabase get database => _db;
 
   /// Singleton instance for transition period (incremental migration).
   static late final DriftStorageEngine instance;

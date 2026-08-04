@@ -45,7 +45,16 @@ void main() {
     });
 
     test('mutes non-critical notifications during working activity', () {
-      final workContext = mockContext.copyWith(isWorking: true);
+      final workContext = mockContext.copyWith(
+        workSummary: const KnightWorkSummary(
+          currentShiftPlaceholder: 'Working',
+          questions: 0,
+          calls: 0,
+          chats: 0,
+          dailyTarget: 0,
+          productivityPlaceholder: 'Focus Mode Active',
+        ),
+      );
       
       final notifs = engine.evaluateReasoning(mockReasoning, workContext);
       
@@ -78,39 +87,4 @@ KnightContext _getMockContext() {
       healthSummary: '',
       weather: '',
     );
-}
-
-extension on KnightContext {
-  KnightContext copyWith({bool? isWorking}) {
-    return KnightContext(
-      registeredModules: registeredModules,
-      currentScores: currentScores,
-      analyticsSummary: analyticsSummary,
-      recommendationSummary: recommendationSummary,
-      recentActivity: recentActivity,
-      searchSummary: searchSummary,
-      moduleHealth: moduleHealth,
-      lastSyncTime: lastSyncTime,
-      healthStatus: healthStatus,
-      dataFreshness: dataFreshness,
-      applicationVersion: applicationVersion,
-      fitnessSummary: fitnessSummary,
-      travelSummary: travelSummary,
-      workSummary: KnightWorkSummary(
-        currentShiftPlaceholder: '',
-        questions: 0,
-        calls: 0,
-        chats: 0,
-        dailyTarget: 0,
-        productivityPlaceholder: isWorking == true ? 'Focus Mode Active' : 'Idle',
-      ),
-      timestamp: timestamp,
-      greeting: greeting,
-      sleepStatus: sleepStatus,
-      upcomingEvents: upcomingEvents,
-      currentGoals: currentGoals,
-      healthSummary: healthSummary,
-      weather: weather,
-    );
-  }
 }

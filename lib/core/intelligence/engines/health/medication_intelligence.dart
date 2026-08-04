@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import '../../domain/health_models.dart';
 import '../../domain/intelligence_models.dart';
 import '../../domain/cognitive_models.dart';
@@ -37,7 +38,7 @@ class MedicationIntelligence {
       'adherenceRate': adherenceRate,
       'totalScheduled': last30Days.length,
       'missedCount': last30Days.length - adherenceCount,
-      'latestMedication': last30Days.first.medicineName,
+      'latestMedication': last30Days.firstOrNull?.medicineName ?? 'N/A',
     };
   }
 

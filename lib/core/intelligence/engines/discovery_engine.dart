@@ -24,11 +24,11 @@ class DiscoveryEngine {
         .getPendingVerifications();
 
     // Prioritize critical verifications (priority < 20)
-    final criticalVerifications = pendingVerifications
+    final critical = pendingVerifications
         .where((v) => v.priority < 20)
-        .toList();
-    if (criticalVerifications.isNotEmpty) {
-      return criticalVerifications.first; // Return VerificationMission
+        .firstOrNull;
+    if (critical != null) {
+      return critical; // Return VerificationMission
     }
 
     // 2. Standard Discovery Question
@@ -38,11 +38,7 @@ class DiscoveryEngine {
     }
 
     // 3. Fallback to low-priority verifications
-    if (pendingVerifications.isNotEmpty) {
-      return pendingVerifications.first;
-    }
-
-    return null;
+    return pendingVerifications.firstOrNull;
   }
 
   Future<DiscoveryQuestion?> _getNextDiscoveryQuestion() async {
@@ -75,7 +71,7 @@ class DiscoveryEngine {
     potentialQuestions.sort(
       (a, b) => a.priority.index.compareTo(b.priority.index),
     );
-    return potentialQuestions.first;
+    return potentialQuestions.firstOrNull;
   }
 
   /// Records an answer as a structured memory.

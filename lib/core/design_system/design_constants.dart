@@ -64,8 +64,8 @@ class DesignGradients {
 
   static LinearGradient get glass => LinearGradient(
     colors: [
-      Colors.white.withOpacity(0.08),
-      Colors.white.withOpacity(0.02),
+      Colors.white.withValues(alpha: 0.08),
+      Colors.white.withValues(alpha: 0.02),
     ],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
@@ -91,10 +91,10 @@ class DesignRadius {
   static const double xl = 32.0;
   static const double xxl = 48.0;
 
-  static BorderRadius get card => BorderRadius.circular(l);
-  static BorderRadius get pill => BorderRadius.circular(100);
-  static BorderRadius get sheet =>
-      const BorderRadius.vertical(top: Radius.circular(xl));
+  static const BorderRadius card = BorderRadius.all(Radius.circular(l));
+  static const BorderRadius pill = BorderRadius.all(Radius.circular(100));
+  static const BorderRadius sheet =
+      BorderRadius.vertical(top: Radius.circular(xl));
 }
 
 class DesignAnimations {
@@ -110,7 +110,7 @@ class DesignShadows {
 
   static List<BoxShadow> get soft => [
     BoxShadow(
-      color: Colors.black.withOpacity(0.5),
+      color: Colors.black.withValues(alpha: 0.5),
       blurRadius: 30,
       offset: const Offset(0, 10),
     ),
@@ -126,7 +126,7 @@ class DesignShadows {
 
   static List<BoxShadow> get glowBlue => [
     BoxShadow(
-      color: DesignColors.accentBlue.withOpacity(0.3),
+      color: DesignColors.accentBlue.withValues(alpha: 0.3),
       blurRadius: 20,
       spreadRadius: 2,
     ),
@@ -134,7 +134,7 @@ class DesignShadows {
 
   static List<BoxShadow> get subtle => [
     BoxShadow(
-      color: Colors.black.withOpacity(0.2),
+      color: Colors.black.withValues(alpha: 0.2),
       blurRadius: 20,
       offset: const Offset(0, 10),
     ),
@@ -142,7 +142,7 @@ class DesignShadows {
 
   static List<BoxShadow> get highImpact => [
     BoxShadow(
-      color: DesignColors.accentBlue.withOpacity(0.1),
+      color: DesignColors.accentBlue.withValues(alpha: 0.1),
       blurRadius: 40,
       offset: const Offset(0, 0),
     ),

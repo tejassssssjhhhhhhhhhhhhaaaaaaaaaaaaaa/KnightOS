@@ -29,34 +29,34 @@ void main() {
         featureModules: [],
         timestamp: DateTime(2026, 7, 28, 8, 0),
       );
-      expect(morning.greeting, 'Morning');
+      expect(morning.greeting, contains('Morning'));
 
       // Afternoon: 12:00 - 16:59
       final afternoon = service.buildContext(
         featureModules: [],
         timestamp: DateTime(2026, 7, 28, 14, 0),
       );
-      expect(afternoon.greeting, 'Afternoon');
+      expect(afternoon.greeting, contains('Afternoon'));
 
       // Evening: 17:00 - 20:59
       final evening = service.buildContext(
         featureModules: [],
         timestamp: DateTime(2026, 7, 28, 19, 0),
       );
-      expect(evening.greeting, 'Evening');
+      expect(evening.greeting, contains('Evening'));
 
       // Night: 21:00 - 4:59
       final night = service.buildContext(
         featureModules: [],
         timestamp: DateTime(2026, 7, 28, 23, 0),
       );
-      expect(night.greeting, 'Night');
+      expect(night.greeting, contains('Night'));
       
       final lateNight = service.buildContext(
         featureModules: [],
         timestamp: DateTime(2026, 7, 28, 2, 0),
       );
-      expect(lateNight.greeting, 'Night');
+      expect(lateNight.greeting, contains('Night'));
     });
 
     test('buildContext allows overriding life context fields', () {

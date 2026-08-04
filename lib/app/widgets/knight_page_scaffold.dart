@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-
-import '../../core/design_system/design_constants.dart';
-import '../../core/design_system/widgets/knight_background.dart';
-import '../../core/internal/utils/knight_logger.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/router/app_routes.dart';
+import '../../core/theme/knight_theme_provider.dart';
+import 'knight_circuit_shield_header.dart'; // Future refinement
 
-class KnightPageScaffold extends StatelessWidget {
+class KnightPageScaffold extends ConsumerWidget {
   const KnightPageScaffold({
     required this.body,
     this.title,
@@ -25,81 +24,69 @@ class KnightPageScaffold extends StatelessWidget {
   final FloatingActionButtonLocation? floatingActionButtonLocation;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    KnightLogger.info('[UI] KnightPageScaffold build() - Start title: $title', category: KnightLogCategory.ui);
+    final canPop = Navigator.of(context).canPop();
+    final accentColor = ref.watch(adaptiveAccentProvider);
 
-    final result = Scaffold(
-      backgroundColor: DesignColors.background,
+    return Scaffold(
+      backgroundColor: Colors.transparent, // Inherit from Global Root
+      extendBodyBehindAppBar: true,
       floatingActionButton: floatingActionButton,
       floatingActionButtonLocation: floatingActionButtonLocation,
-      appBar: title == null
-          ? null
-          : AppBar(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              centerTitle: false,
-              leading: showBackButton
-                  ? IconButton(
-                      onPressed: () {
-                        if (Navigator.of(context).canPop()) {
-                          context.pop();
-                        } else {
-                          context.go(AppRoutes.home);
-                        }
-                      },
-                      icon: const Icon(
-                        Icons.arrow_back_ios_new_rounded,
-                        size: 18,
-                      ),
-                      tooltip: 'Back',
-                    )
-                  : Padding(
-                      padding: const EdgeInsets.only(left: 16.0),
-                      child: Center(
-                        child: Text(
-                          'K',
-                          style: theme.textTheme.headlineMedium?.copyWith(
-                            color: DesignColors.accentBlue,
-                            fontFamily: 'Serif', // Placeholder for brand font
-                          ),
-                        ),
-                      ),
-                    ),
-              title: Text(
-                title!.toUpperCase(),
-                style: theme.textTheme.labelLarge?.copyWith(
-                  color: DesignColors.primary,
-                  letterSpacing: 3.0,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: false,
+        leading: showBackButton
+            ? IconButton(
+                onPressed: () {
+                  if (canPop) {
+                    context.pop();
+                  } else {
+                    context.go(AppRoutes.home);
+                  }
+                },
+                icon: Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  size: 18,
+                  color: accentColor,
                 ),
+                tooltip: 'Back',
+              )
+            : const Padding(
+                padding: EdgeInsets.only(left: 20),
+                child: Center(child: KnightCircuitShieldHeader()),
               ),
-              actions: [
-                ...?actions,
-                IconButton(
-                  onPressed: () => context.push(AppRoutes.settings),
-                  icon: const Icon(Icons.settings_outlined, size: 20),
-                  tooltip: 'System Settings',
-                ),
-                const SizedBox(width: 8),
-              ],
-            ),
-      body: KnightBackground(
-        child: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              KnightLogger.info('[UI] KnightPageScaffold body LayoutBuilder constraints: $constraints', category: KnightLogCategory.ui);
-              return Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 800),
-                  child: body,
-                ),
-              );
-            },
+        title: title != null 
+          ? Text(
+              title!.toUpperCase(),
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: Colors.white,
+                letterSpacing: 4.0,
+                fontWeight: FontWeight.w900,
+              ),
+            )
+          : null,
+        actions: [
+          ...?actions,
+          IconButton(
+            onPressed: () => context.push(AppRoutes.settings),
+            icon: Icon(Icons.settings_outlined, size: 20, color: accentColor.withValues(alpha: 0.5)),
+            tooltip: 'System Settings',
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
+      body: SafeArea(
+        bottom: false, 
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 800),
+            child: body,
           ),
         ),
       ),
     );
-    KnightLogger.info('[UI] KnightPageScaffold build() - End', category: KnightLogCategory.ui);
-    return result;
   }
 }

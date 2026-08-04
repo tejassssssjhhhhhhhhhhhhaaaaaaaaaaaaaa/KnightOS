@@ -5,7 +5,7 @@ import '../../domain/memory_category.dart';
 import '../memory_retrieval_engine.dart';
 import '../synthesis_engine.dart';
 
-class SynthesisModule implements IntelligenceModule {
+class SynthesisModule extends IntelligenceModule {
   SynthesisModule({
     required this.retrieval,
     required this.synthesisEngine,

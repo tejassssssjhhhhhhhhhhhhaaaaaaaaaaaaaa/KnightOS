@@ -5,7 +5,7 @@ import 'package:knight_os/app/screens/auth_screen.dart';
 import 'package:knight_os/core/repositories/authentication_repository.dart';
 import 'package:knight_os/core/internal/storage/drift/knight_database.dart';
 import 'package:knight_os/core/providers/storage_providers.dart';
-import 'package:knight_os/core/intelligence/providers/intelligence_providers.dart';
+import 'package:knight_os/core/providers/database_provider.dart';
 import 'package:drift/native.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'test_utils/mock_path_provider.dart';

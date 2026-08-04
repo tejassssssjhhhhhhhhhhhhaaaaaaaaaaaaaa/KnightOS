@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:drift/drift.dart';
-import '../../../internal/storage/drift/knight_database.dart';
+import 'package:knight_os/core/internal/storage/drift/knight_database.dart';
 import '../knight_memory.dart';
 import '../memory_metadata.dart';
 import '../memory_version.dart';
@@ -61,7 +61,7 @@ class DriftMemoryRepository implements MemoryRepository {
     final companions = memories.map(_mapToCompanion).toList();
     await _dao.saveBatchWithVersioning(companions);
 
-    // Save attachments in bulk if needed (Future improvement: bulk attach in DAO)
+    // Save attachments in bulk if needed
     for (final memory in memories) {
       for (final link in memory.sourceLinks) {
         await _dao.attach(
@@ -80,8 +80,14 @@ class DriftMemoryRepository implements MemoryRepository {
   }
 
   @override
+  Future<List<KnightMemory>> searchByDateRange(DateTime start, DateTime end) async {
+    final list = await _dao.getByDateRange(start, end);
+    return await _mapList(list);
+  }
+
+  @override
   Future<void> delete(String memoryId) async {
-    // Soft delete or hard delete based on policy. v1.0 architecture suggests immutability.
+    // Soft delete or hard delete based on policy.
   }
 
   @override
@@ -142,30 +148,17 @@ class DriftMemoryRepository implements MemoryRepository {
   Future<List<KnightMemory>> _mapList(List<MemoryTableData> list) async {
     if (list.isEmpty) return [];
 
-    final List<String> memoryIds = list.map((d) => d.id).toList();
-    final attachments = await _dao.getAttachmentsForMemories(memoryIds);
-    final Map<String, List<AttachmentTableData>> attachmentMap = {};
-
-    for (final a in attachments) {
-      attachmentMap.putIfAbsent(a.memoryId, () => []).add(a);
-    }
-
     final List<KnightMemory> result = [];
     for (final data in list) {
-      result.add(_mapToDomainSync(data, attachmentMap[data.id] ?? []));
+      result.add(await _mapToDomain(data));
     }
     return result;
   }
 
   Future<KnightMemory> _mapToDomain(MemoryTableData data) async {
     final attachments = await _dao.getAttachments(data.id);
-    return _mapToDomainSync(data, attachments);
-  }
-
-  KnightMemory _mapToDomainSync(
-    MemoryTableData data,
-    List<AttachmentTableData> attachments,
-  ) {
+    final relations = await _dao.getRelations(data.memoryId);
+    
     return KnightMemory(
       metadata: MemoryMetadata(
         memoryId: data.memoryId,
@@ -206,7 +199,14 @@ class DriftMemoryRepository implements MemoryRepository {
       sourceLinks: attachments
           .map((a) => SourceLink(caid: a.caid, fragment: a.fragment))
           .toList(),
-      relationships: [], // TODO: Fetch relationships if needed
+      relationships: relations.map((rel) => MemoryRelation(
+        id: rel.id,
+        sourceId: rel.sourceId,
+        targetId: rel.targetId,
+        type: MemoryRelationType.values.byName(rel.type),
+        strength: rel.strength,
+        createdAt: rel.createdAt,
+      )).toList(),
     );
   }
 
@@ -227,22 +227,6 @@ class DriftMemoryRepository implements MemoryRepository {
       source: Value(memory.metadata.source.name),
       provenance: Value(memory.metadata.provenance),
       version: Value(memory.version.versionNumber),
-      changeType: Value(memory.version.changeType.name),
-      reasoning: Value(memory.version.reasoning),
-      delta: Value(
-        memory.version.delta.isNotEmpty
-            ? jsonEncode(memory.version.delta)
-            : null,
-      ),
-      effectiveAt: Value(memory.metadata.effectiveAt),
-      recordedAt: Value(memory.metadata.recordedAt),
-      updatedAt: Value(DateTime.now()), // Update timestamp on save
-      lastVerifiedAt: Value(memory.metadata.lastVerifiedAt),
-      verificationHistory: Value(
-        memory.metadata.verificationHistory.isNotEmpty
-            ? jsonEncode(memory.metadata.verificationHistory)
-            : null,
-      ),
       prevVersionId: Value(memory.version.previousVersionId),
       verified: Value(memory.metadata.verified),
       questionId: Value(memory.metadata.questionId),
@@ -254,6 +238,17 @@ class DriftMemoryRepository implements MemoryRepository {
             ? jsonEncode(memory.metadata.embedding)
             : null,
       ),
+      effectiveAt: Value(memory.metadata.effectiveAt),
+      updatedAt: Value(memory.metadata.updatedAt),
+      lastVerifiedAt: Value(memory.metadata.lastVerifiedAt),
+      verificationHistory: Value(
+        memory.metadata.verificationHistory.isNotEmpty
+            ? jsonEncode(memory.metadata.verificationHistory)
+            : null,
+      ),
+      changeType: Value(memory.version.changeType.name),
+      reasoning: Value(memory.version.reasoning),
+      delta: Value(jsonEncode(memory.version.delta)),
     );
   }
 }

@@ -28,6 +28,12 @@ class EvidenceTable extends KnightTable {
   /// Extracted JSON data (OCR, EXIF, etc.).
   TextColumn get extractionData => text().withDefault(const Constant('{}'))();
 
+  TextColumn get verificationStatus => text().withDefault(const Constant('pending'))();
+  TextColumn get domain => text().withDefault(const Constant('personal'))();
+  TextColumn get privacyLevel => text().withDefault(const Constant('personal'))();
+  RealColumn get confidence => real().withDefault(const Constant(0.5))();
+  TextColumn get auditHistory => text().withDefault(const Constant('[]'))();
+
   @override
   Set<Column> get primaryKey => {caid};
 }

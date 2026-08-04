@@ -27,6 +27,9 @@ abstract class MemoryRepository {
   /// Searches memories by tags or keywords.
   Future<List<KnightMemory>> search(String query);
 
+  /// Searches memories by date range.
+  Future<List<KnightMemory>> searchByDateRange(DateTime start, DateTime end);
+
   /// Deletes a memory chain (Admin/Owner only).
   Future<void> delete(String memoryId);
 
@@ -52,6 +55,6 @@ abstract class MemoryRepository {
   /// Watches all current facts for a specific domain.
   Stream<List<KnightMemory>> watchByDomain(MemoryDomain domain);
 
-  /// Watches all current facts for a specific book category.
+  /// Watches all current facts for a specific category.
   Stream<List<KnightMemory>> watchByCategory(BookCategory category);
 }

@@ -128,9 +128,8 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verify UI components after data hydration
-    expect(find.text('OPERATIONAL COMMAND'), findsOneWidget);
-    expect(find.text('FOCUS SCORE'), findsOneWidget);
-    expect(find.text('87%'), findsOneWidget);
-    expect(find.text('Test Goal'), findsOneWidget);
+    expect(find.text('Morning'), findsOneWidget);
+    expect(find.text('SYSTEM SNAPSHOT'), findsOneWidget);
+    expect(find.text('8000 Steps'), findsOneWidget);
   });
 }

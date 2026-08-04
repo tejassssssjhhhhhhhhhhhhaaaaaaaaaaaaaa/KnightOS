@@ -1,168 +1,154 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../internal/storage/drift/knight_database.dart';
-import '../domain/repositories/memory_repository.dart';
-import '../domain/repositories/evidence_repository.dart';
-import '../domain/repositories/drift_memory_repository.dart';
-import '../domain/repositories/drift_evidence_repository.dart';
-import '../services/json_validation_service.dart';
-import '../services/memory_migration_service.dart';
-import '../engines/memory_engine.dart';
-import '../engines/ai_provider.dart';
-import '../engines/intent_engine.dart';
-import '../engines/reasoning_engine.dart';
-import '../services/reasoning_service.dart';
-import '../engines/graph/causal_reasoning_engine.dart';
-import '../engines/planning_engine.dart';
-import '../services/planning_service.dart';
-import '../services/copilot_service.dart';
-import '../engines/plugin_manager.dart';
-import '../services/plugin_service.dart';
-import '../engines/goal_intelligence.dart';
-import '../engines/reflection_engine.dart';
-import '../engines/insight_engine.dart';
-import '../engines/identity_engine.dart';
-import '../engines/context_engine.dart';
-import '../engines/knowledge_graph.dart';
-import '../engines/confidence_engine.dart';
-import '../engines/decision_engine.dart';
-import '../engines/rules_engine.dart';
-import '../engines/world_engine.dart';
-import '../engines/autonomous_engine.dart';
-import '../engines/multi_device_manager.dart';
-import '../engines/workflow_orchestrator.dart';
-import '../engines/unified_search_layer.dart';
-import '../engines/synthesis_engine.dart';
-import '../services/search_service.dart';
-import '../services/voice_service.dart';
-import '../engines/optimization_engine.dart';
-import '../engines/notification_engine.dart';
-import '../services/world_service.dart';
-import '../services/notification_service.dart';
-import '../services/autonomous_service.dart';
-import '../../world/adapters/mock_connectors.dart';
-import '../../world/adapters/calendar_connector.dart';
-import '../../world/adapters/email_connector.dart';
-import '../../world/adapters/weather_connector.dart';
-import '../../world/adapters/real_world_clients.dart';
-import '../../world/adapters/real_world_mocks.dart';
-import '../services/perception_scheduler.dart';
-import '../engines/ai_router.dart';
-import '../engines/multi_ai_providers.dart';
-import '../domain/ai_models.dart';
-import '../domain/intelligence_events.dart';
-import '../domain/workflow_models.dart';
-import '../domain/approval_models.dart';
-import '../domain/device_models.dart';
-import '../engines/life_chapters_engine.dart';
-import '../engines/memory_health_engine.dart';
+import '../../providers/database_provider.dart';
+
+// Engines
 import '../engines/discovery_engine.dart';
+import '../engines/intent_engine.dart';
+import '../engines/context_engine.dart';
+import '../engines/reasoning_engine.dart';
+import '../engines/planning_engine.dart';
+import '../engines/optimization_engine.dart';
+import '../engines/ai_router.dart';
+import '../engines/memory_engine.dart';
 import '../engines/verification_engine.dart';
 import '../engines/observation_engine.dart';
-import '../services/data_ingestion_service.dart';
-import '../importers/import_framework.dart';
-import '../knight_cognition.dart';
-import '../../../features/discovery/infrastructure/question_bank_loader.dart';
-import '../../../features/finance/memory_finance_service.dart';
-import '../services/memory_service.dart';
-import '../intelligence_bus.dart';
-import '../intelligence_orchestrator.dart';
-import '../intelligence_platform.dart';
+import '../engines/world_engine.dart';
 import '../engines/memory_retrieval_engine.dart';
-import '../engines/modules/world_context_module.dart';
-import '../engines/modules/daily_briefing_module.dart';
-import '../engines/modules/predictive_module.dart';
-import '../engines/modules/insight_module.dart';
-import '../engines/modules/mission_module.dart';
-import '../engines/modules/synthesis_module.dart';
-import '../engines/modules/recommendation_module.dart';
+import '../engines/autonomous_engine.dart';
+import '../engines/sensor_fusion_engine.dart';
+import '../engines/perception_engine.dart';
+import '../engines/local_llm_engine.dart';
+import '../engines/wasm_reasoning_runtime.dart';
 import '../engines/modules/health_module.dart';
-import '../engines/modules/knowledge_module.dart';
-import '../engines/modules/knowledge_graph_module.dart';
-import '../services/embedding_service.dart';
+import '../engines/modules/mission_module.dart';
+import '../engines/modules/work_module.dart';
+import '../engines/modules/finance_module.dart';
+import '../engines/modules/career_strategic_module.dart';
+import '../engines/strategic/gap_analysis_engine.dart';
+import '../engines/workspace_extraction_engine.dart';
+
+// Platform Engines
+import '../../platform/engine/scoring_engine.dart';
+import '../../platform/engine/recommendation_engine.dart';
+import '../../platform/engine/analytics_engine.dart';
+import '../../platform/engine/engine_interfaces.dart';
+import '../../platform/engine/knight_engine.dart'; // For PlatformEventBus
+import '../../platform/engine/edge_ai_orchestrator.dart';
+
+// Services
+import '../services/activity_feed_repository.dart';
+import '../services/perception_scheduler.dart';
+import '../services/planning_service.dart';
+import '../services/reasoning_service.dart';
+import '../services/voice_service.dart';
+import '../services/world_service.dart';
+import '../services/data_provider_registry.dart';
+import '../services/priority_engine.dart';
+import '../services/json_validation_service.dart';
+import '../services/autonomous_service.dart'; 
+import '../services/memory_service.dart';
+import '../services/dataset_verification_service.dart';
+import '../services/email_classification_service.dart';
+
+// Internal/Services
+import '../../internal/services/greeting_service.dart';
+
+// Domain/Infrastructure
+import '../intelligence_bus.dart';
+import '../intelligence_platform.dart';
+import '../intelligence_orchestrator.dart';
+import '../knight_cognition.dart';
 import '../knight_context_provider.dart';
-import '../../world/engines/device_intelligence.dart';
+import '../domain/repositories/memory_repository.dart';
+import '../domain/repositories/drift_memory_repository.dart';
+import '../qa/knight_ai_test_suite.dart';
+import '../../../../features/discovery/infrastructure/question_bank_loader.dart';
+import '../domain/cognitive_models.dart';
+import '../../repositories/system_integrity_repository.dart'; 
+import '../../repositories/mission_repository.dart'; 
+import '../../repositories/health_repository.dart'; 
+import '../domain/data_provider.dart';
 
-/// Provider for the Intelligence Bus.
+// Data Infrastructure
+import 'data_providers.dart';
+
+export 'data_providers.dart';
+
+import '../engines/ai_provider.dart';
+import '../domain/ai_models.dart';
+
+// (Infrastructure)
+
 final intelligenceBusProvider = Provider<IntelligenceBus>((ref) {
-  return IntelligenceBus();
+  final bus = IntelligenceBus();
+  ref.onDispose(() => bus.dispose());
+  return bus;
 });
 
-/// Provider for the Embedding Service.
-final embeddingServiceProvider = Provider<EmbeddingService>((ref) {
-  return EmbeddingService();
+/// Adapter to provide ref as KnightServiceProvider
+class RiverpodServiceProvider implements KnightServiceProvider {
+  RiverpodServiceProvider(this.ref);
+  final Ref ref;
+
+  @override
+  void register<T>(T implementation, {String? key}) {
+    // Riverpod is the registry
+  }
+
+  @override
+  T resolve<T>({String? key}) {
+    if (T == IntelligenceBus) return ref.read(intelligenceBusProvider) as T;
+    throw UnimplementedError('Cannot resolve $T via RiverpodServiceProvider');
+  }
+}
+
+final knightServiceProvider = Provider<KnightServiceProvider>((ref) {
+  return RiverpodServiceProvider(ref);
 });
 
-/// Provider for the Memory Retrieval Engine.
-final memoryRetrievalEngineProvider = Provider<MemoryRetrievalEngine>((ref) {
-  return MemoryRetrievalEngine(memoryEngine: ref.watch(memoryEngineProvider));
+final platformEventBusProvider = Provider<KnightEventBus>((ref) {
+  return PlatformEventBus(intelligenceBus: ref.watch(intelligenceBusProvider));
 });
 
-/// Provider for the Knowledge Module.
-final knowledgeModuleProvider = Provider<KnowledgeModule>((ref) {
-  return KnowledgeModule(
-    retrieval: ref.watch(memoryRetrievalEngineProvider),
-    memoryEngine: ref.watch(memoryEngineProvider),
-    embeddingService: ref.watch(embeddingServiceProvider),
+final edgeAiOrchestratorProvider = Provider<EdgeAiOrchestrator>((ref) {
+  return EdgeAiOrchestrator();
+});
+
+final localLlmEngineProvider = Provider<LocalLlmEngine>((ref) {
+  return LocalLlmEngine(runtime: WasmReasoningRuntime());
+});
+
+final sensorFusionEngineProvider = Provider<SensorFusionEngine>((ref) {
+  return SensorFusionEngine();
+});
+
+final perceptionEngineProvider = NotifierProvider<PerceptionEngine, String>(PerceptionEngine.new);
+
+final workspaceExtractionEngineProvider = Provider<WorkspaceExtractionEngine>((ref) {
+  return WorkspaceExtractionEngine();
+});
+
+// Production Engines
+
+final scoringEngineProvider = Provider<PlatformScoringEngine>((ref) {
+  return PlatformScoringEngine(
+    eventBus: ref.watch(platformEventBusProvider),
   );
 });
 
-/// Provider for the Knowledge Graph Module.
-final knowledgeGraphModuleProvider = Provider<KnowledgeGraphModule>((ref) {
-  return KnowledgeGraphModule(
-    retrieval: ref.watch(memoryRetrievalEngineProvider),
-    memoryEngine: ref.watch(memoryEngineProvider),
+final recommendationEngineProvider = Provider<PlatformRecommendationEngine>((ref) {
+  return PlatformRecommendationEngine(
+    eventBus: ref.watch(platformEventBusProvider),
+    graphService: ref.read(knowledgeGraphServiceProvider), // Use read if it might not be ready
   );
 });
 
-/// Provider for the Mission Module.
-final missionModuleProvider = Provider<MissionModule>((ref) {
-  return MissionModule(
-    retrieval: ref.watch(memoryRetrievalEngineProvider),
-    memoryEngine: ref.watch(memoryEngineProvider),
+final analyticsEngineProvider = Provider<AnalyticsEngine>((ref) {
+  return AnalyticsEngine(
+    eventBus: ref.watch(platformEventBusProvider),
   );
 });
 
-/// Provider for the Intelligence Orchestrator.
-final intelligenceOrchestratorProvider = Provider<IntelligenceOrchestrator>((
-  ref,
-) {
-  final orchestrator = IntelligenceOrchestrator(
-    bus: ref.watch(intelligenceBusProvider),
-    memoryEngine: ref.watch(memoryEngineProvider),
-  );
-
-  // Register Modules
-  final retrieval = ref.watch(memoryRetrievalEngineProvider);
-
-  orchestrator.registerModule(
-    WorldContextModule(
-      retrieval: retrieval,
-      deviceIntelligence: DeviceIntelligence(), // Future: Inject properly
-    ),
-  );
-
-  orchestrator.registerModule(HealthModule(retrieval: retrieval));
-  orchestrator.registerModule(ref.watch(knowledgeModuleProvider));
-  orchestrator.registerModule(ref.watch(knowledgeGraphModuleProvider));
-  orchestrator.registerModule(DailyBriefingModule(retrieval: retrieval));
-  orchestrator.registerModule(PredictiveModule(retrieval: retrieval));
-  orchestrator.registerModule(InsightModule(retrieval: retrieval));
-  orchestrator.registerModule(ref.watch(missionModuleProvider));
-  orchestrator.registerModule(
-    SynthesisModule(
-      retrieval: retrieval,
-      synthesisEngine: SynthesisEngine(
-        retrieval: retrieval,
-        knowledgeGraph: KnowledgeGraph(memoryEngine: ref.watch(memoryEngineProvider)),
-      ),
-    ),
-  );
-  orchestrator.registerModule(RecommendationModule(retrieval: retrieval));
-
-  return orchestrator;
-});
-
-/// Provider for the Intelligence Platform facade.
 final intelligencePlatformProvider = Provider<IntelligencePlatform>((ref) {
   return IntelligencePlatform(
     bus: ref.watch(intelligenceBusProvider),
@@ -172,33 +158,92 @@ final intelligencePlatformProvider = Provider<IntelligencePlatform>((ref) {
   );
 });
 
-/// Provider for the singleton database instance.
-final knightDatabaseProvider = Provider<KnightDatabase>((ref) {
-  final db = KnightDatabase();
-  ref.onDispose(() => db.close());
-  return db;
+final intelligenceOrchestratorProvider = Provider<IntelligenceOrchestrator>((ref) {
+  final orchestrator = IntelligenceOrchestrator(
+    bus: ref.watch(intelligenceBusProvider),
+    memoryEngine: ref.watch(memoryEngineProvider),
+    scoringEngine: ref.watch(scoringEngineProvider),
+    recommendationEngine: ref.watch(recommendationEngineProvider),
+    analyticsEngine: ref.watch(analyticsEngineProvider),
+    edgeAi: ref.watch(edgeAiOrchestratorProvider),
+  );
+
+  // Register built-in modules
+  orchestrator.registerModule(HealthModule(
+    retrieval: ref.watch(memoryRetrievalEngineProvider),
+    db: ref.watch(knightDatabaseProvider),
+    graphService: ref.watch(knowledgeGraphServiceProvider),
+    verificationEngine: ref.watch(verificationEngineProvider),
+  ));
+
+  orchestrator.registerModule(MissionModule(
+    retrieval: ref.watch(memoryRetrievalEngineProvider),
+    memoryEngine: ref.watch(memoryEngineProvider),
+  ));
+
+  orchestrator.registerModule(WorkModule(
+    db: ref.watch(knightDatabaseProvider),
+  ));
+
+  orchestrator.registerModule(FinanceModule(
+    db: ref.watch(knightDatabaseProvider),
+    graphService: ref.watch(knowledgeGraphServiceProvider),
+  ));
+
+  orchestrator.registerModule(CareerStrategicModule(
+    retrieval: ref.watch(memoryRetrievalEngineProvider),
+    memoryEngine: ref.watch(memoryEngineProvider),
+    gapEngine: GapAnalysisEngine(memoryEngine: ref.watch(memoryEngineProvider)),
+  ));
+
+  return orchestrator;
 });
 
-/// Provider for the Memory Repository.
+final jsonValidationServiceProvider = Provider<JsonValidationService>((ref) {
+  return JsonValidationService(schemaDirectory: 'assets/schemas');
+});
+
 final memoryRepositoryProvider = Provider<MemoryRepository>((ref) {
   final db = ref.watch(knightDatabaseProvider);
   return DriftMemoryRepository(memoryDao: db.memoryDao);
 });
 
-/// Provider for the Evidence Repository.
-final evidenceRepositoryProvider = Provider<EvidenceRepository>((ref) {
-  final db = ref.watch(knightDatabaseProvider);
-  return DriftEvidenceRepository(evidenceDao: db.evidenceDao);
+// (Engines)
+
+final intentEngineProvider = Provider<IntentEngine>((ref) => const IntentEngine());
+
+final contextEngineProvider = Provider<ContextEngine>((ref) {
+  return ContextEngine(memoryEngine: ref.watch(memoryEngineProvider));
 });
 
-/// Provider for the JSON Validation Service.
-final jsonValidationServiceProvider = Provider<JsonValidationService>((ref) {
-  return JsonValidationService(
-    schemaDirectory: 'knight_knowledge_base/schemas/master_memory',
+final reasoningEngineProvider = Provider<ReasoningEngine>((ref) {
+  return ReasoningEngine(llmEngine: ref.watch(localLlmEngineProvider));
+});
+
+final optimizationEngineProvider = Provider<OptimizationEngine>((ref) {
+  return OptimizationEngine(bus: ref.watch(intelligenceBusProvider));
+});
+
+final aiRouterHighLevelProvider = Provider<AiRouter>((ref) {
+  final router = AiRouter();
+  final mock = MockAiProvider();
+  router.registerProvider(mock, const ModelManifest(
+    id: 'mock-knight-v1',
+    name: 'Knight Mock',
+    capabilities: [AiCapability.fast, AiCapability.precise],
+    providerName: 'Mock',
+  ));
+  return router;
+});
+
+final planningEngineProvider = Provider<PlanningEngine>((ref) {
+  final router = ref.watch(aiRouterHighLevelProvider);
+  return PlanningEngine(
+    aiProvider: router.selectProvider(KnightIntent.planning),
+    optimizationEngine: ref.watch(optimizationEngineProvider),
   );
 });
 
-/// The central Intelligence Engine for KnightOS.
 final memoryEngineProvider = Provider<MemoryEngine>((ref) {
   return MemoryEngine(
     repository: ref.watch(memoryRepositoryProvider),
@@ -207,98 +252,39 @@ final memoryEngineProvider = Provider<MemoryEngine>((ref) {
   );
 });
 
-/// Provider for the Unified Memory Service.
-final memoryServiceProvider = Provider<MemoryService>((ref) {
-  return MemoryService(memoryEngine: ref.watch(memoryEngineProvider));
-});
-
-/// Provider for the Data Ingestion Service.
-final dataIngestionServiceProvider = Provider<DataIngestionService>((ref) {
-  return DataIngestionService(
-    memoryEngine: ref.watch(memoryEngineProvider),
-    knowledgeGraph: ref.watch(knowledgeGraphProvider),
-    discoveryEngine: ref.watch(discoveryEngineProvider),
-  );
-});
-
-/// Provider for the Copilot Service.
-final copilotServiceProvider = Provider<CopilotService>((ref) {
-  return CopilotService(
-    cognition: ref.watch(knightCognitionProvider),
-    memoryEngine: ref.watch(memoryEngineProvider),
-    contextService: ref.watch(knightContextServiceProvider),
-    planningService: ref.watch(planningServiceProvider),
-  );
-});
-
-/// Provider for the Plugin Service.
-final pluginServiceProvider = Provider<PluginService>((ref) {
-  return PluginService(manager: PluginManager());
-});
-
-/// Provider for the Notification Engine.
-final notificationEngineProvider = Provider<NotificationEngine>((ref) {
-  return NotificationEngine(bus: ref.watch(intelligenceBusProvider));
-});
-
-/// Provider for the Notification Service.
-final notificationServiceProvider = Provider<NotificationService>((ref) {
-  return NotificationService(engine: ref.watch(notificationEngineProvider));
-});
-
-/// Provider for the AI Router.
-final aiRouterProvider = Provider<AiRouter>((ref) {
-  final router = AiRouter();
-  
-  router.registerProvider(
-    GeminiProvider(),
-    const ModelManifest(
-      id: 'gemini-1.5-pro',
-      name: 'Gemini Pro',
-      capabilities: [AiCapability.precise, AiCapability.longContext],
-      providerName: 'Google',
-    ),
-  );
-  
-  router.registerProvider(
-    FlashModelProvider(),
-    const ModelManifest(
-      id: 'gemini-1.5-flash',
-      name: 'Gemini Flash',
-      capabilities: [AiCapability.fast],
-      providerName: 'Google',
-    ),
-  );
-
-  router.registerProvider(
-    OpenAiProvider(),
-    const ModelManifest(
-      id: 'gpt-4o',
-      name: 'GPT-4o',
-      capabilities: [AiCapability.precise, AiCapability.imageAware],
-      providerName: 'OpenAI',
-    ),
-  );
-
-  return router;
-});
-
-/// Provider for the client-side Finance Service.
-final financeServiceProvider = Provider<MemoryFinanceService>((ref) {
-  return MemoryFinanceService(memoryEngine: ref.watch(memoryEngineProvider));
-});
-
-/// Provider for the Question Bank Loader.
-final questionBankLoaderProvider = Provider<QuestionBankLoader>((ref) {
-  return const QuestionBankLoader();
-});
-
-/// Provider for the Verification Engine.
 final verificationEngineProvider = Provider<VerificationEngine>((ref) {
   return VerificationEngine(memoryEngine: ref.watch(memoryEngineProvider));
 });
 
-/// Provider for the Discovery Engine.
+final observationEngineProvider = Provider<ObservationEngine>((ref) {
+  return ObservationEngine(
+    memoryEngine: ref.watch(memoryEngineProvider),
+    bus: ref.watch(intelligenceBusProvider),
+  );
+});
+
+final worldEngineProvider = Provider<WorldEngine>((ref) {
+  return WorldEngine(bus: ref.watch(intelligenceBusProvider));
+});
+
+final memoryRetrievalEngineProvider = Provider<MemoryRetrievalEngine>((ref) {
+  return MemoryRetrievalEngine(memoryEngine: ref.watch(memoryEngineProvider));
+});
+
+// (System Level Services)
+
+final knightCognitionProvider = Provider<KnightCognition>((ref) {
+  return KnightCognition(
+    intentEngine: ref.watch(intentEngineProvider),
+    contextEngine: ref.watch(contextEngineProvider),
+    reasoningEngine: ref.watch(reasoningEngineProvider),
+    planningService: ref.watch(planningServiceProvider),
+    aiRouter: ref.watch(aiRouterHighLevelProvider),
+    contextService: ref.watch(knightContextServiceProvider),
+    worldService: ref.watch(worldServiceProvider),
+  );
+});
+
 final discoveryEngineProvider = Provider<DiscoveryEngine>((ref) {
   return DiscoveryEngine(
     memoryEngine: ref.watch(memoryEngineProvider),
@@ -307,31 +293,28 @@ final discoveryEngineProvider = Provider<DiscoveryEngine>((ref) {
   );
 });
 
-/// Provider for the Observation Engine.
-final observationEngineProvider = Provider<ObservationEngine>((ref) {
-  return ObservationEngine(
+final questionBankLoaderProvider = Provider<QuestionBankLoader>((ref) {
+  return const QuestionBankLoader();
+});
+
+final greetingServiceProvider = Provider<GreetingService>((ref) {
+  return const GreetingService();
+});
+
+final voiceServiceProvider = NotifierProvider<VoiceService, VoiceState>(VoiceService.new);
+
+final worldServiceProvider = Provider<WorldService>((ref) {
+  return WorldService(
+    engine: ref.watch(worldEngineProvider),
     memoryEngine: ref.watch(memoryEngineProvider),
-    bus: ref.watch(intelligenceBusProvider),
   );
 });
 
-/// Provider for the AI backend implementation.
-final aiProviderImplProvider = Provider<KnightAiProvider>((ref) {
-  return MockAiProvider();
+final memoryServiceProvider = Provider<MemoryService>((ref) {
+  return MemoryService(memoryEngine: ref.watch(memoryEngineProvider));
 });
 
-/// Provider for the Intent Detection Engine.
-final intentEngineProvider = Provider<IntentEngine>((ref) {
-  return const IntentEngine();
-});
-
-/// Provider for the Reasoning Engine.
-final reasoningEngineProvider = Provider<ReasoningEngine>((ref) {
-  return const ReasoningEngine();
-});
-
-/// Provider for the Reasoning Service.
-final Provider<ReasoningService> reasoningServiceProvider = Provider<ReasoningService>((ref) {
+final reasoningServiceProvider = Provider<ReasoningService>((ref) {
   return ReasoningService(
     engine: ref.watch(reasoningEngineProvider),
     memoryEngine: ref.watch(memoryEngineProvider),
@@ -339,43 +322,11 @@ final Provider<ReasoningService> reasoningServiceProvider = Provider<ReasoningSe
     worldService: ref.watch(worldServiceProvider),
     contextEngine: ref.watch(contextEngineProvider),
     optimizationEngine: ref.watch(optimizationEngineProvider),
+    graphService: ref.watch(knowledgeGraphServiceProvider),
   );
 });
 
-/// Provider for the Causal Reasoning Engine.
-final causalReasoningEngineProvider = Provider<CausalReasoningEngine>((ref) {
-  return CausalReasoningEngine(memoryEngine: ref.watch(memoryEngineProvider));
-});
-
-/// Provider for the Knight Cognitive Layer Coordinator.
-final knightCognitionProvider = Provider<KnightCognition>((ref) {
-  return KnightCognition(
-    intentEngine: ref.watch(intentEngineProvider),
-    contextEngine: ref.watch(contextEngineProvider),
-    reasoningEngine: ref.watch(reasoningEngineProvider),
-    planningService: ref.watch(planningServiceProvider),
-    aiRouter: ref.watch(aiRouterProvider),
-    contextService: ref.watch(knightContextServiceProvider),
-    worldService: ref.watch(worldServiceProvider),
-    causalEngine: ref.watch(causalReasoningEngineProvider),
-  );
-});
-
-/// Provider for the Optimization Engine.
-final optimizationEngineProvider = Provider<OptimizationEngine>((ref) {
-  return OptimizationEngine(bus: ref.watch(intelligenceBusProvider));
-});
-
-/// Provider for the Planning Engine.
-final planningEngineProvider = Provider<PlanningEngine>((ref) {
-  return PlanningEngine(
-    aiProvider: ref.watch(aiProviderImplProvider),
-    optimizationEngine: ref.watch(optimizationEngineProvider),
-  );
-});
-
-/// Provider for the Planning Service.
-final Provider<PlanningService> planningServiceProvider = Provider<PlanningService>((ref) {
+final planningServiceProvider = Provider<PlanningService>((ref) {
   return PlanningService(
     engine: ref.watch(planningEngineProvider),
     memoryEngine: ref.watch(memoryEngineProvider),
@@ -385,191 +336,79 @@ final Provider<PlanningService> planningServiceProvider = Provider<PlanningServi
   );
 });
 
-/// Provider for Goal Intelligence.
-final goalIntelligenceProvider = Provider<GoalIntelligence>((ref) {
-  return GoalIntelligence(memoryEngine: ref.watch(memoryEngineProvider));
+final activityFeedRepositoryProvider = Provider<ActivityFeedRepository>((ref) {
+  return ActivityFeedRepository(db: ref.watch(knightDatabaseProvider));
 });
 
-/// Provider for the Reflection Engine.
-final reflectionEngineProvider = Provider<ReflectionEngine>((ref) {
-  return ReflectionEngine(memoryEngine: ref.watch(memoryEngineProvider));
-});
+// (Data)
 
-/// Provider for the Insight Engine.
-final insightEngineProvider = Provider<InsightEngine>((ref) {
-  return const InsightEngine();
-});
-
-/// Provider for the Knowledge Graph.
-final knowledgeGraphProvider = Provider<KnowledgeGraph>((ref) {
-  return KnowledgeGraph(memoryEngine: ref.watch(memoryEngineProvider));
-});
-
-/// Provider for the Identity Engine.
-final identityEngineProvider = Provider<IdentityEngine>((ref) {
-  return IdentityEngine(memoryEngine: ref.watch(memoryEngineProvider));
-});
-
-/// Provider for the Context Engine.
-final contextEngineProvider = Provider<ContextEngine>((ref) {
-  return ContextEngine(memoryEngine: ref.watch(memoryEngineProvider));
-});
-
-/// Provider for the Confidence Engine.
-final confidenceEngineProvider = Provider<ConfidenceEngine>((ref) {
-  return const ConfidenceEngine();
-});
-
-/// Provider for the Decision Engine.
-final decisionEngineProvider = Provider<DecisionEngine>((ref) {
-  return DecisionEngine(memoryEngine: ref.watch(memoryEngineProvider));
-});
-
-/// Provider for the Rules Engine.
-final rulesEngineProvider = Provider<RulesEngine>((ref) {
-  return RulesEngine(memoryEngine: ref.watch(memoryEngineProvider));
-});
-
-/// Provider for the Life Chapters Engine.
-final lifeChaptersEngineProvider = Provider<LifeChaptersEngine>((ref) {
-  return LifeChaptersEngine(memoryEngine: ref.watch(memoryEngineProvider));
-});
-
-/// Provider for the Memory Health Engine.
-final memoryHealthEngineProvider = Provider<MemoryHealthEngine>((ref) {
-  return MemoryHealthEngine();
-});
-
-/// Provider for the Import Framework.
-final importFrameworkProvider = Provider<ImportFramework>((ref) {
-  return ImportFramework(memoryEngine: ref.watch(memoryEngineProvider));
-});
-
-/// Provider for the World Engine.
-final Provider<WorldEngine> worldEngineProvider = Provider<WorldEngine>((ref) {
-  return WorldEngine(
-    bus: ref.watch(intelligenceBusProvider),
+final datasetVerificationServiceProvider = Provider<DatasetVerificationService>((ref) {
+  return DatasetVerificationService(
+    db: ref.watch(knightDatabaseProvider),
+    hashService: ref.watch(documentHashServiceProvider),
   );
 });
 
-/// Provider for the World Service.
-final Provider<WorldService> worldServiceProvider = Provider<WorldService>((ref) {
-  final service = WorldService(
-    engine: ref.watch(worldEngineProvider),
-    memoryEngine: ref.watch(memoryEngineProvider),
-  );
-  
-  // Register Mock Connectors for Sprint 5
-  service.registerConnector(MockCalendarConnector());
-  service.registerConnector(MockWeatherConnector());
-  service.registerConnector(MockFinanceConnector());
-  service.registerConnector(GoogleEmailConnector(client: MockEmailClient()));
-
-  // Register V4 Real-world style Connectors
-  service.registerConnector(
-    GoogleCalendarConnector(client: GoogleCalendarClientImpl()),
-  );
-  service.registerConnector(OpenWeatherConnector(client: OpenWeatherClientImpl()));
-  service.registerConnector(
-    GoogleEmailConnector(client: GoogleEmailClientImpl()),
-  );
-  
-  return service;
+final priorityEngineProvider = Provider<PriorityEngine>((ref) {
+  return const PriorityEngine();
 });
 
-/// Provider for the Perception Scheduler.
+final dataProviderRegistryProvider = NotifierProvider<DataProviderRegistry, List<DataProvider>>(DataProviderRegistry.new);
+
 final perceptionSchedulerProvider = Provider<PerceptionScheduler>((ref) {
   return PerceptionScheduler(worldService: ref.watch(worldServiceProvider));
 });
 
-/// Provider for the Autonomous Engine.
+// (QA/Testing)
+final knightAiTestSuiteProvider = Provider<KnightAiTestSuite>((ref) {
+  return KnightAiTestSuite(cognition: ref.watch(knightCognitionProvider));
+});
+
+// (Missing Repositories for Screens)
+
+final systemIntegrityRepositoryProvider = Provider<SystemIntegrityRepository>((ref) {
+  return SystemIntegrityRepository(db: ref.watch(knightDatabaseProvider));
+});
+
+final missionRepositoryProvider = Provider<MissionRepository>((ref) {
+  return MissionRepository(
+    db: ref.watch(knightDatabaseProvider),
+    weaver: ref.watch(knowledgeGraphWeaverProvider),
+  );
+});
+
+final healthRepositoryProvider = Provider<HealthRepository>((ref) {
+  return HealthRepository(db: ref.watch(knightDatabaseProvider));
+});
+
 final autonomousEngineProvider = Provider<AutonomousEngine>((ref) {
-  return AutonomousEngine(
-    bus: ref.watch(intelligenceBusProvider),
-    memoryEngine: ref.watch(memoryEngineProvider),
-    reasoningEngine: ref.watch(reasoningEngineProvider),
-    getContext: () => ref.read(currentContextNotifierProvider.future),
-    worldService: ref.watch(worldServiceProvider),
-    voiceService: ref.watch(voiceServiceProvider.notifier),
-  );
+   return AutonomousEngine(
+     bus: ref.watch(intelligenceBusProvider),
+     memoryEngine: ref.watch(memoryEngineProvider),
+     reasoningEngine: ref.watch(reasoningEngineProvider),
+     getContext: () => ref.read(currentContextNotifierProvider.future),
+     worldService: ref.watch(worldServiceProvider),
+     voiceService: ref.watch(voiceServiceProvider.notifier),
+   );
 });
 
-/// Provider for the Workflow Orchestrator.
-final workflowOrchestratorProvider = Provider<WorkflowOrchestrator>((ref) {
-  return WorkflowOrchestrator(engine: ref.watch(autonomousEngineProvider));
-});
-
-/// Provider for the Autonomous Service.
 final autonomousServiceProvider = Provider<AutonomousService>((ref) {
-  return AutonomousService(engine: ref.watch(autonomousEngineProvider));
+   return AutonomousService(
+     engine: ref.watch(autonomousEngineProvider),
+     bus: ref.watch(intelligenceBusProvider),
+   );
 });
 
-/// Provider for the Multi-Device Manager.
-final multiDeviceManagerProvider = Provider<MultiDeviceManager>((ref) {
-  return MultiDeviceManager(bus: ref.watch(intelligenceBusProvider));
+final activeExecutionsProvider = StreamProvider<List<dynamic>>((ref) {
+  return ref.watch(autonomousServiceProvider).watchActiveExecutions();
 });
 
-/// Provider for the Memory Migration Service.
-final memoryMigrationServiceProvider = Provider<MemoryMigrationService>((ref) {
-  return MemoryMigrationService(memoryEngine: ref.watch(memoryEngineProvider));
+final pendingApprovalsProvider = StreamProvider<List<dynamic>>((ref) {
+  return ref.watch(autonomousServiceProvider).watchPendingApprovals();
 });
 
-/// Provider for the Unified Search Layer.
-final unifiedSearchLayerProvider = Provider<UnifiedSearchLayer>((ref) {
-  return UnifiedSearchLayer(
-    memoryEngine: ref.watch(memoryEngineProvider),
-    intentEngine: ref.watch(intentEngineProvider),
-  );
+final vaultItemsProvider = Provider<List<dynamic>>((ref) => []); // Placeholder
+
+final emailClassificationServiceProvider = Provider<EmailClassificationService>((ref) {
+  return EmailClassificationService(db: ref.watch(knightDatabaseProvider));
 });
-
-/// Provider for the Smart Search Service.
-final searchServiceProvider = Provider<SearchService>((ref) {
-  return SearchService(layer: ref.watch(unifiedSearchLayerProvider));
-});
-
-/// Provider for active autonomous executions.
-final activeExecutionsProvider = StreamProvider<List<WorkflowState>>((ref) {
-  final bus = ref.watch(intelligenceBusProvider);
-  final List<WorkflowState> active = [];
-
-  return bus.events.where((e) => e is WorkflowUpdatedEvent).map((e) {
-    final state = (e as WorkflowUpdatedEvent).state;
-    active.removeWhere((s) => s.planId == state.planId);
-    if (state.status == WorkflowStatus.running || 
-        state.status == WorkflowStatus.awaitingApproval || 
-        state.status == WorkflowStatus.queued) {
-      active.add(state);
-    }
-    return List<WorkflowState>.unmodifiable(active);
-  });
-});
-
-/// Provider for pending autonomous approvals.
-final pendingApprovalsProvider = StreamProvider<List<ApprovalRequest>>((ref) {
-  final bus = ref.watch(intelligenceBusProvider);
-  final engine = ref.watch(autonomousEngineProvider);
-  
-  return bus.events.where((e) => e is ApprovalRequestedEvent || e is ApprovalResolvedEvent).map((_) {
-    return List<ApprovalRequest>.unmodifiable(engine.pendingApprovals);
-  });
-});
-
-/// Provider for connected devices.
-final connectedDevicesProvider = StreamProvider<List<KnightDevice>>((ref) {
-  return ref.watch(multiDeviceManagerProvider).devices;
-});
-
-/// Provider for external integration status.
-final externalIntegrationsProvider = FutureProvider<Map<String, bool>>((ref) async {
-  final service = ref.watch(worldServiceProvider);
-  final connectors = service.engine.registeredConnectors;
-  
-  final Map<String, bool> results = {};
-  for (final connector in connectors) {
-    results[connector.name] = await connector.isAvailable();
-  }
-  return results;
-});
-
-/// Provider for the Voice Service.
-final voiceServiceProvider = NotifierProvider<VoiceService, VoiceState>(VoiceService.new);

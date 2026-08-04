@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import '../../domain/health_models.dart';
 import '../../domain/intelligence_models.dart';
 import '../../domain/cognitive_models.dart';
@@ -41,7 +42,7 @@ class FitnessIntelligence {
       'totalWorkouts': exerciseRecords.length,
       'strengthCount': strengthWorkouts,
       'cardioCount': cardioWorkouts,
-      'lastWorkoutAt': exerciseRecords.first.timestamp.toIso8601String(),
+      'lastWorkoutAt': exerciseRecords.firstOrNull?.timestamp.toIso8601String() ?? 'N/A',
     };
   }
 

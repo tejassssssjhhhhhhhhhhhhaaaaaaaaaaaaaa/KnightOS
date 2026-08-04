@@ -1,46 +1,40 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'app/screens/development_error_screen.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'core/providers/preferences_provider.dart';
 import 'core/internal/utils/knight_logger.dart';
-
 import 'knight_os_app.dart';
 
 void main() {
-  print('KNIGHT_LOG: main() starting');
-  runZonedGuarded(() {
-    print('KNIGHT_LOG: inside runZonedGuarded');
+  // P0-1: Optimized Startup
+  runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
-    print('KNIGHT_LOG: WidgetsFlutterBinding initialized');
-    
-    KnightLogger.info('[STARTUP 01] main() entry', category: KnightLogCategory.startup);
 
-    // Framework error handling
-    FlutterError.onError = (FlutterErrorDetails details) {
-      KnightLogger.error(
-        '[STARTUP ERR] Flutter Framework Error',
-        error: details.exception,
-        stackTrace: details.stack,
-        category: KnightLogCategory.ui,
-      );
-      // In debug/dev mode, dump to console as well
-      FlutterError.dumpErrorToConsole(details);
-    };
+    // Enable Edge-to-Edge Experience immediately
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarDividerColor: Colors.transparent,
+      systemNavigationBarIconBrightness: Brightness.light,
+    ));
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
-    // Build failure handling
-    ErrorWidget.builder = (FlutterErrorDetails details) {
-      return DevelopmentErrorScreen(details: details);
-    };
+    // Bootstrap critical services while Native Splash is visible
+    final prefs = await SharedPreferences.getInstance();
 
-    KnightLogger.info('[STARTUP 02] runApp() calling', category: KnightLogCategory.startup);
-    runApp(const KnightOsApp());
+    runApp(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+        ],
+        child: const KnightOsApp(),
+      ),
+    );
     
   }, (Object error, StackTrace stack) {
-    print('KNIGHT_LOG: UNCAUGHT ERROR: $error');
-    KnightLogger.error(
-      '[STARTUP ERR] Uncaught Asynchronous Error',
-      error: error,
-      stackTrace: stack,
-      category: KnightLogCategory.startup,
-    );
+    KnightLogger.error('STARTUP ERROR: $error', error: error, stackTrace: stack);
   });
 }

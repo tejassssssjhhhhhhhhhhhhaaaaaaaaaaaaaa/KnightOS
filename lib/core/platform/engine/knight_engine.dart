@@ -1,21 +1,53 @@
-/// Phase 1 production-ready skeleton for the Knight Engine.
-///
-/// This file establishes the architecture boundary described in DESIGN.md:
-/// a central orchestrator for future modules, features, and cross-feature flows.
-///
-/// No feature-specific business logic is implemented here. The class remains an
-/// orchestrator-only shell with typed lifecycle and event contracts for future
-/// implementations.
-library;
-
+import 'dart:async';
 import 'engine_interfaces.dart';
 import 'engine_types.dart';
 import 'search_models.dart';
+import '../../intelligence/intelligence_bus.dart';
+import '../../intelligence/domain/intelligence_events.dart';
+
+/// Implementation of KnightEventBus that bridges with the IntelligenceBus.
+class PlatformEventBus implements KnightEventBus {
+  PlatformEventBus({this.intelligenceBus}) {
+    _initBridge();
+  }
+
+  final IntelligenceBus? intelligenceBus;
+  final StreamController<KnightEngineEvent> _controller =
+      StreamController<KnightEngineEvent>.broadcast();
+
+  void _initBridge() {
+    intelligenceBus?.events.listen((event) {
+      if (event is DataChangedEvent) {
+        emit(const KnightDataRefreshEvent());
+      }
+    });
+  }
+
+  @override
+  Future<void> emit(KnightEngineEvent event) async {
+    _controller.add(event);
+  }
+
+  @override
+  void listen<T extends KnightEngineEvent>(
+    Future<void> Function(T event) listener,
+  ) {
+    _controller.stream.where((e) => e is T).cast<T>().listen(listener);
+  }
+
+  @override
+  void removeListener<T extends KnightEngineEvent>(
+    Future<void> Function(T event) listener,
+  ) {
+    // Simplified implementation for platform activation
+  }
+
+  void dispose() {
+    _controller.close();
+  }
+}
 
 /// Central orchestrator for the KnightOS engine layer.
-///
-/// The engine owns lifecycle coordination, module registration, and event flow.
-/// It does not implement feature behavior itself.
 class KnightEngine
     implements
         KnightEngineCoordinator,
@@ -56,40 +88,73 @@ class KnightEngine
 
   @override
   Future<void> start() async {
-    // TODO: transition to the ready state, initialize bootstrapping modules,
-    // and then move to the running state.
+    _lifecycleState = KnightEngineLifecycleState.ready;
+    for (final module in _modules) {
+      await module.initialize();
+      await module.start();
+    }
+    for (final module in _featureModules) {
+      await module.initialize();
+      await module.start();
+    }
     _lifecycleState = KnightEngineLifecycleState.running;
+    _eventBus?.emit(const KnightEngineStartedEvent());
   }
 
   @override
   Future<void> stop() async {
-    // TODO: pause running modules, dispose resources, and transition to the
-    // disposed state.
+    for (final module in _modules) {
+      await module.pause();
+      await module.dispose();
+    }
+    for (final module in _featureModules) {
+      await module.pause();
+      await module.dispose();
+    }
     _lifecycleState = KnightEngineLifecycleState.disposed;
+    _eventBus?.emit(const KnightEngineStoppedEvent());
   }
 
   @override
   Future<void> registerModule(KnightModule module) async {
-    // TODO: validate uniqueness, register the module, and emit a typed event.
+    if (_modules.any((m) => m.id == module.id)) return;
     _modules.add(module);
+    if (_lifecycleState == KnightEngineLifecycleState.running) {
+      await module.initialize();
+      await module.start();
+    }
+    _eventBus?.emit(KnightModuleRegisteredEvent(module.id));
   }
 
   @override
   Future<void> unregisterModule(String moduleId) async {
-    // TODO: dispose the module if needed and remove it from the registry.
-    _modules.removeWhere((module) => module.id == moduleId);
+    final module = _modules.where((m) => m.id == moduleId).firstOrNull;
+    if (module != null) {
+      await module.pause();
+      await module.dispose();
+      _modules.remove(module);
+    }
   }
 
   @override
   Future<void> registerFeatureModule(KnightFeatureModule module) async {
-    // TODO: validate uniqueness and register the feature module.
+    if (_featureModules.any((m) => m.id == module.id)) return;
     _featureModules.add(module);
+    if (_lifecycleState == KnightEngineLifecycleState.running) {
+      await module.initialize();
+      await module.start();
+    }
+    _eventBus?.emit(KnightModuleRegisteredEvent(module.id));
   }
 
   @override
   Future<void> unregisterFeatureModule(String moduleId) async {
-    // TODO: dispose the feature module if needed and remove it from the registry.
-    _featureModules.removeWhere((module) => module.id == moduleId);
+    final module = _featureModules.where((m) => m.id == moduleId).firstOrNull;
+    if (module != null) {
+      await module.pause();
+      await module.dispose();
+      _featureModules.remove(module);
+    }
   }
 
   @override
@@ -97,7 +162,13 @@ class KnightEngine
     KnightSearchQuery query,
     List<KnightFeatureModule> modules,
   ) async {
-    // TODO: dispatch search requests through registered feature modules.
-    return <KnightSearchResult>[];
+    final List<KnightSearchResult> results = [];
+    for (final module in modules) {
+      if (module.searchProvider != null) {
+        final page = await module.searchProvider!.search(query);
+        results.addAll(page.items);
+      }
+    }
+    return results;
   }
 }

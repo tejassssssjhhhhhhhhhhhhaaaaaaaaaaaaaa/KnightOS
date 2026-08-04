@@ -1,134 +1,95 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/widgets/knight_page_scaffold.dart';
 import '../../../core/design_system/design_constants.dart';
 
-class KnowledgeDashboardScreen extends ConsumerWidget {
+class KnowledgeDashboardScreen extends StatelessWidget {
   const KnowledgeDashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return KnightPageScaffold(
+      title: 'Knowledge',
+      showBackButton: true,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(DesignSpacing.m),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeader(context),
-            const SizedBox(height: 24),
-            _buildTabs(context),
+            _buildSearchAnchor(),
             const SizedBox(height: 32),
-            _buildSearchBar(context),
+            _buildKnowledgeGraphStub(),
             const SizedBox(height: 32),
-            _buildKnowledgeList(context),
+            _buildRecentInsights(),
             const SizedBox(height: 140),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        backgroundColor: DesignColors.accentBlue,
-        child: const Icon(Icons.add_rounded, color: Colors.white),
+    );
+  }
+
+  Widget _buildSearchAnchor() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: DesignColors.surfaceHigh,
+        borderRadius: DesignRadius.card,
+        border: Border.all(color: DesignColors.white05),
+      ),
+      child: const Row(
+        children: [
+          Icon(Icons.search_rounded, color: Colors.white38),
+          SizedBox(width: 16),
+          Text('Search your knowledge base...', style: TextStyle(color: Colors.white38)),
+        ],
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildKnowledgeGraphStub() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        Text('Knowledge', style: Theme.of(context).textTheme.headlineMedium),
-        IconButton(
-          icon: const Icon(Icons.more_vert_rounded),
-          onPressed: () {},
+        const Text('KNOWLEDGE GRAPH', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white38)),
+        const SizedBox(height: 16),
+        Container(
+          height: 180,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: DesignColors.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: DesignColors.white05),
+          ),
+          child: const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.hub_outlined, size: 48, color: Colors.white10),
+                SizedBox(height: 12),
+                Text('Indexing semantic relations...', style: TextStyle(color: Colors.white24, fontSize: 12)),
+              ],
+            ),
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildTabs(BuildContext context) {
-    final tabs = ['Notes', 'Bookmarks', 'Courses', 'Ideas'];
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: tabs.map((tab) {
-          final isActive = tab == 'Notes';
-          return Container(
-            margin: const EdgeInsets.only(right: 12),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            decoration: BoxDecoration(
-              color: isActive ? Colors.white : Colors.transparent,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              tab,
-              style: TextStyle(
-                color: isActive ? Colors.black : Colors.white38,
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildSearchBar(BuildContext context) {
-    return TextField(
-      decoration: InputDecoration(
-        hintText: 'Search notes...',
-        prefixIcon: const Icon(Icons.search_rounded, size: 20, color: Colors.white24),
-        suffixIcon: const Icon(Icons.tune_rounded, size: 20, color: DesignColors.accentBlue),
-        fillColor: DesignColors.surfaceHigh,
-      ),
-    );
-  }
-
-  Widget _buildKnowledgeList(BuildContext context) {
-    final items = [
-      _KItem('Interview Preparation', 'Today, 4:30 PM', Icons.description_outlined, DesignColors.accentBlue),
-      _KItem('Networking Basics', 'Jul 26, 2025', Icons.language_rounded, DesignColors.accentPurple),
-      _KItem('System Design Notes', 'Jul 16, 2025', Icons.memory_rounded, DesignColors.accentCyan),
-      _KItem('Python Basics', 'Jul 14, 2025', Icons.code_rounded, DesignColors.success),
-      _KItem('React Interview Questions', 'Jul 12, 2025', Icons.article_outlined, DesignColors.warning),
-    ];
-
+  Widget _buildRecentInsights() {
     return Column(
-      children: items.map((item) => Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        decoration: BoxDecoration(
-          color: DesignColors.surfaceHigh.withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: DesignColors.white05),
-        ),
-        child: ListTile(
-          leading: Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: item.color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(item.icon, color: item.color, size: 20),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('RECENT MEMORIES', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white38)),
+        const SizedBox(height: 16),
+        ...List.generate(3, (i) => Card(
+          color: DesignColors.surfaceHigh.withValues(alpha: 0.3),
+          margin: const EdgeInsets.only(bottom: 12),
+          child: const ListTile(
+            leading: Icon(Icons.psychology_outlined, color: DesignColors.accentPurple),
+            title: Text('New Skill: Flutter Optimization', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+            subtitle: Text('Added via autonomous learning cycle', style: TextStyle(fontSize: 11, color: Colors.white38)),
           ),
-          title: Text(item.title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-          subtitle: Text(item.date, style: const TextStyle(fontSize: 11, color: Colors.white24)),
-          trailing: const Icon(Icons.chevron_right_rounded, color: Colors.white10),
-          onTap: () {},
-        ),
-      )).toList(),
+        )),
+      ],
     );
   }
-}
-
-class _KItem {
-  const _KItem(this.title, this.date, this.icon, this.color);
-  final String title;
-  final String date;
-  final IconData icon;
-  final Color color;
 }

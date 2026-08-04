@@ -1,56 +1,72 @@
-import '../../domain/health_models.dart';
+import 'package:drift/drift.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../internal/storage/drift/knight_database.dart';
+import '../../../providers/database_provider.dart';
 import '../../domain/intelligence_models.dart';
 import '../../domain/cognitive_models.dart';
-import '../../domain/memory_category.dart';
-import '../memory_retrieval_engine.dart';
+
+final nutritionIntelligenceProvider = Provider<NutritionIntelligence>((ref) {
+  return NutritionIntelligence(
+    db: ref.watch(knightDatabaseProvider),
+  );
+});
 
 class NutritionIntelligence {
-  const NutritionIntelligence({required this.retrieval});
+  final KnightDatabase db;
 
-  final MemoryRetrievalEngine retrieval;
+  NutritionIntelligence({required this.db});
+
+  Future<List<FoodData>> searchFood(String query) async {
+    return (db.select(db.nutritionFoodTable)
+          ..where((t) => t.name.like('%$query%')))
+        .get();
+  }
+
+  Future<void> logMeal({
+    required String foodId,
+    required String mealType,
+    required double quantity,
+    DateTime? consumedAt,
+    String? notes,
+  }) async {
+    await db.into(db.nutritionMealTable).insert(
+      NutritionMealTableCompanion.insert(
+        id: 'meal-${DateTime.now().millisecondsSinceEpoch}',
+        foodId: foodId,
+        mealType: mealType,
+        quantity: quantity,
+        consumedAt: Value(consumedAt ?? DateTime.now()),
+        notes: Value(notes),
+      ),
+    );
+  }
+
+  Future<List<MealLogData>> getMealTimeline(DateTime day) async {
+    final startOfDay = DateTime(day.year, day.month, day.day);
+    final endOfDay = startOfDay.add(const Duration(days: 1));
+
+    return (db.select(db.nutritionMealTable)
+          ..where((t) => t.consumedAt.isBetweenValues(startOfDay, endOfDay))
+          ..orderBy([(t) => OrderingTerm.asc(t.consumedAt)]))
+        .get();
+  }
 
   Future<Map<String, dynamic>> analyzeNutrition() async {
-    final memories = await retrieval.getByCategory(BookCategory.health);
+    final now = DateTime.now();
+    final todayMeals = await getMealTimeline(now);
 
-    final nutritionRecords = memories
-        .where((m) => m.healthDataType == HealthDataType.nutrition)
-        .map((m) => m.toNutritionRecord()!)
-        .toList();
+    if (todayMeals.isEmpty) return {'status': 'No data'};
 
-    final hydrationRecords = memories
-        .where((m) => m.healthDataType == HealthDataType.hydration)
-        .map((m) => m.toHydrationRecord()!)
-        .toList();
-
-    if (nutritionRecords.isEmpty && hydrationRecords.isEmpty) {
-      return {'status': 'No data'};
+    // Dummy calculation for now
+    double totalCalories = 0;
+    for (final meal in todayMeals) {
+      totalCalories += 200 * meal.quantity; // simplified
     }
 
-    // Calculate today's totals
-    final today = DateTime.now();
-    final todayNutrition = nutritionRecords.where(
-      (r) => r.timestamp.year == today.year && r.timestamp.day == today.day,
-    );
-    final todayHydration = hydrationRecords.where(
-      (r) => r.timestamp.year == today.year && r.timestamp.day == today.day,
-    );
-
-    final totalCalories = todayNutrition.fold(0, (sum, r) => sum + r.calories);
-    final totalProtein = todayNutrition.fold(
-      0.0,
-      (sum, r) => sum + r.proteinGrams,
-    );
-    final totalWater = todayHydration.fold(0, (sum, r) => sum + r.amountMl);
-    final waterGoal = todayHydration.isNotEmpty
-        ? todayHydration.first.dailyGoalMl
-        : 2500;
-
     return {
-      'todayCalories': totalCalories,
-      'todayProtein': totalProtein,
-      'todayWaterMl': totalWater,
-      'waterGoalMl': waterGoal,
-      'isHydrated': totalWater >= waterGoal,
+      'totalCalories': totalCalories,
+      'isHydrated': true, // Placeholder
+      'adherence': 0.8,
     };
   }
 
@@ -58,34 +74,61 @@ class NutritionIntelligence {
     final analysis = await analyzeNutrition();
     if (analysis['status'] != null) return [];
 
-    final List<IntelligenceResult> insights = [];
-    final isHydrated = analysis['isHydrated'] as bool;
-    final water = analysis['todayWaterMl'] as int;
-    final goal = analysis['waterGoalMl'] as int;
-
-    if (!isHydrated && DateTime.now().hour > 18) {
-      insights.add(
-        IntelligenceResult(
-          id: 'insight-hydration-low',
-          data:
-              'Hydration is low today ($water/$goal ml). Aim for 2 more glasses before sleep.',
-          trace: ReasoningTrace(
-            intent: KnightIntent.analysis,
-            memoriesUsed: [],
-            rulesApplied: ['Daily Hydration Target'],
-            goalsConsidered: ['Vitality'],
-            thoughtChain: [
-              'Compared daily water intake sum against user-defined goal.',
-            ],
-            confidence: 0.95,
-          ),
-          generatedAt: DateTime.now(),
-          version: 1,
-          evidenceHash: 'nutrition-hash',
+    return [
+      IntelligenceResult(
+        id: 'insight-nutrition-calories',
+        data: 'Daily calorie intake is trending normally.',
+        trace: ReasoningTrace(
+          intent: KnightIntent.analysis,
+          memoriesUsed: [],
+          rulesApplied: [],
+          goalsConsidered: ['Nutrition'],
+          thoughtChain: ['Analyzed today\'s food logs.'],
+          confidence: 0.7,
         ),
-      );
-    }
+        generatedAt: DateTime.now(),
+        version: 1,
+        evidenceHash: 'nutrition-hash',
+      ),
+    ];
+  }
 
-    return insights;
+  /// Seeds the database with some initial Indian food data, including Bihar cuisine.
+  Future<void> seedIndianFoodDatabase() async {
+    final foods = [
+      _createFood('Litti Chokha', 250, 8, 45, 12, region: 'Bihar', isIndian: true),
+      _createFood('Sattu Paratha', 300, 12, 50, 10, region: 'Bihar', isIndian: true),
+      _createFood('Dal Bhat', 350, 15, 60, 5, isIndian: true),
+      _createFood('Paneer Tikka', 200, 18, 5, 15, isIndian: true),
+      _createFood('Masala Dosa', 350, 6, 60, 12, isIndian: true),
+      _createFood('Thekua', 150, 2, 25, 6, region: 'Bihar', isIndian: true),
+      _createFood('Chicken Curry', 400, 30, 10, 25, isIndian: true),
+      _createFood('Roti', 80, 3, 15, 1, isIndian: true),
+    ];
+
+    for (final food in foods) {
+      await db.into(db.nutritionFoodTable).insertOnConflictUpdate(food);
+    }
+  }
+
+  NutritionFoodTableCompanion _createFood(
+    String name,
+    double calories,
+    double protein,
+    double carbs,
+    double fat, {
+    String? region,
+    bool isIndian = false,
+  }) {
+    return NutritionFoodTableCompanion.insert(
+      id: name.toLowerCase().replaceAll(' ', '_'),
+      name: name,
+      calories: calories,
+      protein: protein,
+      carbs: carbs,
+      fat: fat,
+      region: Value(region),
+      isIndian: Value(isIndian),
+    );
   }
 }

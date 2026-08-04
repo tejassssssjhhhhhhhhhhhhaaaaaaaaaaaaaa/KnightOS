@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:knight_os/features/sleep/domain/sleep_session.dart';
 import 'package:knight_os/features/sleep/presentation/sleep_tracker_screen.dart';
 
@@ -24,8 +24,14 @@ void main() {
   });
 
   testWidgets('sleep tracker screen renders the main form', (tester) async {
-    await tester.pumpWidget(const MaterialApp(home: SleepTrackerScreen()));
-    await tester.pump();
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: MaterialApp(home: SleepTrackerScreen()),
+      ),
+    );
+    await tester.pump(); // Start the future
+    await tester.pump(const Duration(seconds: 1)); // Wait for it to complete in test environment
+    await tester.pump(); // Render the results
 
     expect(find.text('SLEEP TRACKER'), findsOneWidget);
   });

@@ -65,6 +65,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     _initializeDashboard().catchError((_) {});
   }
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   Future<void> _initializeDashboard({bool showLoading = true}) async {
     if (showLoading) {
       setState(() => _isLoading = true);

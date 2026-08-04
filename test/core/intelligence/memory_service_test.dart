@@ -50,6 +50,9 @@ class MockMemoryRepository implements MemoryRepository {
   }
 
   @override
+  Future<List<KnightMemory>> searchByDateRange(DateTime start, DateTime end) async => [];
+
+  @override
   Future<void> delete(String memoryId) async {
     _memories.remove(memoryId);
   }

@@ -49,7 +49,10 @@ class AutonomousEngine {
 
   /// Starts execution of a plan.
   Future<void> executePlan(KnightPlan plan) async {
-    _updateState(plan.id, WorkflowStatus.running, plan.tasks.first.id, 0.0);
+    final firstTask = plan.tasks.firstOrNull;
+    if (firstTask == null) return;
+    
+    _updateState(plan.id, WorkflowStatus.running, firstTask.id, 0.0);
 
     for (var i = 0; i < plan.tasks.length; i++) {
       final task = plan.tasks[i];
@@ -104,8 +107,8 @@ class AutonomousEngine {
         // --- Sprint 4.4 Self-Healing Logic ---
         
         // A. Check for fallbacks
-        if (task.fallbackTaskIds.isNotEmpty) {
-           final fallbackId = task.fallbackTaskIds.first;
+        final fallbackId = task.fallbackTaskIds.firstOrNull;
+        if (fallbackId != null) {
            final fallbackTask = plan.tasks.where((t) => t.id == fallbackId).firstOrNull;
            
            if (fallbackTask != null) {
@@ -121,7 +124,7 @@ class AutonomousEngine {
 
         // B. Repair Reasoning
         final context = await getContext();
-        final reasoning = reasoningEngine.suggestRepairPlan(
+        final reasoning = await reasoningEngine.suggestRepairPlan(
           planId: plan.id,
           taskId: task.id,
           error: e.toString(),

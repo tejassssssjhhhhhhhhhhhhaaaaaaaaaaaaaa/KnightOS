@@ -6,7 +6,7 @@ import '../../domain/memory_domain.dart';
 import '../memory_retrieval_engine.dart';
 import '../../domain/cognitive_models.dart';
 
-class PredictiveModule implements IntelligenceModule {
+class PredictiveModule extends IntelligenceModule {
   PredictiveModule({required this.retrieval});
 
   final MemoryRetrievalEngine retrieval;

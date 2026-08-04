@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/design_system/design_constants.dart';
-import '../../core/router/app_router.dart';
 
 class DevelopmentErrorScreen extends StatelessWidget {
   const DevelopmentErrorScreen({
@@ -46,7 +44,7 @@ class DevelopmentErrorScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: Colors.black26,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.redAccent.withOpacity(0.3)),
+                  border: Border.all(color: Colors.redAccent.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   children: [
@@ -103,7 +101,7 @@ class DevelopmentErrorScreen extends StatelessWidget {
                     child: FilledButton.icon(
                       onPressed: () {
                         // Attempt to reset router to splash
-                        AppRouter.router.go('/');
+                        GoRouter.of(context).go('/');
                       },
                       icon: const Icon(Icons.refresh_rounded),
                       label: const Text('RETRY STARTUP'),

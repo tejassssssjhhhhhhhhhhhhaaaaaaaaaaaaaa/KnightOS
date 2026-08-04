@@ -1,11 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../internal/storage/drift/drift_storage_engine.dart';
 import '../internal/services/storage_service.dart';
+import '../internal/services/profile_service.dart';
 import '../platform/storage/storage_engine.dart';
 import '../repositories/authentication_repository.dart';
 import '../repositories/user_repository.dart';
 import '../intelligence/providers/intelligence_providers.dart';
-import '../internal/utils/knight_logger.dart';
+import '../intelligence/services/import_preference_service.dart';
+import 'database_provider.dart';
+import 'preferences_provider.dart';
 
 /// Flagship Storage Engine provider.
 final storageEngineProvider = Provider<StorageEngine>((ref) {
@@ -21,10 +24,22 @@ final storageServiceProvider = Provider<StorageService>((ref) {
   return StorageService(engine: engine, memoryEngine: memoryEngine);
 });
 
-/// Initialization provider to ensure the database is ready before the app starts.
+/// Provider for the Local Profile Service.
+final profileServiceProvider = Provider<ProfileService>((ref) {
+  final db = ref.watch(knightDatabaseProvider);
+  return ProfileService(db: db);
+});
+
+/// Initialization provider to ensure the database is ready.
 final storageInitializerProvider = FutureProvider<void>((ref) async {
   final service = ref.watch(storageServiceProvider);
   await service.initialize();
+});
+
+/// Provider for the Import Preference Service.
+final importPreferenceServiceProvider = Provider<ImportPreferenceService>((ref) {
+  final prefs = ref.watch(sharedPreferencesProvider);
+  return ImportPreferenceService(prefs);
 });
 
 /// Provider for the Authentication Repository.
@@ -36,10 +51,8 @@ final authenticationRepositoryProvider = Provider<AuthenticationRepository>((
 
 /// Reactive provider for the current auth session.
 final authSessionProvider = FutureProvider<AuthSession?>((ref) async {
-  KnightLogger.info('[AUTH] authSessionProvider starting...', category: KnightLogCategory.riverpod);
   final repo = ref.watch(authenticationRepositoryProvider);
   final session = await repo.getCurrentSession();
-  KnightLogger.info('[AUTH] authSessionProvider complete: ${session != null}', category: KnightLogCategory.riverpod);
   return session;
 });
 

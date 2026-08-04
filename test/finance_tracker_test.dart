@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:knight_os/core/intelligence/knight_context_models.dart';
 import 'package:knight_os/core/intelligence/knight_context_provider.dart';
-import 'package:knight_os/core/theme/app_theme.dart';
 import 'package:knight_os/features/finance/domain/finance_transaction.dart';
 import 'package:knight_os/features/finance/presentation/finance_tracker_screen.dart';
 
@@ -54,15 +53,14 @@ void main() {
         overrides: [
           currentContextNotifierProvider.overrideWith(MockContextNotifier.new),
         ],
-        child: MaterialApp(
-          theme: AppTheme.darkTheme(isTest: true),
-          home: const FinanceTrackerScreen(),
+        child: const MaterialApp(
+          home: FinanceTrackerScreen(),
         ),
       ),
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Finance'), findsOneWidget);
+    expect(find.text('FINANCE'), findsOneWidget);
   });
 }
 

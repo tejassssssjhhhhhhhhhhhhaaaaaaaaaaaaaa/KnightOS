@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../knight_context_models.dart';
+import '../domain/intelligence_events.dart';
+import '../domain/cognitive_models.dart';
+import '../providers/intelligence_providers.dart';
 
 /// Interaction mode for the voice system.
 enum VoiceMode { idle, listening, processing, speaking, ambient }
@@ -65,7 +68,18 @@ class VoiceService extends Notifier<VoiceState> {
     await Future.delayed(const Duration(seconds: 1));
     state = state.copyWith(mode: VoiceMode.idle);
     
+    _emitVoiceEvent(transcript);
+
     return transcript;
+  }
+
+  void _emitVoiceEvent(String text) {
+    final bus = ref.read(intelligenceBusProvider);
+    bus.emit(UserInteractionEvent(
+      timestamp: DateTime.now(),
+      intent: KnightIntent.command,
+      payload: {'transcript': text, 'source': 'voice'},
+    ));
   }
 
   /// Starts listening for user speech (Broadcast version).

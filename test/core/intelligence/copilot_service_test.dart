@@ -37,7 +37,7 @@ void main() {
     final cog = KnightCognition(
       intentEngine: const IntentEngine(),
       contextEngine: ContextEngine(memoryEngine: mem),
-      reasoningEngine: const ReasoningEngine(),
+      reasoningEngine: ReasoningEngine(),
       aiRouter: router,
       contextService: ctx,
       planningService: FakePlanningService(),

@@ -1,23 +1,47 @@
-# Roadmap - Version 5.0.0 (Perception & Proactivity)
+# Knight OS Version 5 Roadmap - Perception & Proactivity
 
-## Goal
+## Objective
 Transition Knight OS from a reactive tool to a proactive companion by enhancing real-time perception and autonomous reasoning.
 
-## Pending Improvements
-- **Real-time Sensor Fusion**: Integrate high-frequency accelerometer and proximity data into the perception engine.
-- **Improved reasoning latency**: Transition local reasoning cycles to a more efficient quantized LLM execution path.
-- **Enhanced Orb UX**: Implement more expressive visual states for the Knight Orb during "Thinking" and "Acting" modes.
+## Milestones
 
-## New Features
-- **Voice Intelligence**: Full integration of the local speech-to-text and text-to-speech engine.
-- **Document OCR**: Automatic processing of images/documents into the Knowledge Vault.
-- **Cross-module triggers**: Allow events in one module (e.g. Finance) to trigger actions in another (e.g. Planner).
+### M1: Foundation (IN PROGRESS)
+- Establish V5 architecture and development standards.
+- Initialize automation framework.
+- Project health baseline validation.
 
-## Technical Debt
-- **Unit Test Coverage**: Increase coverage for the new Drift DAOs.
-- **Power Management**: Refine background perception cycles to strictly adhere to Android's "Power Save" modes.
-- **State Management Refactoring**: Standardize on `StateNotifier` across all older feature modules.
+### M2: Core Platform
+- Infrastructure updates: Auth, Navigation, Database (Drift).
+- Standardize state management on `StateNotifier`.
 
-## Architecture Recommendations
-- **Edge-AI Separation**: Moving heavy perception logic into a separate isolate to prevent frame drops in the main UI thread.
-- **WASM Integration**: Explore WebAssembly for high-performance mathematical reasoning models.
+### M3: AI Engine
+- Real-time perception engine (Sensor Fusion).
+- Autonomous reasoning cycles with quantized LLM path.
+- Knowledge Vault expansion.
+
+### M4: Automation Engine
+- Cross-module triggers (e.g., Finance -> Planner).
+- Workflow intelligence and autonomous scheduling.
+
+### M5: Feature Modules
+- Health Intelligence (Sleep, Workouts).
+- Financial Insights and AI-powered recommendations.
+- Voice Intelligence integration.
+
+### M6: Dashboard Experience
+- Enhanced Knight Orb UX (Thinking/Acting states).
+- Dynamic, AI-driven home screen.
+
+### M7: Testing & Optimization
+- Unit test coverage expansion.
+- Power management refinement (Android Power Save modes).
+- Frame drop prevention (Isolate-based perception logic).
+
+### M8: Release Preparation
+- Document OCR & Knowledge Vault processing.
+- Final QA, performance tuning, and release candidate.
+
+## Technical Goals
+- **Maintainability**: Clean Architecture, SOLID principles.
+- **Performance**: Edge-AI isolation, WASM exploration.
+- **Reliability**: 100% pass rate on CI/CD.

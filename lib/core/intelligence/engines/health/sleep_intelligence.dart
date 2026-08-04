@@ -38,6 +38,9 @@ class SleepIntelligence {
 
     // Consistency check (Standard deviation of start times - simplified)
     final consistency = avgQuality > 0.8 ? 'High' : 'Variable';
+    
+    // Regularity check (V5)
+    final regularityScore = _calculateRegularity(last7Days);
 
     return {
       'averageDurationHours': avgDuration / 60,
@@ -45,7 +48,20 @@ class SleepIntelligence {
       'consistency': consistency,
       'debtHours': (8 * 60 - avgDuration).clamp(0, 1000) / 60,
       'recordCount': last7Days.length,
+      'regularityScore': regularityScore,
     };
+  }
+
+  double _calculateRegularity(List<SleepRecord> records) {
+    if (records.length < 2) return 1.0;
+    // Simplified: Difference between start times
+    double diffSum = 0;
+    for (int i = 0; i < records.length - 1; i++) {
+      final hourDiff = (records[i].start.hour - records[i+1].start.hour).abs();
+      diffSum += hourDiff;
+    }
+    final avgDiff = diffSum / (records.length - 1);
+    return (1.0 - (avgDiff / 6.0)).clamp(0.0, 1.0); // 6 hour variation max
   }
 
   Future<List<IntelligenceResult>> getInsights() async {
@@ -77,6 +93,31 @@ class SleepIntelligence {
           generatedAt: DateTime.now(),
           version: 1,
           evidenceHash: 'sleep-hash',
+        ),
+      );
+    }
+
+    final regularity = analysis['regularityScore'] as double;
+    if (regularity < 0.7) {
+      insights.add(
+        IntelligenceResult(
+          id: 'insight-sleep-irregularity',
+          data: 'Your sleep schedule is irregular. Aim for a consistent bedtime to improve recovery.',
+          trace: ReasoningTrace(
+            intent: KnightIntent.analysis,
+            memoriesUsed: [],
+            rulesApplied: ['Sleep Regularity Rule v5'],
+            goalsConsidered: ['Health & Vitality'],
+            thoughtChain: [
+              'Analyzed variance in sleep start times over 7 days.',
+              'Detected average variation exceeding 2 hours.',
+              'Irregularity score: ${regularity.toStringAsFixed(2)}',
+            ],
+            confidence: 0.85,
+          ),
+          generatedAt: DateTime.now(),
+          version: 1,
+          evidenceHash: 'sleep-reg-hash',
         ),
       );
     }

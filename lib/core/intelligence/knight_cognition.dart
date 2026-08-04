@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'engines/intent_engine.dart';
 import 'engines/context_engine.dart';
 import 'engines/reasoning_engine.dart';
@@ -57,7 +58,7 @@ class KnightCognition {
     );
 
     // 4. Reasoning
-    final reasoningResult = reasoningEngine.reason(
+    final reasoningResult = await reasoningEngine.reason(
       context: context,
       memories: memories,
     );
@@ -78,8 +79,9 @@ class KnightCognition {
     // 6. Causal Analysis
     if (intent == KnightIntent.analysis && causalEngine != null) {
       // Attempt to find causal links for the primary context item
-      if (memories.isNotEmpty) {
-        final links = await causalEngine!.findWhy(memories.first.id);
+      final firstMemory = memories.firstOrNull;
+      if (firstMemory != null) {
+        final links = await causalEngine!.findWhy(firstMemory.id);
         if (links.isNotEmpty) {
           trace = trace.copyWith(
             graphPath: links

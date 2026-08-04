@@ -1,92 +1,116 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:collection/collection.dart';
 import '../../../app/widgets/knight_page_scaffold.dart';
 import '../../../core/design_system/design_constants.dart';
 import '../../../core/intelligence/knight_context_models.dart';
 import '../../../core/intelligence/knight_context_provider.dart';
+import '../../../core/intelligence/providers/intelligence_providers.dart';
+import '../../../core/internal/storage/drift/knight_database.dart';
+import 'widgets/knight_health_chart.dart';
+import 'health_visualization_providers.dart';
+import '../../../core/intelligence/domain/health_visualization_models.dart';
 
-class HealthDashboardScreen extends ConsumerWidget {
+class HealthDashboardScreen extends ConsumerStatefulWidget {
   const HealthDashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HealthDashboardScreen> createState() => _HealthDashboardScreenState();
+}
+
+class _HealthDashboardScreenState extends ConsumerState<HealthDashboardScreen> {
+  String _activeTab = 'Overview';
+
+  @override
+  Widget build(BuildContext context) {
     final contextAsync = ref.watch(currentContextNotifierProvider);
 
     return KnightPageScaffold(
+      title: 'Health & Fitness',
+      showBackButton: true,
       body: contextAsync.when(
-        data: (knightContext) => _HealthContent(context: knightContext),
+        data: (knightContext) => _buildContent(knightContext),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, s) => Center(child: Text('Error: $e')),
       ),
     );
   }
-}
 
-class _HealthContent extends StatelessWidget {
-  const _HealthContent({required this.context});
-  final KnightContext context;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildContent(KnightContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(DesignSpacing.m),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildHeader(context),
+          _buildTabs(),
           const SizedBox(height: 24),
-          _buildTabs(context),
+          _buildPeriodSelector(),
           const SizedBox(height: 32),
-          _buildScoreAndStats(context),
-          const SizedBox(height: 32),
-          _buildWorkoutSection(context),
-          const SizedBox(height: 32),
-          _buildSleepSection(context),
-          const SizedBox(height: 32),
-          _buildWaterIntake(context),
+          if (_activeTab == 'Overview') ...[
+            _buildScoreAndStats(context),
+            const SizedBox(height: 32),
+            const Text('ACTIVITY TREND', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white38)),
+            const SizedBox(height: 16),
+            _buildMetricChart('steps', ChartType.bar),
+            const SizedBox(height: 32),
+            _buildWorkoutSection(),
+            const SizedBox(height: 32),
+            _buildSleepSection(context),
+            const SizedBox(height: 32),
+            _buildWaterIntake(context),
+            const SizedBox(height: 32),
+            _buildWatchStatus(context),
+          ],
+          if (_activeTab == 'Workout') ...[
+             _buildMetricChart('heart_rate', ChartType.line),
+             const SizedBox(height: 24),
+             _buildWorkoutList(),
+          ],
+          if (_activeTab == 'Nutrition') ...[
+             _buildMetricChart('calories', ChartType.bar),
+             const SizedBox(height: 24),
+             _buildWaterIntake(context),
+          ],
+          if (_activeTab == 'Sleep') ...[
+             _buildMetricChart('sleep_session', ChartType.bar),
+             const SizedBox(height: 24),
+             _buildSleepList(),
+          ],
+          if (_activeTab == 'Body') ...[
+             _buildMetricChart('weight', ChartType.line),
+             const SizedBox(height: 24),
+             _buildMeasurementList(),
+          ],
           const SizedBox(height: 140),
         ],
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        Text('Health & Fitness', style: Theme.of(context).textTheme.headlineMedium),
-        IconButton(
-          icon: const Icon(Icons.more_vert_rounded),
-          onPressed: () {},
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTabs(BuildContext context) {
-    final tabs = ['Overview', 'Workout', 'Nutrition', 'Sleep'];
+  Widget _buildTabs() {
+    final tabs = ['Overview', 'Workout', 'Nutrition', 'Sleep', 'Body'];
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
         children: tabs.map((tab) {
-          final isActive = tab == 'Overview';
-          return Container(
-            margin: const EdgeInsets.only(right: 12),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            decoration: BoxDecoration(
-              color: isActive ? Colors.white : Colors.transparent,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              tab,
-              style: TextStyle(
-                color: isActive ? Colors.black : Colors.white38,
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
+          final isActive = tab == _activeTab;
+          return GestureDetector(
+            onTap: () => setState(() => _activeTab = tab),
+            child: Container(
+              margin: const EdgeInsets.only(right: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              decoration: BoxDecoration(
+                color: isActive ? Colors.white : Colors.transparent,
+                borderRadius: BorderRadius.circular(20),
+                border: isActive ? null : Border.all(color: Colors.white10),
+              ),
+              child: Text(
+                tab,
+                style: TextStyle(
+                  color: isActive ? Colors.black : Colors.white38,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
               ),
             ),
           );
@@ -95,10 +119,59 @@ class _HealthContent extends StatelessWidget {
     );
   }
 
-  Widget _buildScoreAndStats(BuildContext context) {
+  Widget _buildPeriodSelector() {
+    final period = ref.watch(healthPeriodProvider);
+    final options = ChartTimePeriod.values;
+    
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: options.map((o) {
+        final isActive = o == period;
+        return GestureDetector(
+          onTap: () => ref.read(healthPeriodProvider.notifier).state = o,
+          child: Container(
+            margin: const EdgeInsets.only(left: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: isActive ? DesignColors.accentBlue.withValues(alpha: 0.1) : Colors.transparent,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: isActive ? DesignColors.accentBlue : Colors.white10),
+            ),
+            child: Text(
+              o.name.toUpperCase(),
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: isActive ? DesignColors.accentBlue : Colors.white24,
+              ),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildMetricChart(String metric, ChartType type) {
+    final chartData = ref.watch(healthChartDataProvider(metric));
+    
+    return chartData.when(
+      data: (series) => KnightHealthChart(series: series, type: type),
+      loading: () => Container(
+        height: 200,
+        alignment: Alignment.center,
+        child: const CircularProgressIndicator(),
+      ),
+      error: (e, s) => Container(
+        height: 200,
+        alignment: Alignment.center,
+        child: Text('Data Unavailable: $metric'),
+      ),
+    );
+  }
+
+  Widget _buildScoreAndStats(KnightContext context) {
     return Row(
       children: [
-        // Health Score Gauge
         Expanded(
           flex: 4,
           child: Card(
@@ -112,20 +185,20 @@ class _HealthContent extends StatelessWidget {
                   Stack(
                     alignment: Alignment.center,
                     children: [
-                      SizedBox(
+                      const SizedBox(
                         width: 100,
                         height: 100,
                         child: CircularProgressIndicator(
-                          value: 0.84, // Current benchmark
+                          value: 0.84,
                           strokeWidth: 8,
                           backgroundColor: DesignColors.white05,
                           color: DesignColors.accentBlue,
                         ),
                       ),
-                      const Column(
+                      Column(
                         children: [
-                          Text('84%', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
-                          Text('Great', style: TextStyle(fontSize: 10, color: DesignColors.success)),
+                          const Text('84%', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
+                          Text(context.healthStatus.toUpperCase(), style: const TextStyle(fontSize: 10, color: DesignColors.success)),
                         ],
                       ),
                     ],
@@ -136,14 +209,13 @@ class _HealthContent extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 12),
-        // Quick Stats
         Expanded(
           flex: 5,
           child: Column(
             children: [
-              _buildSmallStat(Icons.directions_run_rounded, 'Steps', '${this.context.steps}', DesignColors.accentBlue),
+              _buildSmallStat(Icons.directions_run_rounded, 'Steps', '${context.steps}', DesignColors.accentBlue),
               const SizedBox(height: 12),
-              _buildSmallStat(Icons.local_fire_department_rounded, 'Calories', '${this.context.calories}', DesignColors.achievements),
+              _buildSmallStat(Icons.local_fire_department_rounded, 'Calories', '${context.calories}', DesignColors.achievements),
               const SizedBox(height: 12),
               _buildSmallStat(Icons.timer_outlined, 'Active Mins', '45', DesignColors.success),
             ],
@@ -173,7 +245,7 @@ class _HealthContent extends StatelessWidget {
     );
   }
 
-  Widget _buildWorkoutSection(BuildContext context) {
+  Widget _buildWorkoutSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -199,12 +271,11 @@ class _HealthContent extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Full Body Strength', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                      Text('45 min • 8 Exercises', style: TextStyle(fontSize: 12, color: Colors.white38)),
+                      Text('No workout logged today', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                      Text('Optimization suggested', style: TextStyle(fontSize: 12, color: Colors.white38)),
                     ],
                   ),
                 ),
-                const Icon(Icons.play_circle_fill_rounded, size: 32, color: DesignColors.accentBlue),
               ],
             ),
           ),
@@ -213,7 +284,117 @@ class _HealthContent extends StatelessWidget {
     );
   }
 
-  Widget _buildSleepSection(BuildContext context) {
+  Widget _buildWorkoutList() {
+    final workoutsAsync = ref.watch(_recentWorkoutsProvider);
+    return workoutsAsync.when(
+      data: (list) {
+         if (list.isEmpty) return const Center(child: Text('No historical workouts.'));
+         return Column(
+           children: list.map((w) => Card(
+             child: ListTile(
+               leading: const Icon(Icons.fitness_center_rounded, color: DesignColors.accentBlue),
+               title: Text(w.workoutType),
+               subtitle: Text('${w.durationMinutes.toInt()} mins'),
+             ),
+           )).toList(),
+         );
+      },
+      loading: () => const CircularProgressIndicator(),
+      error: (e, s) => Text('Error: $e'),
+    );
+  }
+
+  Widget _buildSleepList() {
+    final sleepAsync = ref.watch(_recentSleepProvider);
+    return sleepAsync.when(
+      data: (list) {
+         if (list.isEmpty) return const Center(child: Text('No sleep sessions logged.'));
+         return Column(
+           children: list.map((s) => Card(
+             child: ListTile(
+               leading: const Icon(Icons.bedtime_rounded, color: DesignColors.accentPurple),
+               title: Text('Quality: ${s.sleepQuality}/10'),
+               subtitle: Text('${s.wakeTime.difference(s.bedTime).inHours}h sleep'),
+             ),
+           )).toList(),
+         );
+      },
+      loading: () => const CircularProgressIndicator(),
+      error: (e, s) => Text('Error: $e'),
+    );
+  }
+
+  Widget _buildWatchStatus(KnightContext context) {
+    if (context.deviceHealth.isEmpty) return const SizedBox.shrink();
+    
+    // Look for Galaxy Watch in context
+    final watch = context.deviceHealth.values.firstWhereOrNull(
+      (d) => d.deviceId.toLowerCase().contains('watch'),
+    ) ?? context.deviceHealth.values.first;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('WATCH INTELLIGENCE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white38)),
+        const SizedBox(height: 16),
+        Card(
+          color: DesignColors.surfaceHigh,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                const Icon(Icons.watch_rounded, size: 40, color: DesignColors.accentBlue),
+                const SizedBox(width: 20),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(watch.deviceId.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${watch.batteryLevel}% Battery • ${watch.isCharging ? "Charging" : "Discharging"}',
+                        style: const TextStyle(fontSize: 12, color: Colors.white38),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: DesignColors.success.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text('HEALTHY', style: TextStyle(fontSize: 10, color: DesignColors.success, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMeasurementList() {
+    final measurementsAsync = ref.watch(_recentMeasurementsProvider);
+    return measurementsAsync.when(
+      data: (list) {
+         if (list.isEmpty) return const Center(child: Text('No measurements recorded.'));
+         return Column(
+           children: list.map((m) => Card(
+             child: ListTile(
+               leading: const Icon(Icons.monitor_weight_outlined, color: DesignColors.accentBlue),
+               title: Text('${m.value} ${m.unit}'),
+               subtitle: Text(m.measurementType.toUpperCase()),
+             ),
+           )).toList(),
+         );
+      },
+      loading: () => const CircularProgressIndicator(),
+      error: (e, s) => Text('Error: $e'),
+    );
+  }
+
+  Widget _buildSleepSection(KnightContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -221,7 +402,7 @@ class _HealthContent extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text('SLEEP', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white38)),
-            Text(this.context.sleepStatus.split(' ').first, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+            Text(context.sleepStatus, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
           ],
         ),
         const SizedBox(height: 16),
@@ -241,7 +422,7 @@ class _HealthContent extends StatelessWidget {
     );
   }
 
-  Widget _buildWaterIntake(BuildContext context) {
+  Widget _buildWaterIntake(KnightContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -249,7 +430,7 @@ class _HealthContent extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text('WATER INTAKE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white38)),
-            Text('${this.context.waterIntake} / 2.0 L', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+            Text('${context.waterIntake} / 2.0 L', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
           ],
         ),
         const SizedBox(height: 12),
@@ -262,7 +443,7 @@ class _HealthContent extends StatelessWidget {
           ),
           child: FractionallySizedBox(
             alignment: Alignment.centerLeft,
-            widthFactor: (this.context.waterIntake / 2.0).clamp(0.0, 1.0),
+            widthFactor: (context.waterIntake / 2.0).clamp(0.0, 1.0),
             child: Container(
               decoration: BoxDecoration(
                 color: DesignColors.accentBlue,
@@ -279,6 +460,18 @@ class _HealthContent extends StatelessWidget {
   }
 }
 
+final _recentWorkoutsProvider = FutureProvider<List<WorkoutSessionData>>((ref) async {
+  return ref.watch(healthRepositoryProvider).getRecentWorkouts();
+});
+
+final _recentSleepProvider = FutureProvider<List<SleepSessionData>>((ref) async {
+  return ref.watch(healthRepositoryProvider).getRecentSleep();
+});
+
+final _recentMeasurementsProvider = FutureProvider<List<BodyMeasurementData>>((ref) async {
+  return ref.watch(healthRepositoryProvider).getMeasurementHistory('weight');
+});
+
 class _SleepGraphPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
@@ -288,17 +481,13 @@ class _SleepGraphPainter extends CustomPainter {
 
     final path = Path();
     path.moveTo(0, size.height);
-    
-    // Draw a wavy path for sleep cycles
     for (var i = 0; i <= 10; i++) {
       final x = size.width * (i / 10);
       final y = size.height * (0.4 + 0.3 * (i % 2 == 0 ? 1 : -1));
       path.lineTo(x, y);
     }
-    
     path.lineTo(size.width, size.height);
     path.close();
-    
     canvas.drawPath(path, paint);
   }
 

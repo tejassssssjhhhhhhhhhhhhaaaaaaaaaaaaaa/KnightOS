@@ -11,80 +11,82 @@ void main() {
   late ReasoningEngine engine;
 
   setUp(() {
-    engine = const ReasoningEngine();
+    engine = ReasoningEngine();
   });
 
-  group('ReasoningEngine', () {
-    final mockContext = KnightContext(
-      registeredModules: [],
-      currentScores: [],
-      analyticsSummary: const KnightAnalyticsSummary(
-        analyticsProviderCount: 0,
-        snapshotsPlaceholder: '',
-        weeklySummaryPlaceholder: '',
-        monthlySummaryPlaceholder: '',
-      ),
-      recommendationSummary: const KnightRecommendationSummary(
-        recommendationProviderCount: 0,
-        recommendationCount: 0,
-        topRecommendationPlaceholder: '',
-      ),
-      recentActivity: [],
-      searchSummary: const KnightSearchSummary(
-        searchProviderCount: 0,
-        indexedModules: 0,
-        lastSearchPlaceholder: '',
-      ),
-      moduleHealth: [],
-      lastSyncTime: DateTime.now(),
-      healthStatus: 'Optimal',
-      dataFreshness: 'Live',
-      applicationVersion: '1.0.0',
-      fitnessSummary: const KnightFitnessSummary(
-        gymProfileExists: false,
-        equipmentCount: 0,
-        capabilityPlaceholder: '',
-        workoutPlaceholder: '',
-      ),
-      travelSummary: const KnightTravelSummary(
-        visited: 0,
-        wishlist: 0,
-        planned: 0,
-        favoritePlaces: 0,
-        upcomingTripsPlaceholder: '',
-      ),
-      workSummary: const KnightWorkSummary(
-        currentShiftPlaceholder: '',
-        questions: 0,
-        calls: 0,
-        chats: 0,
-        dailyTarget: 0,
-        productivityPlaceholder: '',
-      ),
-      timestamp: DateTime.now(),
-      greeting: 'Morning',
-      sleepStatus: 'Optimal recovery',
-      upcomingEvents: [],
-      currentGoals: [],
-      healthSummary: 'Vital signs nominal',
-      weather: 'Clear skies',
-    );
+  final mockContext = KnightContext(
+    registeredModules: [],
+    currentScores: [],
+    analyticsSummary: const KnightAnalyticsSummary(
+      analyticsProviderCount: 0,
+      snapshotsPlaceholder: '',
+      weeklySummaryPlaceholder: '',
+      monthlySummaryPlaceholder: '',
+    ),
+    recommendationSummary: const KnightRecommendationSummary(
+      recommendationProviderCount: 0,
+      recommendationCount: 0,
+      topRecommendationPlaceholder: '',
+    ),
+    recentActivity: [],
+    searchSummary: const KnightSearchSummary(
+      searchProviderCount: 0,
+      indexedModules: 0,
+      lastSearchPlaceholder: '',
+    ),
+    moduleHealth: [],
+    lastSyncTime: DateTime.now(),
+    healthStatus: 'Optimal',
+    dataFreshness: 'Live',
+    applicationVersion: '1.0.0',
+    fitnessSummary: const KnightFitnessSummary(
+      gymProfileExists: false,
+      equipmentCount: 0,
+      capabilityPlaceholder: '',
+      workoutPlaceholder: '',
+    ),
+    travelSummary: const KnightTravelSummary(
+      visited: 0,
+      wishlist: 0,
+      planned: 0,
+      favoritePlaces: 0,
+      upcomingTripsPlaceholder: '',
+    ),
+    workSummary: const KnightWorkSummary(
+      currentShiftPlaceholder: '',
+      questions: 0,
+      calls: 0,
+      chats: 0,
+      dailyTarget: 0,
+      productivityPlaceholder: '',
+    ),
+    timestamp: DateTime.now(),
+    greeting: 'Morning',
+    sleepStatus: 'Optimal recovery',
+    upcomingEvents: [],
+    currentGoals: [],
+    healthSummary: 'Vital signs nominal',
+    weather: 'Clear skies',
+  );
 
-    test('generates situational summary correctly', () {
-      final result = engine.reason(context: mockContext, memories: []);
+  group('ReasoningEngine', () {
+    // ... (mockContext definition omitted for brevity, but I'll replace the tests)
+    
+    test('generates situational summary correctly', () async {
+      final result = await engine.reason(context: mockContext, memories: []);
       expect(result.summary, contains('Morning'));
       expect(result.summary, contains('nominal'));
     });
 
-    test('triggers sleep recovery recommendation on sleep debt', () {
+    test('triggers sleep recovery recommendation on sleep debt', () async {
       final debtContext = mockContext.copyWith(sleepStatus: 'Sleep debt detected');
-      final result = engine.reason(context: debtContext, memories: []);
+      final result = await engine.reason(context: debtContext, memories: []);
       
       expect(result.warnings, anyElement(contains('fatigue')));
       expect(result.recommendations.any((r) => r.category == KnightRecommendationCategory.sleep), isTrue);
     });
 
-    test('detects mission focus insight when active missions exist', () {
+    test('detects mission focus insight when active missions exist', () async {
       final missionMemory = KnightMemory.create(
         memoryId: 'mission-1',
         category: BookCategory.ambitions,
@@ -94,21 +96,21 @@ void main() {
         summary: 'Build KnightOS',
       );
 
-      final result = engine.reason(context: mockContext, memories: [missionMemory]);
+      final result = await engine.reason(context: mockContext, memories: [missionMemory]);
       
       expect(result.insights.any((i) => i.id == 'insight-mission-focus'), isTrue);
       expect(result.insights.first.description, contains('Build KnightOS'));
     });
 
-    test('identifies outdoor opportunity on clear weather', () {
+    test('identifies outdoor opportunity on clear weather', () async {
       final clearContext = mockContext.copyWith(weather: 'Sunny and clear');
-      final result = engine.reason(context: clearContext, memories: []);
+      final result = await engine.reason(context: clearContext, memories: []);
       
       expect(result.opportunities, anyElement(contains('outdoor')));
     });
 
     group('Sprint 5.1: Contextual Awareness', () {
-      test('triggers urgent mail warning for security alerts', () {
+      test('triggers urgent mail warning for security alerts', () async {
         final world = WorldState(
           weather: 'Clear',
           calendarEvents: [],
@@ -125,13 +127,13 @@ void main() {
           ],
         );
         final urgentContext = mockContext.copyWith(worldState: world);
-        final result = engine.reason(context: urgentContext, memories: []);
+        final result = await engine.reason(context: urgentContext, memories: []);
         
         expect(result.warnings.any((w) => w.contains('SECURITY')), isTrue);
         expect(result.recommendations.any((r) => r.priority == KnightRecommendationPriority.critical), isTrue);
       });
 
-      test('suggests preparation for upcoming meetings', () {
+      test('suggests preparation for upcoming meetings', () async {
         final world = WorldState(
           weather: 'Clear',
           calendarEvents: [
@@ -146,13 +148,13 @@ void main() {
           lastSync: DateTime.now(),
         );
         final calContext = mockContext.copyWith(worldState: world);
-        final result = engine.reason(context: calContext, memories: []);
+        final result = await engine.reason(context: calContext, memories: []);
         
         expect(result.insights.any((i) => i.title.contains('Preparation')), isTrue);
         expect(result.recommendations.any((r) => r.title.contains('Review for Design Review')), isTrue);
       });
 
-      test('detects calendar schedule conflicts', () {
+      test('detects calendar schedule conflicts', () async {
         final startTime = DateTime.now().add(const Duration(hours: 1));
         final world = WorldState(
           weather: 'Clear',
@@ -174,14 +176,14 @@ void main() {
           lastSync: DateTime.now(),
         );
         final conflictContext = mockContext.copyWith(worldState: world);
-        final result = engine.reason(context: conflictContext, memories: []);
+        final result = await engine.reason(context: conflictContext, memories: []);
         
         expect(result.warnings.any((w) => w.contains('Conflict')), isTrue);
         expect(result.recommendations.any((r) => r.id.contains('rec-cal-conflict')), isTrue);
       });
     });
 
-    test('calculates trace confidence from input memories', () {
+    test('calculates trace confidence from input memories', () async {
       final lowConf = KnightMemory.create(
         memoryId: 'm1',
         category: BookCategory.history,
@@ -191,41 +193,8 @@ void main() {
         confidence: 0.2,
       );
 
-      final result = engine.reason(context: mockContext, memories: [lowConf]);
+      final result = await engine.reason(context: mockContext, memories: [lowConf]);
       expect(result.trace.confidence, 0.8); // Engine currently has static 0.8 in trace
     });
   });
-}
-
-extension on KnightContext {
-  KnightContext copyWith({
-    String? sleepStatus,
-    String? weather,
-    WorldState? worldState,
-  }) {
-    return KnightContext(
-      registeredModules: registeredModules,
-      currentScores: currentScores,
-      analyticsSummary: analyticsSummary,
-      recommendationSummary: recommendationSummary,
-      recentActivity: recentActivity,
-      searchSummary: searchSummary,
-      moduleHealth: moduleHealth,
-      lastSyncTime: lastSyncTime,
-      healthStatus: healthStatus,
-      dataFreshness: dataFreshness,
-      applicationVersion: applicationVersion,
-      fitnessSummary: fitnessSummary,
-      travelSummary: travelSummary,
-      workSummary: workSummary,
-      timestamp: timestamp,
-      greeting: greeting,
-      sleepStatus: sleepStatus ?? this.sleepStatus,
-      upcomingEvents: upcomingEvents,
-      currentGoals: currentGoals,
-      healthSummary: healthSummary,
-      weather: weather ?? this.weather,
-      worldState: worldState ?? this.worldState,
-    );
-  }
 }

@@ -49,9 +49,9 @@ class _ExecutionCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: DesignColors.surfaceHigh.withOpacity(0.9),
+          color: DesignColors.surfaceHigh.withValues(alpha: 0.9),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: DesignColors.accentBlue.withOpacity(0.3)),
+          border: Border.all(color: DesignColors.accentBlue.withValues(alpha: 0.3)),
           boxShadow: DesignShadows.subtle,
         ),
         child: Column(

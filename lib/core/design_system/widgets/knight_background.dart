@@ -33,7 +33,7 @@ class KnightBackground extends StatelessWidget {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      DesignColors.focus.withOpacity(0.1),
+                      DesignColors.focus.withValues(alpha: 0.1),
                       Colors.transparent,
                     ],
                   ),

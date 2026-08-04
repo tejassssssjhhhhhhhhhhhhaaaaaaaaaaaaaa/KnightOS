@@ -19,8 +19,8 @@ void main() {
   });
 
   group('BookCategory', () {
-    test('should have 11 books', () {
-      expect(BookCategory.values.length, 11);
+    test('should have 14 books', () {
+      expect(BookCategory.values.length, 14);
     });
 
     test('fromId returns correct category', () {

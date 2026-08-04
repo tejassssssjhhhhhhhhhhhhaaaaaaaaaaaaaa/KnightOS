@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:collection/collection.dart';
 import '../../../core/intelligence/providers/intelligence_providers.dart';
 import '../data/memory_upcoming_repository.dart';
 import '../domain/upcoming_item.dart';
@@ -40,8 +41,10 @@ class UpcomingController extends AsyncNotifier<UpcomingState> {
 
   Future<void> completeItem(String id, bool completed) async {
     final items = state.value?.items ?? [];
-    final item = items.firstWhere((e) => e.id == id);
-    await updateItem(item.copyWith(completed: completed));
+    final item = items.firstWhereOrNull((e) => e.id == id);
+    if (item != null) {
+      await updateItem(item.copyWith(completed: completed));
+    }
   }
 
   Future<void> deleteItem(String id) async {

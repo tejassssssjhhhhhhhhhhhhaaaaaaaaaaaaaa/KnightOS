@@ -36,7 +36,7 @@ void main() {
     engine = AutonomousEngine(
       bus: bus,
       memoryEngine: mem,
-      reasoningEngine: const ReasoningEngine(),
+      reasoningEngine: ReasoningEngine(),
       getContext: () async => KnightContext(
         registeredModules: [],
         currentScores: [],

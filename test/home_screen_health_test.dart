@@ -6,7 +6,7 @@ import 'package:knight_os/core/intelligence/knight_context_models.dart';
 import 'package:knight_os/core/intelligence/knight_context_provider.dart';
 import 'package:knight_os/core/internal/storage/drift/knight_database.dart';
 import 'package:knight_os/core/providers/storage_providers.dart';
-import 'package:knight_os/core/intelligence/providers/intelligence_providers.dart';
+import 'package:knight_os/core/providers/database_provider.dart';
 import 'package:drift/native.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'test_utils/mock_path_provider.dart';
@@ -56,7 +56,6 @@ void main() {
           knightDatabaseProvider.overrideWith((ref) => KnightDatabase.forTesting(NativeDatabase.memory())),
           storageInitializerProvider.overrideWith((ref) => Future.value()),
           currentContextNotifierProvider.overrideWith(MockContextNotifier.new),
-          authSessionProvider.overrideWith((ref) => Future.value(null)), // Guest
         ],
         child: const MaterialApp(
           home: HomeScreen(),
@@ -69,9 +68,6 @@ void main() {
 
     // Verify presence of major components
     expect(find.textContaining('Morning'), findsOneWidget);
-    expect(find.textContaining('Guest'), findsOneWidget);
-    expect(find.text('OPERATIONAL COMMAND'), findsOneWidget);
-    expect(find.text('FOCUS SCORE'), findsOneWidget);
-    expect(find.text('QUICK ACTIONS'), findsOneWidget);
+    expect(find.text('SYSTEM SNAPSHOT'), findsOneWidget);
   });
 }

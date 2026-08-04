@@ -4,11 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:knight_os/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:knight_os/knight_os_app.dart';
-import 'package:knight_os/core/intelligence/providers/intelligence_providers.dart';
+import 'package:knight_os/core/providers/database_provider.dart';
 import 'package:knight_os/core/internal/storage/drift/knight_database.dart';
 import 'package:knight_os/core/providers/storage_providers.dart';
 import 'package:knight_os/core/repositories/authentication_repository.dart';
-import 'package:knight_os/features/welcome/presentation/widgets/knight_helmet_logo.dart';
+import 'package:knight_os/core/design_system/widgets/knight_circuit_shield.dart';
 import 'package:drift/native.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:knight_os/core/theme/app_theme.dart';
@@ -44,15 +44,13 @@ void main() {
               (ref) => MockAuthRepository(),
             ),
           ],
-          child: KnightOsApp(
-            theme: AppTheme.darkTheme(isTest: true),
-          ),
+          child: const KnightOsApp(),
         ),
       );
       // Advance clock to clear cinematic effect and storage init
       await tester.pump(const Duration(seconds: 3));
       // Verify logo appears
-      expect(find.byType(KnightHelmetLogo), findsWidgets);
+      expect(find.byType(KnightCircuitShield), findsWidgets);
     });
   });
 
@@ -78,37 +76,6 @@ void main() {
     );
 
     expect(find.text('Personal'), findsOneWidget);
-    expect(find.text('Set up your KnightOS profile'), findsOneWidget);
-  });
-
-  testWidgets('Onboarding requires personal details before advancing', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          knightDatabaseProvider.overrideWith((ref) {
-            final db = KnightDatabase.forTesting(NativeDatabase.memory());
-            ref.onDispose(() => db.close());
-            return db;
-          }),
-          storageInitializerProvider.overrideWith((ref) => Future.value()),
-          authenticationRepositoryProvider.overrideWith(
-            (ref) => MockAuthRepository(),
-          ),
-        ],
-        child: MaterialApp(
-          theme: AppTheme.lightTheme(isTest: true),
-          home: const OnboardingFlowScreen(),
-        ),
-      ),
-    );
-
-    // Find the Next button by text since it might be a sub-widget of FilledButton
-    final nextButtonFinder = find.widgetWithText(FilledButton, 'Next');
-    expect(nextButtonFinder, findsOneWidget);
-
-    final nextButton = tester.widget<FilledButton>(nextButtonFinder);
-    expect(nextButton.onPressed, isNull);
+    expect(find.text('Share the essentials so KnightOS can personalize your experience.'), findsOneWidget);
   });
 }

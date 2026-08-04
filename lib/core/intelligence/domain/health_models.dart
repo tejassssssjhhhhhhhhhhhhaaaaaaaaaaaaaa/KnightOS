@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'knight_memory.dart';
+import 'cognitive_models.dart';
 
 /// Categories for health-specific data types.
 enum HealthDataType {
@@ -334,6 +335,85 @@ class SymptomRecord {
     severity: json['severity'] as int,
     timestamp: DateTime.parse(json['timestamp'] as String),
     notes: json['notes'] as String?,
+  );
+}
+
+/// Represents a health score with its associated reasoning trace.
+@immutable
+class HealthScoreResult {
+  const HealthScoreResult({
+    required this.score,
+    required this.trace,
+  });
+
+  final int score;
+  final ReasoningTrace trace;
+
+  Map<String, dynamic> toJson() => {
+    'score': score,
+    'trace_confidence': trace.confidence,
+  };
+
+  factory HealthScoreResult.empty() => HealthScoreResult(
+    score: 0,
+    trace: ReasoningTrace(
+      intent: KnightIntent.analysis,
+      memoriesUsed: [],
+      rulesApplied: [],
+      goalsConsidered: [],
+      thoughtChain: ['Initial state'],
+      confidence: 0.0,
+    ),
+  );
+}
+
+/// Overall health scores for a specific period.
+@immutable
+class HealthScores {
+  const HealthScores({
+    required this.dailyScore,
+    required this.recoveryScore,
+    required this.sleepScore,
+    required this.stressScore,
+    required this.hydrationScore,
+    required this.nutritionScore,
+    required this.workoutScore,
+    required this.readinessScore,
+    required this.timestamp,
+  });
+
+  final HealthScoreResult dailyScore;
+  final HealthScoreResult recoveryScore;
+  final HealthScoreResult sleepScore;
+  final HealthScoreResult stressScore;
+  final HealthScoreResult hydrationScore;
+  final HealthScoreResult nutritionScore;
+  final HealthScoreResult workoutScore;
+  final HealthScoreResult readinessScore;
+  final DateTime timestamp;
+
+  Map<String, dynamic> toJson() => {
+    'dailyScore': dailyScore.score,
+    'recoveryScore': recoveryScore.score,
+    'sleepScore': sleepScore.score,
+    'stressScore': stressScore.score,
+    'hydrationScore': hydrationScore.score,
+    'nutritionScore': nutritionScore.score,
+    'workoutScore': workoutScore.score,
+    'readinessScore': readinessScore.score,
+    'timestamp': timestamp.toIso8601String(),
+  };
+
+  factory HealthScores.fromJson(Map<String, dynamic> json) => HealthScores(
+    dailyScore: HealthScoreResult(score: json['dailyScore'] as int, trace: ReasoningTrace(intent: KnightIntent.analysis, memoriesUsed: [], rulesApplied: [], goalsConsidered: [], thoughtChain: [], confidence: 1.0)),
+    recoveryScore: HealthScoreResult(score: json['recoveryScore'] as int, trace: ReasoningTrace(intent: KnightIntent.analysis, memoriesUsed: [], rulesApplied: [], goalsConsidered: [], thoughtChain: [], confidence: 1.0)),
+    sleepScore: HealthScoreResult(score: json['sleepScore'] as int, trace: ReasoningTrace(intent: KnightIntent.analysis, memoriesUsed: [], rulesApplied: [], goalsConsidered: [], thoughtChain: [], confidence: 1.0)),
+    stressScore: HealthScoreResult(score: json['stressScore'] as int, trace: ReasoningTrace(intent: KnightIntent.analysis, memoriesUsed: [], rulesApplied: [], goalsConsidered: [], thoughtChain: [], confidence: 1.0)),
+    hydrationScore: HealthScoreResult(score: json['hydrationScore'] as int, trace: ReasoningTrace(intent: KnightIntent.analysis, memoriesUsed: [], rulesApplied: [], goalsConsidered: [], thoughtChain: [], confidence: 1.0)),
+    nutritionScore: HealthScoreResult(score: json['nutritionScore'] as int, trace: ReasoningTrace(intent: KnightIntent.analysis, memoriesUsed: [], rulesApplied: [], goalsConsidered: [], thoughtChain: [], confidence: 1.0)),
+    workoutScore: HealthScoreResult(score: json['workoutScore'] as int, trace: ReasoningTrace(intent: KnightIntent.analysis, memoriesUsed: [], rulesApplied: [], goalsConsidered: [], thoughtChain: [], confidence: 1.0)),
+    readinessScore: HealthScoreResult(score: json['readinessScore'] as int, trace: ReasoningTrace(intent: KnightIntent.analysis, memoriesUsed: [], rulesApplied: [], goalsConsidered: [], thoughtChain: [], confidence: 1.0)),
+    timestamp: DateTime.parse(json['timestamp'] as String),
   );
 }
 

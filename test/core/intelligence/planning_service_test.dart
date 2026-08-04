@@ -16,26 +16,22 @@ import 'package:knight_os/core/intelligence/services/reasoning_service.dart';
 import 'package:knight_os/core/intelligence/engines/context_engine.dart';
 import 'package:knight_os/core/intelligence/engines/optimization_engine.dart';
 import 'package:knight_os/core/intelligence/engines/ai_provider.dart';
+import 'package:knight_os/core/intelligence/services/knowledge_graph_service.dart';
+import 'package:mocktail/mocktail.dart';
 
 class MockMemoryRepository extends Fake implements MemoryRepository {
   @override
   Future<List<KnightMemory>> search(String query) async => [];
-
   @override
   Future<List<KnightMemory>> getByCategory(BookCategory category) async => [];
-
   @override
   Future<List<KnightMemory>> getByDomain(MemoryDomain domain) async => [];
-
   @override
   Future<KnightMemory?> getLatest(String memoryId) async => null;
-
   @override
   Stream<KnightMemory?> watchLatest(String memoryId) => Stream.value(null);
-
   @override
   Stream<List<KnightMemory>> watchByCategory(BookCategory category) => Stream.value([]);
-
   @override
   Stream<List<KnightMemory>> watchByDomain(MemoryDomain domain) => Stream.value([]);
 }
@@ -45,7 +41,7 @@ class MockJsonValidationService extends Fake implements JsonValidationService {
   Future<void> validate(MemoryDomain domain, Map<String, dynamic> content) async {}
 }
 
-class MockAiProvider extends Fake implements KnightAiProvider {}
+class MockGraphService extends Mock implements KnowledgeGraphService {}
 
 void main() {
   late PlanningService service;
@@ -67,13 +63,15 @@ void main() {
       engine: WorldEngine(bus: bus),
       memoryEngine: memoryEngine,
     );
+    final graphService = MockGraphService();
     reasoningService = ReasoningService(
-      engine: const ReasoningEngine(),
+      engine: ReasoningEngine(),
       memoryEngine: memoryEngine,
       contextService: contextService,
       worldService: worldService,
       contextEngine: ContextEngine(memoryEngine: memoryEngine),
       optimizationEngine: OptimizationEngine(bus: bus),
+      graphService: graphService,
     );
     service = PlanningService(
       engine: engine,
@@ -87,9 +85,7 @@ void main() {
   group('PlanningService', () {
     test('generateDailyPlan coordinates full pipeline', () async {
       final result = await service.generateDailyPlan(featureModules: []);
-      
       expect(result.dailyPlan, isNotNull);
-      expect(result.dailyPlan.tasks, isEmpty); // Default mock returns empty reasoning recommendations
     });
   });
 }

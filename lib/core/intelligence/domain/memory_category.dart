@@ -12,6 +12,9 @@ enum BookCategory {
   history(8, "History & Archives (The Ledger)"),
   preferences(9, "Preferences & Tastes (The Style)"),
   ambitions(10, "Ambitions & Future (The Horizon)"),
+  communication(12, "Communication & Connection"),
+  upcoming(13, "Upcoming & Planning"),
+  knowledge(14, "Knowledge & Wisdom"),
   unknown(11, "The Unknown & Mystery (The Void)");
 
   const BookCategory(this.id, this.label);
@@ -34,13 +37,19 @@ enum BookCategory {
       case BookCategory.history: return const Color(0xFF94A3B8);
       case BookCategory.preferences: return const Color(0xFF0EA5E9);
       case BookCategory.ambitions: return const Color(0xFF0EA5E9);
+      case BookCategory.communication: return const Color(0xFF3B82F6);
+      case BookCategory.upcoming: return const Color(0xFF8B5CF6);
+      case BookCategory.knowledge: return const Color(0xFFF59E0B);
       case BookCategory.unknown: return const Color(0xFF1E293B);
     }
   }
 
   /// Factory to get category by ID.
   static BookCategory fromId(int id) {
-    return BookCategory.values.firstWhere((c) => c.id == id);
+    return BookCategory.values.firstWhere(
+      (c) => c.id == id,
+      orElse: () => BookCategory.unknown,
+    );
   }
 }
 

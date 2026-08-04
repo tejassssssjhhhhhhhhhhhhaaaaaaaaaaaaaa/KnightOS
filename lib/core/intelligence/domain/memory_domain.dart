@@ -41,6 +41,9 @@ enum MemoryDomain {
 
   /// Factory to get domain by ID.
   static MemoryDomain fromId(int id) {
-    return MemoryDomain.values.firstWhere((d) => d.id == id);
+    return MemoryDomain.values.firstWhere(
+      (d) => d.id == id,
+      orElse: () => MemoryDomain.unknowns,
+    );
   }
 }

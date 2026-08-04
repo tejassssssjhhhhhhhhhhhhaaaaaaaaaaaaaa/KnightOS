@@ -40,6 +40,9 @@ class LocalMemoryRepository implements MemoryRepository {
   @override
   Future<List<KnightMemory>> search(String query) async => [];
   @override
+  Future<List<KnightMemory>> searchByDateRange(DateTime start, DateTime end) async => [];
+
+  @override
   Future<void> delete(String memoryId) async {}
 
   @override

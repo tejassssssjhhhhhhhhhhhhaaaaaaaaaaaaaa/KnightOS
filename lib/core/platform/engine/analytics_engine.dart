@@ -1,183 +1,251 @@
-/// Production-ready analytics engine shell for KnightOS.
-///
-/// This engine integrates with the Knight Engine and Scoring Engine by exposing
-/// typed contracts for analytics, historical aggregation, and future module
-/// interoperability. It intentionally contains no feature-specific business
-/// logic and leaves calculations as TODO placeholders.
-library;
-
+import 'dart:async';
+import 'dart:math' as math;
 import 'analytics_interfaces.dart';
 import 'analytics_models.dart';
 import 'engine_interfaces.dart';
 import 'engine_types.dart';
+import 'scoring_models.dart';
+import '../../internal/utils/knight_logger.dart';
 
-/// Generic analytics orchestrator for the Knight Engine platform.
-///
-/// The analytics engine is intentionally dependency injection friendly and
-/// remains agnostic to the specific modules that will later provide data.
+/// Production-ready analytics engine for KnightOS.
 class AnalyticsEngine implements KnightModule, KnightAnalyticsStore {
-  /// Creates an analytics engine with optional collaborators.
-  AnalyticsEngine({this._serviceProvider, this._eventBus, this._aggregator});
+  AnalyticsEngine({
+    this._eventBus,
+    KnightAnalyticsAggregator? aggregator,
+  }) : _aggregator = aggregator ?? DefaultAnalyticsAggregator();
 
-  final KnightServiceProvider? _serviceProvider;
   final KnightEventBus? _eventBus;
-  final KnightAnalyticsAggregator? _aggregator;
+  final KnightAnalyticsAggregator _aggregator;
   final List<KnightAnalyticsProvider> _providers = <KnightAnalyticsProvider>[];
   final List<KnightAnalyticsSnapshot> _snapshots = <KnightAnalyticsSnapshot>[];
-  KnightModuleLifecycleState _lifecycleState =
-      KnightModuleLifecycleState.bootstrapping;
 
-  /// Returns the registered service provider if one exists.
-  KnightServiceProvider? get serviceProvider => _serviceProvider;
-
-  /// Returns the registered event bus if one exists.
-  KnightEventBus? get eventBus => _eventBus;
-
-  /// Returns the registered aggregator if one exists.
-  KnightAnalyticsAggregator? get aggregator => _aggregator;
-
-  /// Returns the current lifecycle state.
-  @override
-  KnightModuleLifecycleState get lifecycleState => _lifecycleState;
-
-  /// Returns the currently registered analytics providers.
-  List<KnightAnalyticsProvider> get providers =>
-      List<KnightAnalyticsProvider>.unmodifiable(_providers);
-
-  /// Returns the current analytics snapshots.
-  List<KnightAnalyticsSnapshot> get snapshots =>
-      List<KnightAnalyticsSnapshot>.unmodifiable(_snapshots);
-
-  /// Registers an analytics provider.
-  void registerProvider(KnightAnalyticsProvider provider) {
-    // TODO: validate uniqueness and register the provider.
-    _providers.add(provider);
-  }
-
-  /// Unregisters an analytics provider.
-  void unregisterProvider(String providerId) {
-    // TODO: remove the provider by identifier.
-    _providers.removeWhere((provider) => provider.id == providerId);
-  }
-
-  /// Produces historical trends for the supplied provider.
-  Future<KnightAnalyticsSnapshot> analyzeHistoricalTrends(
-    KnightAnalyticsProvider provider,
-    KnightAnalyticsTimeRange timeRange,
-  ) async {
-    // TODO: request history and metrics, then derive a trend snapshot.
-    throw UnimplementedError();
-  }
-
-  /// Produces a rolling average snapshot for the supplied provider.
-  Future<KnightAnalyticsSnapshot> analyzeRollingAverage(
-    KnightAnalyticsProvider provider,
-    KnightAnalyticsTimeRange timeRange,
-  ) async {
-    // TODO: compute a rolling average snapshot.
-    throw UnimplementedError();
-  }
-
-  /// Produces a weekly summary snapshot.
-  Future<KnightAnalyticsSnapshot> analyzeWeeklySummary(
-    KnightAnalyticsProvider provider,
-  ) async {
-    // TODO: produce a weekly summary snapshot.
-    throw UnimplementedError();
-  }
-
-  /// Produces a monthly summary snapshot.
-  Future<KnightAnalyticsSnapshot> analyzeMonthlySummary(
-    KnightAnalyticsProvider provider,
-  ) async {
-    // TODO: produce a monthly summary snapshot.
-    throw UnimplementedError();
-  }
-
-  /// Produces a yearly summary snapshot.
-  Future<KnightAnalyticsSnapshot> analyzeYearlySummary(
-    KnightAnalyticsProvider provider,
-  ) async {
-    // TODO: produce a yearly summary snapshot.
-    throw UnimplementedError();
-  }
-
-  /// Produces a score-history-based snapshot.
-  Future<KnightAnalyticsSnapshot> analyzeScoreHistory(
-    KnightAnalyticsProvider provider,
-  ) async {
-    // TODO: analyze score history for the provider.
-    throw UnimplementedError();
-  }
-
-  /// Produces a comparison result between two providers.
-  Future<KnightComparisonResult> compareProviders(
-    KnightAnalyticsProvider left,
-    KnightAnalyticsProvider right,
-  ) async {
-    // TODO: compare the supplied providers.
-    throw UnimplementedError();
-  }
-
-  /// Produces a correlation placeholder for two providers.
-  Future<double> correlateProviders(
-    KnightAnalyticsProvider left,
-    KnightAnalyticsProvider right,
-  ) async {
-    // TODO: compute correlation between the supplied providers.
-    throw UnimplementedError();
-  }
-
-  /// Produces a forecasting placeholder.
-  Future<KnightAnalyticsSnapshot> forecastFuture(
-    KnightAnalyticsProvider provider,
-    KnightAnalyticsTimeRange timeRange,
-  ) async {
-    // TODO: produce a forecasting snapshot placeholder.
-    throw UnimplementedError();
-  }
-
-  /// Produces an anomaly-detection placeholder.
-  Future<KnightInsight> detectAnomalies(
-    KnightAnalyticsProvider provider,
-  ) async {
-    // TODO: detect anomalies for the supplied provider.
-    throw UnimplementedError();
-  }
+  KnightModuleLifecycleState _lifecycleState = KnightModuleLifecycleState.ready;
 
   @override
   String get id => 'analytics_engine';
 
   @override
-  String get name => 'Analytics Engine';
+  String get name => 'Knight Analytics Engine';
+
+  @override
+  KnightModuleLifecycleState get lifecycleState => _lifecycleState;
+
+  List<KnightAnalyticsProvider> get providers => List.unmodifiable(_providers);
+
+  @override
+  Future<List<KnightAnalyticsSnapshot>> getSnapshots() async {
+    return List.unmodifiable(_snapshots);
+  }
+
+  void registerProvider(KnightAnalyticsProvider provider) {
+    if (_providers.any((p) => p.id == provider.id)) return;
+    _providers.add(provider);
+    _eventBus?.emit(KnightModuleRegisteredEvent(provider.id));
+  }
+
+  void unregisterProvider(String providerId) {
+    _providers.removeWhere((p) => p.id == providerId);
+  }
+
+  /// Refreshes analytics for all registered providers.
+  Future<void> refreshAnalytics() async {
+    KnightLogger.info('[ANALYTICS] Refreshing all analytics snapshots...', category: KnightLogCategory.intelligence);
+
+    final List<KnightAnalyticsSnapshot> newSnapshots = [];
+    for (final provider in _providers) {
+      try {
+        final snapshot = await analyzeHistoricalTrends(provider, KnightAnalyticsTimeRange.rolling);
+        newSnapshots.add(snapshot);
+      } catch (e, stack) {
+        KnightLogger.error('[ANALYTICS] Failed to analyze ${provider.id}: $e', stackTrace: stack, category: KnightLogCategory.intelligence);
+      }
+    }
+
+    _snapshots.clear();
+    _snapshots.addAll(newSnapshots);
+    KnightLogger.info('[ANALYTICS] Refresh complete. ${_snapshots.length} snapshots generated.', category: KnightLogCategory.intelligence);
+  }
+
+  Future<KnightAnalyticsSnapshot> analyzeHistoricalTrends(
+    KnightAnalyticsProvider provider,
+    KnightAnalyticsTimeRange timeRange,
+  ) async {
+    final history = await provider.requestHistoricalData();
+    final metrics = await provider.requestMetrics();
+
+    return await _aggregator.aggregate(
+      provider.moduleId,
+      timeRange,
+      history,
+      metrics,
+    );
+  }
+
+  Future<KnightAnalyticsSnapshot> analyzeRollingAverage(
+    KnightAnalyticsProvider provider,
+    KnightAnalyticsTimeRange timeRange,
+  ) async {
+    return analyzeHistoricalTrends(provider, KnightAnalyticsTimeRange.rolling);
+  }
+
+  Future<KnightAnalyticsSnapshot> analyzeWeeklySummary(
+    KnightAnalyticsProvider provider,
+  ) async {
+    return analyzeHistoricalTrends(provider, KnightAnalyticsTimeRange.weekly);
+  }
+
+  Future<KnightAnalyticsSnapshot> analyzeMonthlySummary(
+    KnightAnalyticsProvider provider,
+  ) async {
+    return analyzeHistoricalTrends(provider, KnightAnalyticsTimeRange.monthly);
+  }
+
+  Future<KnightAnalyticsSnapshot> analyzeYearlySummary(
+    KnightAnalyticsProvider provider,
+  ) async {
+    return analyzeHistoricalTrends(provider, KnightAnalyticsTimeRange.yearly);
+  }
+
+  Future<KnightAnalyticsSnapshot> analyzeScoreHistory(
+    KnightAnalyticsProvider provider,
+  ) async {
+    final scoreHistory = await provider.requestScoreHistory();
+    final history = scoreHistory.map((s) => KnightHistoricalDataPoint(
+      timestamp: s.timestamp,
+      value: s.value,
+    )).toList();
+
+    final metrics = await provider.requestMetrics();
+
+    return await _aggregator.aggregate(
+      provider.moduleId,
+      KnightAnalyticsTimeRange.custom,
+      history,
+      metrics,
+    );
+  }
+
+  Future<KnightComparisonResult> compareProviders(
+    KnightAnalyticsProvider left,
+    KnightAnalyticsProvider right,
+  ) async {
+    final leftMetrics = await left.requestMetrics();
+    final rightMetrics = await right.requestMetrics();
+
+    final leftVal = leftMetrics.isNotEmpty ? leftMetrics.first.value : 0.0;
+    final rightVal = rightMetrics.isNotEmpty ? rightMetrics.first.value : 0.0;
+
+    return KnightComparisonResult(
+      leftLabel: left.name,
+      rightLabel: right.name,
+      difference: leftVal - rightVal,
+      significance: (leftVal - rightVal).abs() > 10 ? 'Significant' : 'Minor',
+    );
+  }
+
+  Future<double> correlateProviders(
+    KnightAnalyticsProvider left,
+    KnightAnalyticsProvider right,
+  ) async {
+    final leftData = await left.requestHistoricalData();
+    final rightData = await right.requestHistoricalData();
+
+    if (leftData.isEmpty || rightData.isEmpty) return 0.0;
+
+    // Simple Pearson Correlation implementation
+    return _calculateCorrelation(
+      leftData.map((d) => d.value).toList(),
+      rightData.map((d) => d.value).toList(),
+    );
+  }
+
+  double _calculateCorrelation(List<double> x, List<double> y) {
+    if (x.length != y.length || x.isEmpty) return 0.0;
+
+    final int n = x.length;
+    double sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0, sumY2 = 0;
+
+    for (int i = 0; i < n; i++) {
+      sumX += x[i];
+      sumY += y[i];
+      sumXY += x[i] * y[i];
+      sumX2 += x[i] * x[i];
+      sumY2 += y[i] * y[i];
+    }
+
+    final double numerator = (n * sumXY - sumX * sumY);
+    final double denominator = math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
+
+    if (denominator == 0) return 0.0;
+    return numerator / denominator;
+  }
 
   @override
   Future<void> initialize() async {
-    // TODO: initialize dependencies and prepare analytics processing.
     _lifecycleState = KnightModuleLifecycleState.ready;
   }
 
   @override
   Future<void> start() async {
-    // TODO: start analytics processing.
     _lifecycleState = KnightModuleLifecycleState.running;
+    await refreshAnalytics();
   }
 
   @override
   Future<void> pause() async {
-    // TODO: pause analytics processing.
     _lifecycleState = KnightModuleLifecycleState.paused;
   }
 
   @override
   Future<void> dispose() async {
-    // TODO: clear state and release references.
+    _providers.clear();
     _snapshots.clear();
     _lifecycleState = KnightModuleLifecycleState.disposed;
   }
+}
 
+/// Default implementation of analytics aggregation.
+class DefaultAnalyticsAggregator implements KnightAnalyticsAggregator {
   @override
-  Future<List<KnightAnalyticsSnapshot>> getSnapshots() async {
-    return List<KnightAnalyticsSnapshot>.from(_snapshots);
+  Future<KnightAnalyticsSnapshot> aggregate(
+    String moduleId,
+    KnightAnalyticsTimeRange timeRange,
+    List<KnightHistoricalDataPoint> history,
+    List<KnightMetric> metrics,
+  ) async {
+    double sum = 0;
+    for (final p in history) {
+      sum += p.value;
+    }
+    final average = history.isEmpty ? 0.0 : sum / history.length;
+
+    // Basic trend detection
+    KnightAnalyticsTrendDirection direction = KnightAnalyticsTrendDirection.stable;
+    double slope = 0;
+    if (history.length >= 2) {
+      final first = history.first.value;
+      final last = history.last.value;
+      slope = (last - first) / history.length;
+      if (slope > 0.1) {
+        direction = KnightAnalyticsTrendDirection.increasing;
+      } else if (slope < -0.1) {
+        direction = KnightAnalyticsTrendDirection.decreasing;
+      }
+    }
+
+    return KnightAnalyticsSnapshot(
+      moduleId: moduleId,
+      timeRange: timeRange,
+      metrics: metrics,
+      trend: KnightTrend(
+        direction: direction,
+        slope: slope,
+        confidence: 0.8,
+        period: timeRange,
+      ),
+      average: average,
+      summary: 'Analysis complete for $moduleId.',
+      timestamp: DateTime.now(),
+    );
   }
 }

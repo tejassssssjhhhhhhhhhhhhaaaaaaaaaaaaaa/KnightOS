@@ -37,7 +37,7 @@ class LunarHorizonBackground extends StatelessWidget {
                   center: const Alignment(0, -0.4),
                   radius: 1.2,
                   colors: [
-                    primaryColor.withOpacity(isDark ? 0.15 : 0.1),
+                    primaryColor.withValues(alpha: isDark ? 0.15 : 0.1),
                     Colors.transparent,
                   ],
                 ),
@@ -60,8 +60,8 @@ class LunarHorizonBackground extends StatelessWidget {
                   center: Alignment.topCenter,
                   radius: 0.5,
                   colors: [
-                    primaryColor.withOpacity(isDark ? 0.3 : 0.2),
-                    bgColor.withOpacity(0.8),
+                    primaryColor.withValues(alpha: isDark ? 0.3 : 0.2),
+                    bgColor.withValues(alpha: 0.8),
                     bgColor,
                   ],
                   stops: const [0.0, 0.15, 0.25],
@@ -97,7 +97,7 @@ class _StarsOverlay extends StatelessWidget {
 class _StarsPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = Colors.white.withOpacity(0.2);
+    final paint = Paint()..color = Colors.white.withValues(alpha: 0.2);
     
     // Deterministic random stars
     final List<Offset> points = [
