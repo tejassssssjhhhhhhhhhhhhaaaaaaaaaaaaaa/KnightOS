@@ -1,44 +1,54 @@
 {
   "project_info": {
-    "project_number": "191870018166",
-    "project_id": "knightos-272ef",
-    "storage_bucket": "knightos-272ef.firebasestorage.app"
+    "project_number": "1074527891900",
+    "project_id": "knightos-fa68c",
+    "storage_bucket": "knightos-fa68c.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:191870018166:android:f5816828d82c8e84d1f557",
+        "mobilesdk_app_id": "1:1074527891900:android:fa1e28cfc5bccadbeefbb9",
         "android_client_info": {
           "package_name": "com.example.knight_os"
         }
       },
       "oauth_client": [
         {
-          "client_id": "191870018166-30h9di4hlfkvjg5kgeemid6ae9s5fjo7.apps.googleusercontent.com",
+          "client_id": "1074527891900-a1u2kg9ig5rmmcbv68c6ojmbrg0448k0.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.example.knight_os",
-            "certificate_hash": "ed1e534962433ca3907bbc1c7c1a126065e88831"
+            "certificate_hash": "3a5c995b584e5ff3960caa105a4ef67e20e282c9"
           }
-        },
-        {
-          "client_id": "191870018166-jd0dcbfu4o81ej03j6okp654rv8v5ibf.apps.googleusercontent.com",
-          "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyBLQ6OydXNgRDWfk41elQWVARfsiFdOKUk"
+          "current_key": "AIzaSyDAs_pyAyUaqBF-ji2D_PBVV6yoign0ev0"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "191870018166-jd0dcbfu4o81ej03j6okp654rv8v5ibf.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1074527891900:android:56d055fc02337ab8eefbb9",
+        "android_client_info": {
+          "package_name": "com.mycompany.knightos"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDAs_pyAyUaqBF-ji2D_PBVV6yoign0ev0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
         }
       }
     }

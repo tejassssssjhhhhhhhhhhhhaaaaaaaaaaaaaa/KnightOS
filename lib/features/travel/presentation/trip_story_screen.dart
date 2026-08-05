@@ -44,7 +44,7 @@ class TripStoryScreen extends ConsumerWidget {
           const SizedBox(height: 48),
           EntranceFader(delay: const Duration(milliseconds: 700), child: const Text('EXPENSES', style: KnightTokens.label)),
           const SizedBox(height: 16),
-          EntranceFader(delay: const Duration(milliseconds: 800), child: _buildExpensePlaceholder()),
+          EntranceFader(delay: const Duration(milliseconds: 800), child: _buildExpensePlaceholder(story.totalExpenses)),
           const SizedBox(height: 100),
         ],
       ),
@@ -146,7 +146,7 @@ class TripStoryScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildExpensePlaceholder() {
+  Widget _buildExpensePlaceholder(double total) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -156,9 +156,9 @@ class TripStoryScreen extends ConsumerWidget {
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: const [
-          Text('Total Tracked Cost', style: TextStyle(color: Colors.white38)),
-          Text('\$4,250.00', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        children: [
+          const Text('Total Tracked Cost', style: TextStyle(color: Colors.white38)),
+          Text('\$${total.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         ],
       ),
     );

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -5,6 +6,8 @@ import 'core/router/app_router.dart';
 import 'core/theme/knight_theme_provider.dart';
 import 'core/providers/automation_providers.dart';
 import 'app/widgets/living_environment.dart';
+import 'app/widgets/knight_companion.dart';
+import 'app/widgets/theme_validation_tool.dart';
 
 class KnightOsApp extends StatefulWidget {
   const KnightOsApp({super.key});
@@ -33,33 +36,7 @@ class _KnightOsAppState extends State<KnightOsApp> {
           darkTheme: theme, 
           themeMode: themeMode,
           routerConfig: router,
-          builder: (context, child) {
-            return Directionality(
-              textDirection: TextDirection.ltr,
-              child: Stack(
-                children: [
-                  // Layer 0: Global Atmosphere (Background)
-                  Positioned.fill(
-                    child: IgnorePointer(
-                      child: LivingEnvironment(
-                        period: period,
-                        child: const SizedBox.expand(),
-                      ),
-                    ),
-                  ),
-                  
-                  // Layer 1: App Navigation Content
-                  if (child != null) Positioned.fill(child: child),
-                  
-                  // Layer 2: Floating Knight Companion
-                  // const KnightCompanion(),
-                  
-                  // Layer 3: Developer Validation Tool
-                  // if (kDebugMode) const ThemeValidationTool(),
-                ],
-              ),
-            );
-          },
+          builder: (context, child) => child!,
         );
       },
     );

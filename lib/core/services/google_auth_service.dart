@@ -141,9 +141,7 @@ class GoogleAuthService implements IAuthProvider {
 
   Future<bool> hasScopes(List<String> requiredScopes) async {
     final account = _googleSignIn.currentUser;
-    if (account == null) return false;
-
-    return await _googleSignIn.canAccessScopes(requiredScopes);
+    return account != null;
   }
 }
 

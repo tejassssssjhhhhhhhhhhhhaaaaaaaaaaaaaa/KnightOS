@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:drift/drift.dart';
 import '../../../../core/providers/database_provider.dart';
 import '../../../../core/internal/storage/drift/knight_database.dart';
 import '../../domain/travel_ui_models.dart';
@@ -118,7 +119,15 @@ final tripStoryProvider = FutureProvider.family<TripStory, String>((ref, tripId)
   final db = ref.watch(knightDatabaseProvider);
   final trip = await (db.select(db.tripTable)..where((t) => t.id.equals(tripId))).getSingle();
   final bookings = await db.travelDao.getBookingsForTrip(tripId);
-  return TripStory(trip: trip, bookings: bookings);
+  
+  // Cross-module Finance Integration
+  final transactions = await (db.select(db.transactionTable)
+    ..where((t) => t.transactionDate.isBetween(Constant(trip.startDate), Constant(trip.endDate)))
+  ).get();
+  
+  final totalCost = transactions.fold(0.0, (sum, tx) => sum + tx.amount);
+
+  return TripStory(trip: trip, bookings: bookings, totalExpenses: totalCost);
 });
 
 /// Provider for intelligent highlights.

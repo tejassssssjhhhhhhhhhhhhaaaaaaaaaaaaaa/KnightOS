@@ -74,24 +74,21 @@ class _KnightCompanionState extends ConsumerState<KnightCompanion> with TickerPr
       top: _position.dy,
       width: 64,
       height: 64,
-      child: Semantics(
-        label: 'Knight Companion',
-        child: GestureDetector(
-          onPanUpdate: _onDragUpdate,
-          onPanEnd: _onDragEnd,
-          onTap: () => _handleTap(voiceState.mode),
-          onLongPress: _showQuickActions,
-          child: AnimatedBuilder(
-            animation: _animationController,
-            builder: (context, child) {
-              return KnightCircuitShield(
-                size: 64,
-                period: period,
-                state: _getShieldState(voiceState.mode, perception),
-                animationValue: _animationController.value,
-              );
-            },
-          ),
+      child: GestureDetector(
+        onPanUpdate: _onDragUpdate,
+        onPanEnd: _onDragEnd,
+        onTap: () => _handleTap(voiceState.mode),
+        onLongPress: _showQuickActions,
+        child: AnimatedBuilder(
+          animation: _animationController,
+          builder: (context, child) {
+            return KnightCircuitShield(
+              size: 64,
+              period: period,
+              state: _getShieldState(voiceState.mode, perception),
+              animationValue: _animationController.value,
+            );
+          },
         ),
       ),
     );

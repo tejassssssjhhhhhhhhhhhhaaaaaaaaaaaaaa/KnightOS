@@ -19,7 +19,8 @@ class TravelHighlight {
 class TripStory {
   final TripData trip;
   final List<TravelBookingData> bookings;
-  TripStory({required this.trip, required this.bookings});
+  final double totalExpenses;
+  TripStory({required this.trip, required this.bookings, this.totalExpenses = 0.0});
 }
 
 class TravelCluster {
