@@ -17,26 +17,28 @@ class FinancialExtractor implements EntityExtractor {
     final threadId = rawMetadata['threadId'] as String? ?? 'unknown';
     final accountId = rawMetadata['originAccount'] as String? ?? 'unknown';
 
-    // 1. UPI Extraction
-    if (text.contains('upi') || text.contains('vpa')) {
+    // 1. Transaction Alert Extraction (UPI, Card, NetBanking)
+    if (text.contains('upi') || text.contains('vpa') || text.contains('spent') || text.contains('credited') || text.contains('debited')) {
       final amount = _extractAmount(text);
       final merchant = _extractMerchant(text);
       
       if (amount != null) {
+        String type = text.contains('credited') ? 'income' : 'expense';
+        
         results.add(ExtractionResult(
-          title: 'UPI Payment to $merchant',
+          title: '${type == 'income' ? 'Received from' : 'Payment to'} $merchant',
           summary: 'Amount: ₹$amount',
           type: 'transaction',
-          subtype: 'upi',
+          subtype: text.contains('upi') ? 'upi' : 'banking',
           timestamp: _extractDate(rawMetadata),
           confidence: 0.9,
-          reason: 'Matched UPI pattern and found amount',
+          reason: 'Matched financial pattern and found amount',
           extractorName: name,
           extractorVersion: version,
           evidence: ExtractionEvidence(
             subject: subject,
             snippet: snippet,
-            matchedRule: 'upi_regex',
+            matchedRule: 'banking_regex',
             matchedPattern: 'rs. [\\d,.]+',
             messageId: messageId,
             threadId: threadId,
@@ -45,7 +47,74 @@ class FinancialExtractor implements EntityExtractor {
           searchTokens: {
             'merchant': merchant,
             'amount': amount.toString(),
-            'method': 'upi',
+            'method': text.contains('upi') ? 'upi' : 'bank',
+            'type': type,
+          },
+        ));
+      }
+    }
+
+    // 2. Investment & SIP Detection
+    if (text.contains('mutual fund') || text.contains('sip') || text.contains('stock') || text.contains('zerodha')) {
+      final amount = _extractAmount(text);
+      if (amount != null) {
+        results.add(ExtractionResult(
+          title: 'Investment: ${_extractMerchant(text)}',
+          summary: 'Amount: ₹$amount',
+          type: 'transaction',
+          subtype: 'investment',
+          timestamp: _extractDate(rawMetadata),
+          confidence: 0.85,
+          reason: 'Detected investment keywords and amount',
+          extractorName: name,
+          extractorVersion: version,
+          evidence: ExtractionEvidence(
+            subject: subject,
+            snippet: snippet,
+            matchedRule: 'investment_keywords',
+            matchedPattern: 'mutual fund|sip|stock',
+            messageId: messageId,
+            threadId: threadId,
+            accountId: accountId,
+          ),
+          searchTokens: {
+            'merchant': _extractMerchant(text),
+            'amount': amount.toString(),
+            'type': 'expense',
+            'category': 'investment',
+          },
+        ));
+      }
+    }
+
+    // 3. Loan & EMI Detection
+    if (text.contains('emi') || text.contains('loan') || text.contains('mortgage')) {
+      final amount = _extractAmount(text);
+      if (amount != null) {
+         results.add(ExtractionResult(
+          title: 'EMI Payment: ${_extractMerchant(text)}',
+          summary: 'Amount: ₹$amount',
+          type: 'transaction',
+          subtype: 'loan',
+          timestamp: _extractDate(rawMetadata),
+          confidence: 0.85,
+          reason: 'Detected loan/EMI keywords and amount',
+          extractorName: name,
+          extractorVersion: version,
+          evidence: ExtractionEvidence(
+            subject: subject,
+            snippet: snippet,
+            matchedRule: 'loan_keywords',
+            matchedPattern: 'emi|loan|mortgage',
+            messageId: messageId,
+            threadId: threadId,
+            accountId: accountId,
+          ),
+          searchTokens: {
+            'merchant': _extractMerchant(text),
+            'amount': amount.toString(),
+            'type': 'expense',
+            'category': 'loan',
           },
         ));
       }
@@ -55,7 +124,8 @@ class FinancialExtractor implements EntityExtractor {
   }
 
   double? _extractAmount(String text) {
-    final regExp = RegExp(r'(?:rs|inr|₹)\.?\s*([\d,]+(?:\.\d{2})?)');
+    // Matches Rs. 100, INR 100, ₹100, 100.00
+    final regExp = RegExp(r'(?:rs|inr|₹|amount)\.?\s*([\d,]+(?:\.\d{2})?)', caseSensitive: false);
     final match = regExp.firstMatch(text);
     if (match != null) {
       return double.tryParse(match.group(1)?.replaceAll(',', '') ?? '');
@@ -64,8 +134,19 @@ class FinancialExtractor implements EntityExtractor {
   }
 
   String _extractMerchant(String text) {
-    final toMatch = RegExp(r'to\s+([a-z0-9\s&]{3,20})').firstMatch(text);
-    return toMatch?.group(1)?.trim().toUpperCase() ?? 'UNKNOWN MERCHANT';
+    // Look for common merchant prefixes
+    final toMatch = RegExp(r'(?:to|at|vpa|merchant|payee)\s+([a-z0-9\s&.\-]{3,30})', caseSensitive: false).firstMatch(text);
+    if (toMatch != null) {
+      return toMatch.group(1)!.trim().toUpperCase();
+    }
+    
+    // Fallback: search for common institutions if merchant not found
+    final banks = ['hdfc', 'icici', 'sbi', 'axis', 'amazon', 'flipkart', 'zomato', 'swiggy', 'uber', 'ola'];
+    for (final bank in banks) {
+      if (text.contains(bank)) return bank.toUpperCase();
+    }
+
+    return 'UNKNOWN MERCHANT';
   }
 
   DateTime _extractDate(Map<String, dynamic> raw) {

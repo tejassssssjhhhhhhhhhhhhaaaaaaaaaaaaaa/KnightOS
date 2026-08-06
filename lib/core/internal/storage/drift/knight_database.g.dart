@@ -36557,6 +36557,1004 @@ class GmailMessageTableCompanion extends UpdateCompanion<GmailMessageData> {
   }
 }
 
+class $GoogleResourceTableTable extends GoogleResourceTable
+    with TableInfo<$GoogleResourceTableTable, GoogleResourceData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $GoogleResourceTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
+  @override
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _isDeletedMeta = const VerificationMeta(
+    'isDeleted',
+  );
+  @override
+  late final GeneratedColumn<bool> isDeleted = GeneratedColumn<bool>(
+    'is_deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
+    'syncStatus',
+  );
+  @override
+  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
+    'sync_status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('pending'),
+  );
+  static const VerificationMeta _sourceProviderMeta = const VerificationMeta(
+    'sourceProvider',
+  );
+  @override
+  late final GeneratedColumn<String> sourceProvider = GeneratedColumn<String>(
+    'source_provider',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sourceIdentifierMeta = const VerificationMeta(
+    'sourceIdentifier',
+  );
+  @override
+  late final GeneratedColumn<String> sourceIdentifier = GeneratedColumn<String>(
+    'source_identifier',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _contentHashMeta = const VerificationMeta(
+    'contentHash',
+  );
+  @override
+  late final GeneratedColumn<String> contentHash = GeneratedColumn<String>(
+    'content_hash',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _deviceIdMeta = const VerificationMeta(
+    'deviceId',
+  );
+  @override
+  late final GeneratedColumn<String> deviceId = GeneratedColumn<String>(
+    'device_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _resourceTypeMeta = const VerificationMeta(
+    'resourceType',
+  );
+  @override
+  late final GeneratedColumn<String> resourceType = GeneratedColumn<String>(
+    'resource_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _resourceDateMeta = const VerificationMeta(
+    'resourceDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> resourceDate = GeneratedColumn<DateTime>(
+    'resource_date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _metadataMeta = const VerificationMeta(
+    'metadata',
+  );
+  @override
+  late final GeneratedColumn<String> metadata = GeneratedColumn<String>(
+    'metadata',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _originAccountMeta = const VerificationMeta(
+    'originAccount',
+  );
+  @override
+  late final GeneratedColumn<String> originAccount = GeneratedColumn<String>(
+    'origin_account',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _rawMetadataMeta = const VerificationMeta(
+    'rawMetadata',
+  );
+  @override
+  late final GeneratedColumn<String> rawMetadata = GeneratedColumn<String>(
+    'raw_metadata',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    createdAt,
+    updatedAt,
+    version,
+    isDeleted,
+    deletedAt,
+    syncStatus,
+    sourceProvider,
+    sourceIdentifier,
+    contentHash,
+    deviceId,
+    resourceType,
+    title,
+    resourceDate,
+    metadata,
+    originAccount,
+    rawMetadata,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'google_resources';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<GoogleResourceData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
+    }
+    if (data.containsKey('is_deleted')) {
+      context.handle(
+        _isDeletedMeta,
+        isDeleted.isAcceptableOrUnknown(data['is_deleted']!, _isDeletedMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    if (data.containsKey('sync_status')) {
+      context.handle(
+        _syncStatusMeta,
+        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
+      );
+    }
+    if (data.containsKey('source_provider')) {
+      context.handle(
+        _sourceProviderMeta,
+        sourceProvider.isAcceptableOrUnknown(
+          data['source_provider']!,
+          _sourceProviderMeta,
+        ),
+      );
+    }
+    if (data.containsKey('source_identifier')) {
+      context.handle(
+        _sourceIdentifierMeta,
+        sourceIdentifier.isAcceptableOrUnknown(
+          data['source_identifier']!,
+          _sourceIdentifierMeta,
+        ),
+      );
+    }
+    if (data.containsKey('content_hash')) {
+      context.handle(
+        _contentHashMeta,
+        contentHash.isAcceptableOrUnknown(
+          data['content_hash']!,
+          _contentHashMeta,
+        ),
+      );
+    }
+    if (data.containsKey('device_id')) {
+      context.handle(
+        _deviceIdMeta,
+        deviceId.isAcceptableOrUnknown(data['device_id']!, _deviceIdMeta),
+      );
+    }
+    if (data.containsKey('resource_type')) {
+      context.handle(
+        _resourceTypeMeta,
+        resourceType.isAcceptableOrUnknown(
+          data['resource_type']!,
+          _resourceTypeMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_resourceTypeMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('resource_date')) {
+      context.handle(
+        _resourceDateMeta,
+        resourceDate.isAcceptableOrUnknown(
+          data['resource_date']!,
+          _resourceDateMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_resourceDateMeta);
+    }
+    if (data.containsKey('metadata')) {
+      context.handle(
+        _metadataMeta,
+        metadata.isAcceptableOrUnknown(data['metadata']!, _metadataMeta),
+      );
+    }
+    if (data.containsKey('origin_account')) {
+      context.handle(
+        _originAccountMeta,
+        originAccount.isAcceptableOrUnknown(
+          data['origin_account']!,
+          _originAccountMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_originAccountMeta);
+    }
+    if (data.containsKey('raw_metadata')) {
+      context.handle(
+        _rawMetadataMeta,
+        rawMetadata.isAcceptableOrUnknown(
+          data['raw_metadata']!,
+          _rawMetadataMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  GoogleResourceData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return GoogleResourceData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}version'],
+      )!,
+      isDeleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_deleted'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+      syncStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_status'],
+      )!,
+      sourceProvider: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_provider'],
+      ),
+      sourceIdentifier: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_identifier'],
+      ),
+      contentHash: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}content_hash'],
+      ),
+      deviceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}device_id'],
+      ),
+      resourceType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}resource_type'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      resourceDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}resource_date'],
+      )!,
+      metadata: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}metadata'],
+      ),
+      originAccount: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}origin_account'],
+      )!,
+      rawMetadata: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}raw_metadata'],
+      ),
+    );
+  }
+
+  @override
+  $GoogleResourceTableTable createAlias(String alias) {
+    return $GoogleResourceTableTable(attachedDatabase, alias);
+  }
+}
+
+class GoogleResourceData extends DataClass
+    implements Insertable<GoogleResourceData> {
+  final String id;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final int version;
+  final bool isDeleted;
+  final DateTime? deletedAt;
+  final String syncStatus;
+
+  /// cloud_provider, onedrive_local, health_connect, etc.
+  final String? sourceProvider;
+
+  /// The unique ID from the source provider (e.g., file path, API ID).
+  final String? sourceIdentifier;
+
+  /// hash of the content for duplicate detection.
+  final String? contentHash;
+  final String? deviceId;
+
+  /// 'calendar', 'drive', 'contact', 'task', 'photo', 'location'.
+  final String resourceType;
+  final String title;
+
+  /// Primary timestamp for the resource (start time, modified time, etc.).
+  final DateTime resourceDate;
+
+  /// JSON metadata specific to the resource type.
+  final String? metadata;
+  final String originAccount;
+
+  /// JSON blob of raw API response.
+  final String? rawMetadata;
+  const GoogleResourceData({
+    required this.id,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.version,
+    required this.isDeleted,
+    this.deletedAt,
+    required this.syncStatus,
+    this.sourceProvider,
+    this.sourceIdentifier,
+    this.contentHash,
+    this.deviceId,
+    required this.resourceType,
+    required this.title,
+    required this.resourceDate,
+    this.metadata,
+    required this.originAccount,
+    this.rawMetadata,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['version'] = Variable<int>(version);
+    map['is_deleted'] = Variable<bool>(isDeleted);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    map['sync_status'] = Variable<String>(syncStatus);
+    if (!nullToAbsent || sourceProvider != null) {
+      map['source_provider'] = Variable<String>(sourceProvider);
+    }
+    if (!nullToAbsent || sourceIdentifier != null) {
+      map['source_identifier'] = Variable<String>(sourceIdentifier);
+    }
+    if (!nullToAbsent || contentHash != null) {
+      map['content_hash'] = Variable<String>(contentHash);
+    }
+    if (!nullToAbsent || deviceId != null) {
+      map['device_id'] = Variable<String>(deviceId);
+    }
+    map['resource_type'] = Variable<String>(resourceType);
+    map['title'] = Variable<String>(title);
+    map['resource_date'] = Variable<DateTime>(resourceDate);
+    if (!nullToAbsent || metadata != null) {
+      map['metadata'] = Variable<String>(metadata);
+    }
+    map['origin_account'] = Variable<String>(originAccount);
+    if (!nullToAbsent || rawMetadata != null) {
+      map['raw_metadata'] = Variable<String>(rawMetadata);
+    }
+    return map;
+  }
+
+  GoogleResourceTableCompanion toCompanion(bool nullToAbsent) {
+    return GoogleResourceTableCompanion(
+      id: Value(id),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      version: Value(version),
+      isDeleted: Value(isDeleted),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      syncStatus: Value(syncStatus),
+      sourceProvider: sourceProvider == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sourceProvider),
+      sourceIdentifier: sourceIdentifier == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sourceIdentifier),
+      contentHash: contentHash == null && nullToAbsent
+          ? const Value.absent()
+          : Value(contentHash),
+      deviceId: deviceId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deviceId),
+      resourceType: Value(resourceType),
+      title: Value(title),
+      resourceDate: Value(resourceDate),
+      metadata: metadata == null && nullToAbsent
+          ? const Value.absent()
+          : Value(metadata),
+      originAccount: Value(originAccount),
+      rawMetadata: rawMetadata == null && nullToAbsent
+          ? const Value.absent()
+          : Value(rawMetadata),
+    );
+  }
+
+  factory GoogleResourceData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return GoogleResourceData(
+      id: serializer.fromJson<String>(json['id']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      version: serializer.fromJson<int>(json['version']),
+      isDeleted: serializer.fromJson<bool>(json['isDeleted']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      syncStatus: serializer.fromJson<String>(json['syncStatus']),
+      sourceProvider: serializer.fromJson<String?>(json['sourceProvider']),
+      sourceIdentifier: serializer.fromJson<String?>(json['sourceIdentifier']),
+      contentHash: serializer.fromJson<String?>(json['contentHash']),
+      deviceId: serializer.fromJson<String?>(json['deviceId']),
+      resourceType: serializer.fromJson<String>(json['resourceType']),
+      title: serializer.fromJson<String>(json['title']),
+      resourceDate: serializer.fromJson<DateTime>(json['resourceDate']),
+      metadata: serializer.fromJson<String?>(json['metadata']),
+      originAccount: serializer.fromJson<String>(json['originAccount']),
+      rawMetadata: serializer.fromJson<String?>(json['rawMetadata']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'version': serializer.toJson<int>(version),
+      'isDeleted': serializer.toJson<bool>(isDeleted),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'syncStatus': serializer.toJson<String>(syncStatus),
+      'sourceProvider': serializer.toJson<String?>(sourceProvider),
+      'sourceIdentifier': serializer.toJson<String?>(sourceIdentifier),
+      'contentHash': serializer.toJson<String?>(contentHash),
+      'deviceId': serializer.toJson<String?>(deviceId),
+      'resourceType': serializer.toJson<String>(resourceType),
+      'title': serializer.toJson<String>(title),
+      'resourceDate': serializer.toJson<DateTime>(resourceDate),
+      'metadata': serializer.toJson<String?>(metadata),
+      'originAccount': serializer.toJson<String>(originAccount),
+      'rawMetadata': serializer.toJson<String?>(rawMetadata),
+    };
+  }
+
+  GoogleResourceData copyWith({
+    String? id,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    int? version,
+    bool? isDeleted,
+    Value<DateTime?> deletedAt = const Value.absent(),
+    String? syncStatus,
+    Value<String?> sourceProvider = const Value.absent(),
+    Value<String?> sourceIdentifier = const Value.absent(),
+    Value<String?> contentHash = const Value.absent(),
+    Value<String?> deviceId = const Value.absent(),
+    String? resourceType,
+    String? title,
+    DateTime? resourceDate,
+    Value<String?> metadata = const Value.absent(),
+    String? originAccount,
+    Value<String?> rawMetadata = const Value.absent(),
+  }) => GoogleResourceData(
+    id: id ?? this.id,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    version: version ?? this.version,
+    isDeleted: isDeleted ?? this.isDeleted,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    syncStatus: syncStatus ?? this.syncStatus,
+    sourceProvider: sourceProvider.present
+        ? sourceProvider.value
+        : this.sourceProvider,
+    sourceIdentifier: sourceIdentifier.present
+        ? sourceIdentifier.value
+        : this.sourceIdentifier,
+    contentHash: contentHash.present ? contentHash.value : this.contentHash,
+    deviceId: deviceId.present ? deviceId.value : this.deviceId,
+    resourceType: resourceType ?? this.resourceType,
+    title: title ?? this.title,
+    resourceDate: resourceDate ?? this.resourceDate,
+    metadata: metadata.present ? metadata.value : this.metadata,
+    originAccount: originAccount ?? this.originAccount,
+    rawMetadata: rawMetadata.present ? rawMetadata.value : this.rawMetadata,
+  );
+  GoogleResourceData copyWithCompanion(GoogleResourceTableCompanion data) {
+    return GoogleResourceData(
+      id: data.id.present ? data.id.value : this.id,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      version: data.version.present ? data.version.value : this.version,
+      isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      syncStatus: data.syncStatus.present
+          ? data.syncStatus.value
+          : this.syncStatus,
+      sourceProvider: data.sourceProvider.present
+          ? data.sourceProvider.value
+          : this.sourceProvider,
+      sourceIdentifier: data.sourceIdentifier.present
+          ? data.sourceIdentifier.value
+          : this.sourceIdentifier,
+      contentHash: data.contentHash.present
+          ? data.contentHash.value
+          : this.contentHash,
+      deviceId: data.deviceId.present ? data.deviceId.value : this.deviceId,
+      resourceType: data.resourceType.present
+          ? data.resourceType.value
+          : this.resourceType,
+      title: data.title.present ? data.title.value : this.title,
+      resourceDate: data.resourceDate.present
+          ? data.resourceDate.value
+          : this.resourceDate,
+      metadata: data.metadata.present ? data.metadata.value : this.metadata,
+      originAccount: data.originAccount.present
+          ? data.originAccount.value
+          : this.originAccount,
+      rawMetadata: data.rawMetadata.present
+          ? data.rawMetadata.value
+          : this.rawMetadata,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GoogleResourceData(')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('version: $version, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('sourceProvider: $sourceProvider, ')
+          ..write('sourceIdentifier: $sourceIdentifier, ')
+          ..write('contentHash: $contentHash, ')
+          ..write('deviceId: $deviceId, ')
+          ..write('resourceType: $resourceType, ')
+          ..write('title: $title, ')
+          ..write('resourceDate: $resourceDate, ')
+          ..write('metadata: $metadata, ')
+          ..write('originAccount: $originAccount, ')
+          ..write('rawMetadata: $rawMetadata')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    createdAt,
+    updatedAt,
+    version,
+    isDeleted,
+    deletedAt,
+    syncStatus,
+    sourceProvider,
+    sourceIdentifier,
+    contentHash,
+    deviceId,
+    resourceType,
+    title,
+    resourceDate,
+    metadata,
+    originAccount,
+    rawMetadata,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is GoogleResourceData &&
+          other.id == this.id &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.version == this.version &&
+          other.isDeleted == this.isDeleted &&
+          other.deletedAt == this.deletedAt &&
+          other.syncStatus == this.syncStatus &&
+          other.sourceProvider == this.sourceProvider &&
+          other.sourceIdentifier == this.sourceIdentifier &&
+          other.contentHash == this.contentHash &&
+          other.deviceId == this.deviceId &&
+          other.resourceType == this.resourceType &&
+          other.title == this.title &&
+          other.resourceDate == this.resourceDate &&
+          other.metadata == this.metadata &&
+          other.originAccount == this.originAccount &&
+          other.rawMetadata == this.rawMetadata);
+}
+
+class GoogleResourceTableCompanion extends UpdateCompanion<GoogleResourceData> {
+  final Value<String> id;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> version;
+  final Value<bool> isDeleted;
+  final Value<DateTime?> deletedAt;
+  final Value<String> syncStatus;
+  final Value<String?> sourceProvider;
+  final Value<String?> sourceIdentifier;
+  final Value<String?> contentHash;
+  final Value<String?> deviceId;
+  final Value<String> resourceType;
+  final Value<String> title;
+  final Value<DateTime> resourceDate;
+  final Value<String?> metadata;
+  final Value<String> originAccount;
+  final Value<String?> rawMetadata;
+  final Value<int> rowid;
+  const GoogleResourceTableCompanion({
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.version = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.sourceProvider = const Value.absent(),
+    this.sourceIdentifier = const Value.absent(),
+    this.contentHash = const Value.absent(),
+    this.deviceId = const Value.absent(),
+    this.resourceType = const Value.absent(),
+    this.title = const Value.absent(),
+    this.resourceDate = const Value.absent(),
+    this.metadata = const Value.absent(),
+    this.originAccount = const Value.absent(),
+    this.rawMetadata = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  GoogleResourceTableCompanion.insert({
+    required String id,
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.version = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.sourceProvider = const Value.absent(),
+    this.sourceIdentifier = const Value.absent(),
+    this.contentHash = const Value.absent(),
+    this.deviceId = const Value.absent(),
+    required String resourceType,
+    required String title,
+    required DateTime resourceDate,
+    this.metadata = const Value.absent(),
+    required String originAccount,
+    this.rawMetadata = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       resourceType = Value(resourceType),
+       title = Value(title),
+       resourceDate = Value(resourceDate),
+       originAccount = Value(originAccount);
+  static Insertable<GoogleResourceData> custom({
+    Expression<String>? id,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? version,
+    Expression<bool>? isDeleted,
+    Expression<DateTime>? deletedAt,
+    Expression<String>? syncStatus,
+    Expression<String>? sourceProvider,
+    Expression<String>? sourceIdentifier,
+    Expression<String>? contentHash,
+    Expression<String>? deviceId,
+    Expression<String>? resourceType,
+    Expression<String>? title,
+    Expression<DateTime>? resourceDate,
+    Expression<String>? metadata,
+    Expression<String>? originAccount,
+    Expression<String>? rawMetadata,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (version != null) 'version': version,
+      if (isDeleted != null) 'is_deleted': isDeleted,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (sourceProvider != null) 'source_provider': sourceProvider,
+      if (sourceIdentifier != null) 'source_identifier': sourceIdentifier,
+      if (contentHash != null) 'content_hash': contentHash,
+      if (deviceId != null) 'device_id': deviceId,
+      if (resourceType != null) 'resource_type': resourceType,
+      if (title != null) 'title': title,
+      if (resourceDate != null) 'resource_date': resourceDate,
+      if (metadata != null) 'metadata': metadata,
+      if (originAccount != null) 'origin_account': originAccount,
+      if (rawMetadata != null) 'raw_metadata': rawMetadata,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  GoogleResourceTableCompanion copyWith({
+    Value<String>? id,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? version,
+    Value<bool>? isDeleted,
+    Value<DateTime?>? deletedAt,
+    Value<String>? syncStatus,
+    Value<String?>? sourceProvider,
+    Value<String?>? sourceIdentifier,
+    Value<String?>? contentHash,
+    Value<String?>? deviceId,
+    Value<String>? resourceType,
+    Value<String>? title,
+    Value<DateTime>? resourceDate,
+    Value<String?>? metadata,
+    Value<String>? originAccount,
+    Value<String?>? rawMetadata,
+    Value<int>? rowid,
+  }) {
+    return GoogleResourceTableCompanion(
+      id: id ?? this.id,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      version: version ?? this.version,
+      isDeleted: isDeleted ?? this.isDeleted,
+      deletedAt: deletedAt ?? this.deletedAt,
+      syncStatus: syncStatus ?? this.syncStatus,
+      sourceProvider: sourceProvider ?? this.sourceProvider,
+      sourceIdentifier: sourceIdentifier ?? this.sourceIdentifier,
+      contentHash: contentHash ?? this.contentHash,
+      deviceId: deviceId ?? this.deviceId,
+      resourceType: resourceType ?? this.resourceType,
+      title: title ?? this.title,
+      resourceDate: resourceDate ?? this.resourceDate,
+      metadata: metadata ?? this.metadata,
+      originAccount: originAccount ?? this.originAccount,
+      rawMetadata: rawMetadata ?? this.rawMetadata,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
+    }
+    if (isDeleted.present) {
+      map['is_deleted'] = Variable<bool>(isDeleted.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<String>(syncStatus.value);
+    }
+    if (sourceProvider.present) {
+      map['source_provider'] = Variable<String>(sourceProvider.value);
+    }
+    if (sourceIdentifier.present) {
+      map['source_identifier'] = Variable<String>(sourceIdentifier.value);
+    }
+    if (contentHash.present) {
+      map['content_hash'] = Variable<String>(contentHash.value);
+    }
+    if (deviceId.present) {
+      map['device_id'] = Variable<String>(deviceId.value);
+    }
+    if (resourceType.present) {
+      map['resource_type'] = Variable<String>(resourceType.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (resourceDate.present) {
+      map['resource_date'] = Variable<DateTime>(resourceDate.value);
+    }
+    if (metadata.present) {
+      map['metadata'] = Variable<String>(metadata.value);
+    }
+    if (originAccount.present) {
+      map['origin_account'] = Variable<String>(originAccount.value);
+    }
+    if (rawMetadata.present) {
+      map['raw_metadata'] = Variable<String>(rawMetadata.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GoogleResourceTableCompanion(')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('version: $version, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('sourceProvider: $sourceProvider, ')
+          ..write('sourceIdentifier: $sourceIdentifier, ')
+          ..write('contentHash: $contentHash, ')
+          ..write('deviceId: $deviceId, ')
+          ..write('resourceType: $resourceType, ')
+          ..write('title: $title, ')
+          ..write('resourceDate: $resourceDate, ')
+          ..write('metadata: $metadata, ')
+          ..write('originAccount: $originAccount, ')
+          ..write('rawMetadata: $rawMetadata, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $EmailClassificationTableTable extends EmailClassificationTable
     with TableInfo<$EmailClassificationTableTable, EmailClassification> {
   @override
@@ -76218,6 +77216,8 @@ abstract class _$KnightDatabase extends GeneratedDatabase {
       $SecurityMetadataTableTable(this);
   late final $GmailMessageTableTable gmailMessageTable =
       $GmailMessageTableTable(this);
+  late final $GoogleResourceTableTable googleResourceTable =
+      $GoogleResourceTableTable(this);
   late final $EmailClassificationTableTable emailClassificationTable =
       $EmailClassificationTableTable(this);
   late final $ExtractedEntityTableTable extractedEntityTable =
@@ -76322,6 +77322,9 @@ abstract class _$KnightDatabase extends GeneratedDatabase {
   late final GmailMessageDao gmailMessageDao = GmailMessageDao(
     this as KnightDatabase,
   );
+  late final GoogleResourceDao googleResourceDao = GoogleResourceDao(
+    this as KnightDatabase,
+  );
   late final EmailClassificationDao emailClassificationDao =
       EmailClassificationDao(this as KnightDatabase);
   late final ExtractedEntityDao extractedEntityDao = ExtractedEntityDao(
@@ -76387,6 +77390,7 @@ abstract class _$KnightDatabase extends GeneratedDatabase {
     parserRegistryTable,
     securityMetadataTable,
     gmailMessageTable,
+    googleResourceTable,
     emailClassificationTable,
     extractedEntityTable,
     entityEvidenceTable,
@@ -96324,6 +97328,466 @@ typedef $$GmailMessageTableTableProcessedTableManager =
         bool emailClassificationTableRefs,
         bool financeExtractionTableRefs,
       })
+    >;
+typedef $$GoogleResourceTableTableCreateCompanionBuilder =
+    GoogleResourceTableCompanion Function({
+      required String id,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> version,
+      Value<bool> isDeleted,
+      Value<DateTime?> deletedAt,
+      Value<String> syncStatus,
+      Value<String?> sourceProvider,
+      Value<String?> sourceIdentifier,
+      Value<String?> contentHash,
+      Value<String?> deviceId,
+      required String resourceType,
+      required String title,
+      required DateTime resourceDate,
+      Value<String?> metadata,
+      required String originAccount,
+      Value<String?> rawMetadata,
+      Value<int> rowid,
+    });
+typedef $$GoogleResourceTableTableUpdateCompanionBuilder =
+    GoogleResourceTableCompanion Function({
+      Value<String> id,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> version,
+      Value<bool> isDeleted,
+      Value<DateTime?> deletedAt,
+      Value<String> syncStatus,
+      Value<String?> sourceProvider,
+      Value<String?> sourceIdentifier,
+      Value<String?> contentHash,
+      Value<String?> deviceId,
+      Value<String> resourceType,
+      Value<String> title,
+      Value<DateTime> resourceDate,
+      Value<String?> metadata,
+      Value<String> originAccount,
+      Value<String?> rawMetadata,
+      Value<int> rowid,
+    });
+
+class $$GoogleResourceTableTableFilterComposer
+    extends Composer<_$KnightDatabase, $GoogleResourceTableTable> {
+  $$GoogleResourceTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sourceProvider => $composableBuilder(
+    column: $table.sourceProvider,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sourceIdentifier => $composableBuilder(
+    column: $table.sourceIdentifier,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get contentHash => $composableBuilder(
+    column: $table.contentHash,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get deviceId => $composableBuilder(
+    column: $table.deviceId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get resourceType => $composableBuilder(
+    column: $table.resourceType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get resourceDate => $composableBuilder(
+    column: $table.resourceDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get metadata => $composableBuilder(
+    column: $table.metadata,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get originAccount => $composableBuilder(
+    column: $table.originAccount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get rawMetadata => $composableBuilder(
+    column: $table.rawMetadata,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$GoogleResourceTableTableOrderingComposer
+    extends Composer<_$KnightDatabase, $GoogleResourceTableTable> {
+  $$GoogleResourceTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sourceProvider => $composableBuilder(
+    column: $table.sourceProvider,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sourceIdentifier => $composableBuilder(
+    column: $table.sourceIdentifier,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get contentHash => $composableBuilder(
+    column: $table.contentHash,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get deviceId => $composableBuilder(
+    column: $table.deviceId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get resourceType => $composableBuilder(
+    column: $table.resourceType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get resourceDate => $composableBuilder(
+    column: $table.resourceDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get metadata => $composableBuilder(
+    column: $table.metadata,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get originAccount => $composableBuilder(
+    column: $table.originAccount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get rawMetadata => $composableBuilder(
+    column: $table.rawMetadata,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$GoogleResourceTableTableAnnotationComposer
+    extends Composer<_$KnightDatabase, $GoogleResourceTableTable> {
+  $$GoogleResourceTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get version =>
+      $composableBuilder(column: $table.version, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDeleted =>
+      $composableBuilder(column: $table.isDeleted, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get sourceProvider => $composableBuilder(
+    column: $table.sourceProvider,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get sourceIdentifier => $composableBuilder(
+    column: $table.sourceIdentifier,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get contentHash => $composableBuilder(
+    column: $table.contentHash,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get deviceId =>
+      $composableBuilder(column: $table.deviceId, builder: (column) => column);
+
+  GeneratedColumn<String> get resourceType => $composableBuilder(
+    column: $table.resourceType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get resourceDate => $composableBuilder(
+    column: $table.resourceDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get metadata =>
+      $composableBuilder(column: $table.metadata, builder: (column) => column);
+
+  GeneratedColumn<String> get originAccount => $composableBuilder(
+    column: $table.originAccount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get rawMetadata => $composableBuilder(
+    column: $table.rawMetadata,
+    builder: (column) => column,
+  );
+}
+
+class $$GoogleResourceTableTableTableManager
+    extends
+        RootTableManager<
+          _$KnightDatabase,
+          $GoogleResourceTableTable,
+          GoogleResourceData,
+          $$GoogleResourceTableTableFilterComposer,
+          $$GoogleResourceTableTableOrderingComposer,
+          $$GoogleResourceTableTableAnnotationComposer,
+          $$GoogleResourceTableTableCreateCompanionBuilder,
+          $$GoogleResourceTableTableUpdateCompanionBuilder,
+          (
+            GoogleResourceData,
+            BaseReferences<
+              _$KnightDatabase,
+              $GoogleResourceTableTable,
+              GoogleResourceData
+            >,
+          ),
+          GoogleResourceData,
+          PrefetchHooks Function()
+        > {
+  $$GoogleResourceTableTableTableManager(
+    _$KnightDatabase db,
+    $GoogleResourceTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$GoogleResourceTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$GoogleResourceTableTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$GoogleResourceTableTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> version = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<String> syncStatus = const Value.absent(),
+                Value<String?> sourceProvider = const Value.absent(),
+                Value<String?> sourceIdentifier = const Value.absent(),
+                Value<String?> contentHash = const Value.absent(),
+                Value<String?> deviceId = const Value.absent(),
+                Value<String> resourceType = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<DateTime> resourceDate = const Value.absent(),
+                Value<String?> metadata = const Value.absent(),
+                Value<String> originAccount = const Value.absent(),
+                Value<String?> rawMetadata = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => GoogleResourceTableCompanion(
+                id: id,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                version: version,
+                isDeleted: isDeleted,
+                deletedAt: deletedAt,
+                syncStatus: syncStatus,
+                sourceProvider: sourceProvider,
+                sourceIdentifier: sourceIdentifier,
+                contentHash: contentHash,
+                deviceId: deviceId,
+                resourceType: resourceType,
+                title: title,
+                resourceDate: resourceDate,
+                metadata: metadata,
+                originAccount: originAccount,
+                rawMetadata: rawMetadata,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> version = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<String> syncStatus = const Value.absent(),
+                Value<String?> sourceProvider = const Value.absent(),
+                Value<String?> sourceIdentifier = const Value.absent(),
+                Value<String?> contentHash = const Value.absent(),
+                Value<String?> deviceId = const Value.absent(),
+                required String resourceType,
+                required String title,
+                required DateTime resourceDate,
+                Value<String?> metadata = const Value.absent(),
+                required String originAccount,
+                Value<String?> rawMetadata = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => GoogleResourceTableCompanion.insert(
+                id: id,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                version: version,
+                isDeleted: isDeleted,
+                deletedAt: deletedAt,
+                syncStatus: syncStatus,
+                sourceProvider: sourceProvider,
+                sourceIdentifier: sourceIdentifier,
+                contentHash: contentHash,
+                deviceId: deviceId,
+                resourceType: resourceType,
+                title: title,
+                resourceDate: resourceDate,
+                metadata: metadata,
+                originAccount: originAccount,
+                rawMetadata: rawMetadata,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$GoogleResourceTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$KnightDatabase,
+      $GoogleResourceTableTable,
+      GoogleResourceData,
+      $$GoogleResourceTableTableFilterComposer,
+      $$GoogleResourceTableTableOrderingComposer,
+      $$GoogleResourceTableTableAnnotationComposer,
+      $$GoogleResourceTableTableCreateCompanionBuilder,
+      $$GoogleResourceTableTableUpdateCompanionBuilder,
+      (
+        GoogleResourceData,
+        BaseReferences<
+          _$KnightDatabase,
+          $GoogleResourceTableTable,
+          GoogleResourceData
+        >,
+      ),
+      GoogleResourceData,
+      PrefetchHooks Function()
     >;
 typedef $$EmailClassificationTableTableCreateCompanionBuilder =
     EmailClassificationTableCompanion Function({
@@ -116263,6 +117727,8 @@ class $KnightDatabaseManager {
       $$SecurityMetadataTableTableTableManager(_db, _db.securityMetadataTable);
   $$GmailMessageTableTableTableManager get gmailMessageTable =>
       $$GmailMessageTableTableTableManager(_db, _db.gmailMessageTable);
+  $$GoogleResourceTableTableTableManager get googleResourceTable =>
+      $$GoogleResourceTableTableTableManager(_db, _db.googleResourceTable);
   $$EmailClassificationTableTableTableManager get emailClassificationTable =>
       $$EmailClassificationTableTableTableManager(
         _db,

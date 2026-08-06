@@ -105,7 +105,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Widget _buildSettingsList(BuildContext context) {
     final items = [
-      _SItem('Data Center', Icons.storage_rounded, route: AppRoutes.dataCenter),
+      _SItem('Data Hub', Icons.hub_rounded, route: AppRoutes.importCenter),
       _SItem('Profile & Account', Icons.person_outline_rounded, route: AppRoutes.profile),
       _SItem('Preferences', Icons.tune_rounded, explanation: 'Knight automatically adapts to your behavior. Manual overrides are restricted to ensure OS stability.'),
       _SItem('Data & Privacy', Icons.security_rounded, route: AppRoutes.privacy),

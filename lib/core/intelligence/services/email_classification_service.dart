@@ -11,6 +11,7 @@ import '../engines/parsers/document_parser.dart';
 import '../engines/parsers/personal_parser.dart';
 import '../engines/parsers/calendar_parser.dart';
 import '../engines/parsers/unknown_parser.dart';
+import '../engines/parsers/career_classifier.dart';
 import '../../internal/utils/knight_logger.dart';
 
 class EmailClassificationService {
@@ -27,6 +28,7 @@ class EmailClassificationService {
     DocumentClassifier(),
     PersonalClassifier(),
     CalendarClassifier(),
+    CareerClassifier(),
     UnknownClassifier(),
   ];
 

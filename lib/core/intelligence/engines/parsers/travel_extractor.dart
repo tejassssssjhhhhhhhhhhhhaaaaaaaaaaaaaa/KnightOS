@@ -45,6 +45,60 @@ class TravelExtractor implements EntityExtractor {
       ));
     }
 
+    // 2. Hotel Booking
+    if (text.contains('hotel') || text.contains('check-in') || text.contains('stay')) {
+       results.add(ExtractionResult(
+        title: 'Hotel Reservation: ${_extractLocation(text)}',
+        summary: 'Detected hotel stay details',
+        type: 'booking',
+        subtype: 'hotel',
+        timestamp: _extractDate(rawMetadata),
+        confidence: 0.8,
+        reason: 'Matched hotel keywords',
+        extractorName: name,
+        extractorVersion: version,
+        evidence: ExtractionEvidence(
+          subject: subject,
+          snippet: snippet,
+          matchedRule: 'hotel_keyword',
+          matchedPattern: 'hotel|check-in',
+          messageId: messageId,
+          threadId: threadId,
+          accountId: accountId,
+        ),
+        searchTokens: {
+          'location': _extractLocation(text),
+        },
+      ));
+    }
+
+    // 3. Train/Bus Booking
+    if (text.contains('pnr') && (text.contains('irctc') || text.contains('bus') || text.contains('redbus'))) {
+       results.add(ExtractionResult(
+        title: 'Travel Booking: $pnr',
+        summary: 'Detected train or bus booking',
+        type: 'booking',
+        subtype: text.contains('irctc') ? 'train' : 'bus',
+        timestamp: _extractDate(rawMetadata),
+        confidence: 0.9,
+        reason: 'Matched transport PNR',
+        extractorName: name,
+        extractorVersion: version,
+        evidence: ExtractionEvidence(
+          subject: subject,
+          snippet: snippet,
+          matchedRule: 'transport_pnr',
+          matchedPattern: 'pnr',
+          messageId: messageId,
+          threadId: threadId,
+          accountId: accountId,
+        ),
+        searchTokens: {
+          'pnr': pnr ?? 'UNKNOWN',
+        },
+      ));
+    }
+
     return results;
   }
 
@@ -59,6 +113,14 @@ class TravelExtractor implements EntityExtractor {
       if (text.contains(airline)) return airline.toUpperCase();
     }
     return 'UNKNOWN AIRLINE';
+  }
+
+  String _extractLocation(String text) {
+    final cities = ['mumbai', 'delhi', 'bangalore', 'pune', 'goa', 'chennai', 'hyderabad', 'kolkata'];
+    for (final city in cities) {
+      if (text.contains(city)) return city.toUpperCase();
+    }
+    return 'UNKNOWN LOCATION';
   }
 
   DateTime _extractDate(Map<String, dynamic> raw) {

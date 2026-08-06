@@ -22,6 +22,7 @@ class SyncTaskService extends Notifier<WorkerState> {
 
   void startPolling() {
     _pollingTimer?.cancel();
+    // P0: Reduce polling frequency to avoid database lock contention and main thread lag
     _pollingTimer = Timer.periodic(const Duration(seconds: 5), (_) => _processQueue());
     KnightLogger.info('[TASK] Sync task queue polling started', category: KnightLogCategory.worker);
     _scheduleProviderSyncs();
@@ -34,15 +35,18 @@ class SyncTaskService extends Notifier<WorkerState> {
 
   void _scheduleProviderSyncs() {
     final db = ref.read(knightDatabaseProvider);
-    Timer.periodic(const Duration(minutes: 30), (_) async {
-       await db.syncTaskDao.into(db.syncTaskQueueTable).insert(SyncTaskQueueTableCompanion.insert(
-        id: 'sync-gmail-${DateTime.now().millisecondsSinceEpoch}',
-        providerId: 'gmail_api',
-        taskType: 'sync_provider',
-        payload: '{}',
-        priority: const Value(1),
-        updatedAt: Value(DateTime.now()),
-      ), mode: InsertMode.insertOrIgnore);
+    Timer.periodic(const Duration(minutes: 15), (_) async {
+       final providers = ['gmail_api', 'google_calendar_api', 'google_drive_api', 'google_contacts_api', 'google_tasks_api'];
+       for (final p in providers) {
+         await db.syncTaskDao.into(db.syncTaskQueueTable).insert(SyncTaskQueueTableCompanion.insert(
+          id: 'sync-$p-${DateTime.now().millisecondsSinceEpoch}',
+          providerId: p,
+          taskType: 'sync_provider',
+          payload: '{}',
+          priority: const Value(1),
+          updatedAt: Value(DateTime.now()),
+        ), mode: InsertMode.insertOrIgnore);
+       }
     });
   }
 
@@ -52,7 +56,8 @@ class SyncTaskService extends Notifier<WorkerState> {
 
     try {
       final db = ref.read(knightDatabaseProvider);
-      final tasks = await db.syncTaskDao.getPendingTasks(limit: 5);
+      // P0: Process smaller batches to maintain UI responsiveness
+      final tasks = await db.syncTaskDao.getPendingTasks(limit: 10);
       if (tasks.isEmpty) {
         _isProcessing = false;
         state = WorkerState.idle;
@@ -63,6 +68,8 @@ class SyncTaskService extends Notifier<WorkerState> {
       for (final task in tasks) {
         _currentTask = task;
         await _executeTask(task);
+        // Yield after every task
+        await Future.delayed(const Duration(milliseconds: 50));
       }
       _currentTask = null;
     } catch (e) {
@@ -78,6 +85,8 @@ class SyncTaskService extends Notifier<WorkerState> {
     final db = ref.read(knightDatabaseProvider);
     await db.syncTaskDao.updateTaskStatus(task.id, 'processing');
     
+    KnightLogger.info('[TASK] Executing task: ${task.id} Type: ${task.taskType}');
+
     try {
       final payload = jsonDecode(task.payload) as Map<String, dynamic>;
 

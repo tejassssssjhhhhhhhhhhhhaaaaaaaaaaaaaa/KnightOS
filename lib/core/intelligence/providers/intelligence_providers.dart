@@ -200,7 +200,7 @@ final intelligenceOrchestratorProvider = Provider<IntelligenceOrchestrator>((ref
 });
 
 final jsonValidationServiceProvider = Provider<JsonValidationService>((ref) {
-  return JsonValidationService(schemaDirectory: 'assets/schemas');
+  return JsonValidationService(schemaDirectory: 'knight_knowledge_base/schemas/master_memory');
 });
 
 final memoryRepositoryProvider = Provider<MemoryRepository>((ref) {

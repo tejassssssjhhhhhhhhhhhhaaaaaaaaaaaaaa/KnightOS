@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:path_provider/path_provider.dart';
 import '../../services/internal_log_service.dart';
 
 enum KnightLogCategory {
@@ -17,6 +18,25 @@ enum KnightLogCategory {
 
 class KnightLogger {
   const KnightLogger._();
+
+  static File? _logFile;
+
+  static Future<void> _initLogFile() async {
+    if (_logFile != null) return;
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final logDir = Directory('${dir.path}/logs');
+      if (!await logDir.exists()) {
+        await logDir.create(recursive: true);
+      }
+      _logFile = File('${logDir.path}/knight_execution.log');
+      if (!await _logFile!.exists()) {
+        await _logFile!.create();
+      }
+    } catch (e) {
+      debugPrint('Failed to init log file: $e');
+    }
+  }
 
   static void info(
     String message, {
@@ -55,8 +75,17 @@ class KnightLogger {
     final logMessage = '[$timestamp] [$level] [${category.name.toUpperCase()}] $message';
     _rawPrint('KNIGHT: $logMessage');
     
+    _writeToLogFile(logMessage);
+
     // Capture for In-App Developer Mode
     InternalLogService.instance.capture(level, category.name, message, error: error);
+  }
+
+  static void _writeToLogFile(String msg) async {
+     await _initLogFile();
+     try {
+       await _logFile?.writeAsString('$msg\n', mode: FileMode.append);
+     } catch (_) {}
   }
 
   static void _rawPrint(String msg) {

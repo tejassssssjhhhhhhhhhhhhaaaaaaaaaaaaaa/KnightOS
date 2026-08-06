@@ -74,8 +74,8 @@ class DriftMemoryRepository implements MemoryRepository {
   }
 
   @override
-  Future<List<KnightMemory>> search(String query) async {
-    final list = await _dao.searchMemories(query);
+  Future<List<KnightMemory>> search(String query, {int? limit}) async {
+    final list = await _dao.searchMemories(query, limit: limit);
     return await _mapList(list);
   }
 
@@ -148,17 +148,40 @@ class DriftMemoryRepository implements MemoryRepository {
   Future<List<KnightMemory>> _mapList(List<MemoryTableData> list) async {
     if (list.isEmpty) return [];
 
-    final List<KnightMemory> result = [];
-    for (final data in list) {
-      result.add(await _mapToDomain(data));
+    final versionIds = list.map((e) => e.id).toList();
+    final memoryIds = list.map((e) => e.memoryId).toList();
+
+    // Batch fetch attachments and relations to avoid N+1 query problem
+    final allAttachments = await _dao.getAttachmentsForMemories(memoryIds);
+    final allRelations = await _dao.getRelationsForMemories(memoryIds);
+
+    final Map<String, List<AttachmentTableData>> attachmentMap = {};
+    for (final a in allAttachments) {
+      // In _mapToDomain it uses data.id (versionId), but getAttachments takes memoryId?
+      // Wait, let's check getAttachments in MemoryDao.
+      // Future<List<AttachmentTableData>> getAttachments(String memoryId) {
+      //   return (select(attachmentTable)..where((t) => t.memoryId.equals(memoryId))).get();
+      // }
+      // It seems it takes memoryId.
+      attachmentMap.putIfAbsent(a.memoryId, () => []).add(a);
     }
-    return result;
+
+    final Map<String, List<MemoryRelationData>> relationMap = {};
+    for (final r in allRelations) {
+      relationMap.putIfAbsent(r.sourceId, () => []).add(r);
+      relationMap.putIfAbsent(r.targetId, () => []).add(r);
+    }
+
+    return list.map((data) => _mapToDomainSync(data, attachmentMap[data.memoryId] ?? [], relationMap[data.memoryId] ?? [])).toList();
   }
 
   Future<KnightMemory> _mapToDomain(MemoryTableData data) async {
-    final attachments = await _dao.getAttachments(data.id);
+    final attachments = await _dao.getAttachments(data.memoryId);
     final relations = await _dao.getRelations(data.memoryId);
-    
+    return _mapToDomainSync(data, attachments, relations);
+  }
+
+  KnightMemory _mapToDomainSync(MemoryTableData data, List<AttachmentTableData> attachments, List<MemoryRelationData> relations) {
     return KnightMemory(
       metadata: MemoryMetadata(
         memoryId: data.memoryId,

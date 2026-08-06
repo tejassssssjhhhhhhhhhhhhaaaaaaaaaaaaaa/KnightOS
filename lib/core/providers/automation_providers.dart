@@ -7,6 +7,7 @@ final automationOrchestratorProvider = Provider<AutomationOrchestrator>((ref) {
   final orchestrator = AutomationOrchestrator(
     bus: ref.watch(intelligenceBusProvider),
     memoryEngine: ref.watch(memoryEngineProvider),
+    ref: ref,
   );
   
   ref.onDispose(() => orchestrator.dispose());

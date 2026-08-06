@@ -36,14 +36,14 @@ class GmailSyncOrchestrator extends SyncOrchestrator {
       final gmailApi = gmail.GmailApi(client);
 
       final lastHistoryId = await getCursor('last_history_id');
-      final currentPhase = int.tryParse(await getCursor('sync_phase') ?? '1') ?? 1;
       final batchId = 'batch-${DateTime.now().millisecondsSinceEpoch}';
 
       if (lastHistoryId == null) {
-        // 1. Initial/Phased Sync Flow (Backwards)
+        // Fallback to phased if no historyId
+        final currentPhase = int.tryParse(await getCursor('sync_phase') ?? '1') ?? 1;
         await _runPhasedSync(gmailApi, currentPhase, batchId);
       } else {
-        // 2. Incremental Sync (Forwards)
+        // Incremental Sync (Forwards)
         await _runIncrementalSync(gmailApi, lastHistoryId, batchId);
       }
 
@@ -61,6 +61,45 @@ class GmailSyncOrchestrator extends SyncOrchestrator {
       rethrow;
     } finally {
       stopwatch.stop();
+    }
+  }
+
+  Future<void> syncMonth(int year, int month) async {
+    final headers = await authService.getAuthHeaders();
+    final client = _AuthenticatedClient(headers, http.Client());
+    final api = gmail.GmailApi(client);
+    final batchId = 'historical-$year-$month';
+
+    final end = DateTime(year, month + 1, 1).subtract(const Duration(seconds: 1));
+    
+    // P0: Deep target financial transaction alerts to ensure Dashboard populates first
+    final query = 'after:${year}/${month.toString().padLeft(2, '0')}/01 '
+                  'before:${end.year}/${end.month.toString().padLeft(2, '0')}/${end.day.toString().padLeft(2, '0')} '
+                  '("credited" OR "debited" OR "spent" OR "transaction alert" OR "statement" OR "invoice" OR "order confirmation")';
+
+    KnightLogger.info('[GMAIL] Syncing Month: $year-$month Query: $query');
+
+    String? pageToken;
+    do {
+      final listResponse = await api.users.messages.list('me', q: query, pageToken: pageToken, maxResults: 100);
+      final messages = listResponse.messages ?? [];
+
+      if (messages.isNotEmpty) {
+        await _processMessageBatch(api, messages, batchId);
+      }
+
+      pageToken = listResponse.nextPageToken;
+    } while (pageToken != null);
+  }
+
+  Future<void> anchorToPresent() async {
+    final headers = await authService.getAuthHeaders();
+    final client = _AuthenticatedClient(headers, http.Client());
+    final api = gmail.GmailApi(client);
+    
+    final profile = await api.users.getProfile('me');
+    if (profile.historyId != null) {
+      await updateCursor('last_history_id', profile.historyId!);
     }
   }
 
@@ -90,26 +129,19 @@ class GmailSyncOrchestrator extends SyncOrchestrator {
 
       pageToken = listResponse.nextPageToken;
       
-      // Update real-time stats
       await _incrementCursor('total_emails_indexed', itemsIndexedInCycle);
       await _incrementCursor('total_duplicates_prevented', duplicatesPreventedInCycle);
 
-      // Safety: limit per cycle to avoid excessive resource usage
       if (itemsIndexedInCycle >= 1000 && phase < 3) break; 
       
     } while (pageToken != null);
 
-    // If we completed a phase entirely, move to next
     if (pageToken == null) {
       if (phase < 3) {
         await updateCursor('sync_phase', (phase + 1).toString());
-        KnightLogger.info('[GMAIL] Phase $phase complete. Advanced to Phase ${phase + 1}');
-      } else {
-        KnightLogger.info('[GMAIL] Full mailbox indexing complete.');
       }
     }
 
-    // Set historyId from profile to anchor future incremental syncs
     final profile = await api.users.getProfile('me');
     if (profile.historyId != null) {
       await updateCursor('last_history_id', profile.historyId!);
@@ -138,7 +170,7 @@ class GmailSyncOrchestrator extends SyncOrchestrator {
         await updateCursor('last_history_id', historyResponse.historyId!);
       }
     } catch (e) {
-      KnightLogger.warn('[GMAIL] Incremental sync failed (historyId expired), falling back to Phase 1: $e');
+      KnightLogger.warn('[GMAIL] Incremental sync failed, falling back to Phase 1: $e');
       await _runPhasedSync(api, 1, batchId); 
     }
   }
@@ -151,17 +183,19 @@ class GmailSyncOrchestrator extends SyncOrchestrator {
     for (final partial in partialMessages) {
       if (partial.id == null) continue;
 
-      // 1. Check for duplicates (Pre-insertion)
+      // Yield to event loop to keep UI responsive
+      await Future.delayed(Duration.zero);
+
       final existing = await db.gmailMessageDao.getByMessageId(partial.id!);
       if (existing != null) {
         duplicates++;
         continue;
       }
 
-      // 2. Download full metadata
       final message = await api.users.messages.get('me', partial.id!);
       
-      // 3. Store raw metadata
+      KnightLogger.info('[GMAIL] Processing message: ${message.id} Subject: ${_getHeader(message.payload?.headers, 'Subject')}');
+
       await db.gmailMessageDao.upsertMessage(GmailMessageTableCompanion.insert(
         id: message.id!,
         threadId: message.threadId!,
@@ -177,10 +211,23 @@ class GmailSyncOrchestrator extends SyncOrchestrator {
         rawMetadata: Value(jsonEncode(message.toJson())),
         syncStatus: const Value('synced'),
       ));
+      
+      KnightLogger.info('[GMAIL] Successfully saved message to DB: ${message.id}');
+
+      // P0: Create Journal Entry for Finance Audit Engine
+      await db.into(db.financeSyncJournalTable).insert(
+        FinanceSyncJournalTableCompanion.insert(
+          id: message.id!,
+          messageId: message.id!,
+          parserVersion: '1.0.0',
+          processingResult: 'Discovered',
+          processedAt: DateTime.now(),
+        ),
+        mode: InsertMode.insertOrIgnore,
+      );
 
       indexed++;
 
-      // 4. Enqueue classification task
       await db.syncTaskDao.into(db.syncTaskQueueTable).insert(SyncTaskQueueTableCompanion.insert(
         id: 'classify-${message.id}',
         providerId: providerId,
@@ -194,6 +241,32 @@ class GmailSyncOrchestrator extends SyncOrchestrator {
     return _BatchResult(indexed: indexed, duplicates: duplicates);
   }
 
+  Future<void> repairDuplicates() async {
+    KnightLogger.info('[GMAIL] Running self-healing: Duplicate Journal Elimination');
+    final allMessages = await db.select(db.gmailMessageTable).get();
+    final grouped = groupBy(allMessages, (m) => m.id);
+    
+    for (final entry in grouped.entries) {
+      if (entry.value.length > 1) {
+        final toDelete = entry.value.skip(1);
+        for (final d in toDelete) {
+          await (db.delete(db.gmailMessageTable)..where((t) => t.id.equals(d.id))).go();
+        }
+      }
+    }
+
+    final journal = await db.select(db.financeSyncJournalTable).get();
+    final journalGrouped = groupBy(journal, (j) => j.messageId);
+    for (final entry in journalGrouped.entries) {
+      if (entry.value.length > 1) {
+        final toDelete = entry.value.skip(1);
+        for (final d in toDelete) {
+          await (db.delete(db.financeSyncJournalTable)..where((t) => t.id.equals(d.id))).go();
+        }
+      }
+    }
+  }
+
   Future<void> _incrementCursor(String key, int amount) async {
     final currentStr = await getCursor(key);
     final current = int.tryParse(currentStr ?? '0') ?? 0;
@@ -202,9 +275,7 @@ class GmailSyncOrchestrator extends SyncOrchestrator {
 
   String _getHeader(dynamic headers, String name) {
     if (headers == null) return '';
-    // ignore: avoid_dynamic_calls
     final header = (headers as List).firstWhereOrNull((h) => h.name == name);
-    // ignore: avoid_dynamic_calls
     return header?.value ?? '';
   }
 }

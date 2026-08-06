@@ -25,7 +25,7 @@ abstract class MemoryRepository {
   Future<void> saveAll(List<KnightMemory> memories);
 
   /// Searches memories by tags or keywords.
-  Future<List<KnightMemory>> search(String query);
+  Future<List<KnightMemory>> search(String query, {int? limit});
 
   /// Searches memories by date range.
   Future<List<KnightMemory>> searchByDateRange(DateTime start, DateTime end);

@@ -1,8 +1,6 @@
 import '../../domain/knight_memory.dart';
 import '../../domain/memory_category.dart';
-import '../../domain/cognitive_models.dart';
 import '../../../domain/entities/strategic_models.dart';
-import '../../../domain/entities/evidence.dart' as entity_evidence;
 import '../memory_engine.dart';
 
 /// Analyzes the gap between current reality and strategic North Stars.

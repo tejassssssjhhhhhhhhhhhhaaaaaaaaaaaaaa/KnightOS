@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:go_router/go_router.dart';
+import '../core/router/app_routes.dart';
 import '../core/design_system/knight_tokens.dart';
 import '../core/design_system/widgets/entrance_fader.dart';
 import '../core/intelligence/knight_context_models.dart';
@@ -71,7 +73,7 @@ class _HomeScreenContent extends ConsumerWidget {
             child: Text('SYSTEM SNAPSHOT', style: KnightTokens.label),
           ),
           const SizedBox(height: 20),
-          _SnapshotStrip(context: knightContext),
+          _SnapshotStrip(knightContext: knightContext),
 
           const SizedBox(height: 140),
         ],
@@ -128,21 +130,44 @@ class _PriorityFocusSlot extends StatelessWidget {
 }
 
 class _SnapshotStrip extends StatelessWidget {
-  const _SnapshotStrip({required this.context});
-  final KnightContext context;
+  const _SnapshotStrip({required this.knightContext});
+  final KnightContext knightContext;
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      clipBehavior: Clip.none,
-      child: Row(
+    return SizedBox(
+      height: 130,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        clipBehavior: Clip.none,
         children: [
-          _SnapshotCard(label: 'FINANCE', value: '₹${this.context.totalBalance.toInt()}', icon: Icons.account_balance_wallet_rounded),
+          _SnapshotCard(
+            label: 'DATA HUB', 
+            value: 'LIVE SYNC', 
+            icon: Icons.hub_rounded,
+            onTap: () => context.push(AppRoutes.importCenter),
+          ),
           const SizedBox(width: 16),
-          _SnapshotCard(label: 'HEALTH', value: '${this.context.steps} Steps', icon: Icons.directions_run_rounded),
+          _SnapshotCard(
+            label: 'FINANCE', 
+            value: '₹${knightContext.totalBalance.toInt()}', 
+            icon: Icons.account_balance_wallet_rounded,
+            onTap: () => context.push(AppRoutes.finance),
+          ),
           const SizedBox(width: 16),
-          _SnapshotCard(label: 'MISSIONS', value: '2 ACTIVE', icon: Icons.flag_rounded),
+          _SnapshotCard(
+            label: 'HEALTH', 
+            value: '${knightContext.steps} Steps', 
+            icon: Icons.directions_run_rounded,
+            onTap: () => context.push(AppRoutes.health),
+          ),
+          const SizedBox(width: 16),
+          _SnapshotCard(
+            label: 'MISSIONS', 
+            value: '2 ACTIVE', 
+            icon: Icons.flag_rounded,
+            onTap: () => context.push(AppRoutes.mission),
+          ),
         ],
       ),
     );
@@ -150,26 +175,33 @@ class _SnapshotStrip extends StatelessWidget {
 }
 
 class _SnapshotCard extends StatelessWidget {
-  const _SnapshotCard({required this.label, required this.value, required this.icon});
+  const _SnapshotCard({required this.label, required this.value, required this.icon, this.onTap});
   final String label;
   final String value;
   final IconData icon;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 150,
-      padding: const EdgeInsets.all(28),
-      decoration: KnightTokens.glass(accentColor: Colors.white),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 18, color: Colors.white24),
-          const SizedBox(height: 24),
-          Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white)),
-          const SizedBox(height: 4),
-          Text(label, style: KnightTokens.label.copyWith(fontSize: 8, color: Colors.white10)),
-        ],
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 150,
+        padding: const EdgeInsets.all(24),
+        decoration: KnightTokens.glass(accentColor: Colors.white),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, size: 18, color: Colors.white24),
+            const SizedBox(height: 20),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white)),
+            ),
+            const SizedBox(height: 4),
+            Text(label, style: KnightTokens.label.copyWith(fontSize: 8, color: Colors.white10)),
+          ],
+        ),
       ),
     );
   }

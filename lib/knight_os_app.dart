@@ -1,13 +1,10 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/router/app_router.dart';
 import 'core/theme/knight_theme_provider.dart';
 import 'core/providers/automation_providers.dart';
-import 'app/widgets/living_environment.dart';
-import 'app/widgets/knight_companion.dart';
-import 'app/widgets/theme_validation_tool.dart';
+import 'core/intelligence/services/google_data_hub.dart';
 
 class KnightOsApp extends StatefulWidget {
   const KnightOsApp({super.key});
@@ -28,6 +25,12 @@ class _KnightOsAppState extends State<KnightOsApp> {
         
         // Initialize Automation Orchestrator
         ref.watch(automationOrchestratorProvider);
+        
+        final hubStatus = ref.watch(googleDataHubProvider);
+        if (hubStatus == HubStatus.disconnected) {
+           // Proactive prompt if disconnected? 
+           // Better to let user open Import Center.
+        }
 
         return MaterialApp.router(
           title: 'KNIGHT',

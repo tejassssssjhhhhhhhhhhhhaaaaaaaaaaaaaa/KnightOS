@@ -98,6 +98,16 @@ class KnowledgeGraphWeaver {
     );
   }
 
+  /// Links a career event to an organization.
+  Future<void> linkToCareerOrganization(String eventNodeId, String orgName) async {
+    final orgNodeId = await graphService.ensureNode(type: 'organization', label: orgName);
+    await graphService.link(
+      fromId: eventNodeId,
+      toId: orgNodeId,
+      relationship: 'professional_link',
+    );
+  }
+
   /// Links a workspace memory to its calendar source.
   Future<void> linkToCalendarSource(String memoryNodeId, String eventId) async {
     final calNodeId = await graphService.ensureNode(

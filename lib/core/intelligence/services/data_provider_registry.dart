@@ -10,6 +10,8 @@ import '../services/google_calendar_data_provider.dart';
 import '../services/google_health_provider.dart';
 import '../services/samsung_health_provider.dart';
 import '../services/galaxy_watch_provider.dart';
+import '../services/google_contacts_provider.dart';
+import '../services/google_tasks_provider.dart';
 import 'device_intelligence_service.dart';
 import '../providers/intelligence_providers.dart';
 import '../../internal/utils/knight_logger.dart';
@@ -31,6 +33,7 @@ class DataProviderRegistry extends Notifier<List<DataProvider>> {
     try {
       final db = ref.watch(knightDatabaseProvider);
       final prefs = ref.watch(sharedPreferencesProvider);
+      final auth = ref.watch(googleAuthServiceProvider);
 
       // 1. Local File Provider
       try {
@@ -47,7 +50,7 @@ class DataProviderRegistry extends Notifier<List<DataProvider>> {
       try {
         final gmail = GmailDataProvider(
           extractionEngine: ref.watch(emailExtractionEngineProvider),
-          authService: ref.watch(googleAuthServiceProvider),
+          authService: auth,
           db: db,
           onChanged: notifyChanged,
         );
@@ -60,7 +63,7 @@ class DataProviderRegistry extends Notifier<List<DataProvider>> {
         providers.add(GoogleDriveProvider(
           backupService: ref.watch(backupServiceProvider),
           restoreService: ref.watch(restoreServiceProvider),
-          authService: ref.watch(googleAuthServiceProvider),
+          authService: auth,
           db: db,
           ingestionService: ref.watch(dataIngestionServiceProvider),
           workspaceEngine: ref.watch(workspaceExtractionEngineProvider),
@@ -73,7 +76,7 @@ class DataProviderRegistry extends Notifier<List<DataProvider>> {
       try {
         providers.add(GoogleCalendarDataProvider(
           ingestionService: ref.watch(dataIngestionServiceProvider),
-          authService: ref.watch(googleAuthServiceProvider),
+          authService: auth,
           db: db,
           workspaceEngine: ref.watch(workspaceExtractionEngineProvider),
           onChanged: notifyChanged,
@@ -111,6 +114,26 @@ class DataProviderRegistry extends Notifier<List<DataProvider>> {
         KnightLogger.error('[REGISTRY] Failed to init GalaxyWatchProvider', error: e, stackTrace: s);
       }
 
+      try {
+        providers.add(GoogleContactsProvider(
+          authService: auth,
+          db: db,
+          onChanged: notifyChanged,
+        ));
+      } catch (e, s) {
+        KnightLogger.error('[REGISTRY] Failed to init GoogleContactsProvider', error: e, stackTrace: s);
+      }
+
+      try {
+        providers.add(GoogleTasksProvider(
+          authService: auth,
+          db: db,
+          onChanged: notifyChanged,
+        ));
+      } catch (e, s) {
+        KnightLogger.error('[REGISTRY] Failed to init GoogleTasksProvider', error: e, stackTrace: s);
+      }
+
       // P0: Synchronization - If user intended to connect, trigger it
       _restoreConnectionIntents(providers, prefs);
     } catch (e, s) {
@@ -125,13 +148,11 @@ class DataProviderRegistry extends Notifier<List<DataProvider>> {
       final intended = prefs.getBool('$_persistenceKeyPrefix${provider.id}') ?? false;
       if (intended && provider.status == ProviderStatus.disconnected) {
         KnightLogger.info('[REGISTRY] Restoring connection intent for ${provider.id}');
-        // Trigger connect in next frame to avoid build-phase exceptions
         Future.microtask(() => provider.connect());
       }
     }
   }
 
-  /// Forces a state update to notify listeners (UI) that provider internal state changed.
   void notifyChanged() {
     state = List.from(state);
   }

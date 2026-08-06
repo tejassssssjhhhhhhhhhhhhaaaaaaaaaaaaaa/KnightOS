@@ -66,7 +66,7 @@ class MemoryEngine {
       repository.getHistory(memoryId);
 
   /// Searches for memories.
-  Future<List<KnightMemory>> search(String query) => repository.search(query);
+  Future<List<KnightMemory>> search(String query, {int? limit}) => repository.search(query, limit: limit);
 
   /// Deletes a memory chain.
   Future<void> delete(String memoryId) => repository.delete(memoryId);

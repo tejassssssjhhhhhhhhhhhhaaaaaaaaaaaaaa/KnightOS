@@ -3,9 +3,17 @@ import '../../../../core/design_system/knight_tokens.dart';
 import '../../../../core/internal/services/greeting_service.dart';
 
 class NetWorthCard extends StatelessWidget {
-  const NetWorthCard({super.key, required this.amount, required this.period});
+  const NetWorthCard({
+    super.key, 
+    required this.amount, 
+    required this.period,
+    this.cash = 0,
+    this.debt = 0,
+  });
   final double amount;
   final KnightDayPeriod period;
+  final double cash;
+  final double debt;
 
   @override
   Widget build(BuildContext context) {
@@ -18,16 +26,19 @@ class NetWorthCard extends StatelessWidget {
         children: [
           const Text('NET WORTH', style: KnightTokens.label),
           const SizedBox(height: 8),
-          Text(
-            '₹${amount.toStringAsFixed(2)}',
-            style: KnightTokens.headline.copyWith(color: accent),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              '₹${amount.toStringAsFixed(2)}',
+              style: KnightTokens.headline.copyWith(color: accent),
+            ),
           ),
           const SizedBox(height: 16),
           Row(
             children: [
-              _MiniMetric(label: 'CASH', value: '₹0.00'), // To be implemented
+              _MiniMetric(label: 'CASH', value: '₹${cash.toStringAsFixed(0)}'),
               const SizedBox(width: 24),
-              _MiniMetric(label: 'DEBT', value: '₹0.00'),
+              _MiniMetric(label: 'DEBT', value: '₹${debt.toStringAsFixed(0)}'),
             ],
           ),
         ],
@@ -101,7 +112,10 @@ class _MetricCard extends StatelessWidget {
         children: [
           Text(label, style: KnightTokens.label.copyWith(fontSize: 8)),
           const SizedBox(height: 8),
-          Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: color)),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: color)),
+          ),
         ],
       ),
     );

@@ -1,14 +1,11 @@
-import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:googleapis/gmail/v1.dart' as gmail;
 import '../domain/data_provider.dart';
 import '../engines/email_extraction_engine.dart';
 import '../../internal/utils/knight_logger.dart';
 import '../../services/google_auth_service.dart';
-import 'gmail_sync_orchestrator.dart';
 import '../../internal/storage/drift/knight_database.dart';
-
-import 'package:drift/drift.dart';
+import 'gmail_sync_orchestrator.dart';
 
 class GmailDataProvider implements DataProvider {
   GmailDataProvider({

@@ -4,7 +4,6 @@ import 'package:googleapis/gmail/v1.dart' as gmail;
 import 'package:drift/drift.dart' hide isNotNull;
 import 'package:knight_os/core/internal/storage/drift/knight_database.dart';
 import 'package:drift/native.dart';
-import 'package:knight_os/features/finance/platform/sync/historical_scanner_service.dart';
 import 'package:knight_os/features/finance/platform/engine/institution_discovery_engine.dart';
 import 'package:knight_os/features/finance/platform/engine/finance_classification_engine.dart';
 import 'package:knight_os/core/services/google_auth_service.dart';
@@ -17,7 +16,6 @@ class MockGoogleAuthService extends Mock implements GoogleAuthService {}
 
 void main() {
   late KnightDatabase db;
-  late HistoricalScannerService scanner;
   late MockGmailApi mockApi;
   late MockMessagesResource mockMessages;
   late MockGoogleAuthService mockAuth;
@@ -31,91 +29,10 @@ void main() {
     final mockUsers = MockUsersResource();
     when(() => mockApi.users).thenReturn(mockUsers);
     when(() => mockUsers.messages).thenReturn(mockMessages);
-
-    scanner = HistoricalScannerService(
-      db: db,
-      authService: mockAuth,
-      gmailApi: mockApi,
-    );
   });
 
   tearDown(() async {
     await db.close();
-  });
-
-  group('HistoricalScannerService', () {
-    test('startHistoricalScan fetches and stores messages', () async {
-      // Mock list response
-      final listResponse = gmail.ListMessagesResponse(
-        messages: [gmail.Message(id: 'msg1', threadId: 't1')],
-        nextPageToken: null,
-      );
-      
-      when(() => mockMessages.list(
-            'me',
-            pageToken: any(named: 'pageToken'),
-            maxResults: any(named: 'maxResults'),
-            q: any(named: 'q'),
-          )).thenAnswer((_) async => listResponse);
-
-      // Mock get response
-      final fullMsg = gmail.Message(
-        id: 'msg1',
-        threadId: 't1',
-        historyId: 'h1',
-        snippet: 'Your HDFC Bank account credited with Rs. 5000',
-        internalDate: DateTime.now().millisecondsSinceEpoch.toString(),
-        payload: gmail.MessagePart(
-          headers: [
-            gmail.MessagePartHeader(name: 'Subject', value: 'Transaction Alert'),
-            gmail.MessagePartHeader(name: 'From', value: 'alerts@hdfcbank.net'),
-          ],
-        ),
-      );
-      
-      when(() => mockMessages.get('me', 'msg1')).thenAnswer((_) async => fullMsg);
-
-      await scanner.startHistoricalScan();
-
-      final stored = await db.select(db.gmailMessageTable).get();
-      expect(stored.length, 1);
-      expect(stored.first.id, 'msg1');
-      expect(stored.first.sender, 'alerts@hdfcbank.net');
-
-      final journal = await db.select(db.financeSyncJournalTable).get();
-      expect(journal.length, 1);
-      expect(journal.first.processingResult, 'Discovered');
-    });
-
-    test('startHistoricalScan supports resume via checkpoint', () async {
-      // Setup checkpoint in DB
-      await db.into(db.providerSyncMetadataTable).insert(
-        ProviderSyncMetadataTableCompanion.insert(
-          id: 'finance_historical_scan_cursor',
-          providerId: 'gmail',
-          stateKey: 'finance_historical_scan_cursor',
-          stateValue: 'token123',
-          lastUpdated: Value(DateTime.now()),
-        ),
-      );
-
-      final listResponse = gmail.ListMessagesResponse(messages: [], nextPageToken: null);
-      when(() => mockMessages.list(
-        'me',
-        pageToken: 'token123',
-        maxResults: 50,
-        q: any(named: 'q'),
-      )).thenAnswer((_) async => listResponse);
-
-      await scanner.startHistoricalScan();
-
-      verify(() => mockMessages.list(
-        'me',
-        pageToken: 'token123',
-        maxResults: 50,
-        q: any(named: 'q'),
-      )).called(1);
-    });
   });
 
   group('InstitutionDiscoveryEngine', () {

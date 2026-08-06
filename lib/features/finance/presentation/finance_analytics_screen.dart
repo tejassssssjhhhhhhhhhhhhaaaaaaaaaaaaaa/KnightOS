@@ -51,7 +51,11 @@ class FinanceAnalyticsScreen extends ConsumerWidget {
                 title: 'Savings Engine',
                 child: Column(
                   children: [
-                    _MetricSummaryRow(label: 'SAVINGS RATE', value: '${(report.savings.currentSavingsRate * 100).toInt()}%', color: Colors.blueAccent),
+                    _MetricSummaryRow(
+                      label: 'SAVINGS RATE', 
+                      value: '${(report.savings.currentSavingsRate.isNaN || report.savings.currentSavingsRate.isInfinite) ? 0 : (report.savings.currentSavingsRate * 100).toInt()}%', 
+                      color: Colors.blueAccent
+                    ),
                     _MetricSummaryRow(label: 'AVG MONTHLY SAVINGS', value: '₹${report.savings.averageMonthlySavings.toStringAsFixed(0)}', color: Colors.cyanAccent),
                     const SizedBox(height: 16),
                     TrendSparkline(points: report.savings.savingsTrend, color: Colors.blueAccent),

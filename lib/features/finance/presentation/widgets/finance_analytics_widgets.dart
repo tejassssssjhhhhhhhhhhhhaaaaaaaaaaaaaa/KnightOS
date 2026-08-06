@@ -82,7 +82,7 @@ class SpendingPieChart extends StatelessWidget {
         const SizedBox(height: 24),
         ...top5.map((e) {
           final index = top5.indexOf(e);
-          final percentage = (e.value / total * 100).toInt();
+          final percentage = total > 0 ? (e.value / total * 100).toInt() : 0;
           return Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: Row(

@@ -5,7 +5,9 @@ import '../engines/parsers/entity_extractor.dart';
 import '../engines/parsers/financial_extractor.dart';
 import '../engines/parsers/travel_extractor.dart';
 import '../engines/parsers/order_extractor.dart';
+import '../engines/parsers/career_extractor.dart';
 import '../engines/workspace_extraction_engine.dart';
+import '../importers/base_parser.dart';
 import 'identity_resolution_service.dart';
 import 'data_ingestion_service.dart';
 import '../../internal/utils/knight_logger.dart';
@@ -27,6 +29,7 @@ class EntityExtractionService {
     FinancialExtractor(),
     TravelExtractor(),
     OrderExtractor(),
+    CareerExtractor(),
   ];
 
   Future<void> extractEntitiesFromEmail(String messageId, String batchId) async {
@@ -56,10 +59,13 @@ class EntityExtractionService {
       return;
     }
 
+    final List<TransactionTableCompanion> transactions = [];
+    final List<ExtractedEntityTableCompanion> careerEvents = [];
+
     await db.transaction(() async {
       for (final res in allResults) {
         // 1. Resolve Canonical Identity
-        String? merchant = res.searchTokens['merchant'] ?? res.searchTokens['airline'] ?? res.searchTokens['bank'];
+        String? merchant = res.searchTokens['merchant'] ?? res.searchTokens['airline'] ?? res.searchTokens['bank'] ?? res.searchTokens['organization'];
         String? canonicalId;
         if (merchant != null) {
           canonicalId = await identityService.resolve(merchant, res.subtype);
@@ -67,7 +73,7 @@ class EntityExtractionService {
 
         // 2. Create Entity
         final entityId = 'ent-${DateTime.now().microsecondsSinceEpoch}';
-        await db.extractedEntityDao.upsertEntity(ExtractedEntityTableCompanion.insert(
+        final entityComp = ExtractedEntityTableCompanion.insert(
           id: entityId,
           entityType: res.type,
           entitySubtype: res.subtype,
@@ -82,7 +88,12 @@ class EntityExtractionService {
           confidenceReason: Value(res.reason),
           syncBatchId: Value(batchId),
           extractionTimestamp: Value(DateTime.now()),
-        ));
+        );
+        await db.extractedEntityDao.upsertEntity(entityComp);
+
+        if (res.type == 'career_event') {
+          careerEvents.add(entityComp);
+        }
 
         // 3. Store Evidence
         await db.into(db.entityEvidenceTable).insert(EntityEvidenceTableCompanion.insert(
@@ -106,10 +117,51 @@ class EntityExtractionService {
             tokenType: entry.key,
           ));
         }
+
+        // 5. Map to Transaction if applicable
+        if (res.type == 'transaction') {
+          final txComp = TransactionTableCompanion.insert(
+            id: entityId,
+            transactionId: entityId,
+            accountId: 'main-savings', // Default or derived
+            transactionDate: res.timestamp,
+            amount: double.tryParse(res.searchTokens['amount'] ?? '0') ?? 0.0,
+            type: res.searchTokens['type'] ?? 'expense', 
+            category: category,
+            merchant: merchant ?? 'UNKNOWN',
+            institution: 'Knight Hub',
+            description: res.title,
+            dedupeHash: '${res.timestamp.millisecondsSinceEpoch}-${res.searchTokens['amount']}-${res.title}',
+            originProviderId: const Value('gmail_api'),
+            originResourceId: Value(messageId),
+            originThreadId: Value(message.threadId),
+            syncBatchId: Value(batchId),
+            confidenceScore: Value(res.confidence),
+            confidenceReason: Value(res.reason),
+            originalEmailLink: Value('https://mail.google.com/mail/u/0/#inbox/${message.threadId}'),
+            extractionTimestamp: Value(DateTime.now()),
+          );
+          transactions.add(txComp);
+          KnightLogger.info('[EXTRACT] Created Transaction record: ${txComp.description.value} Amount: ${txComp.amount.value}');
+        }
       }
     });
 
-    // 5. Create Workspace Memory for Reasoning
+    // 6. Ingest structured data into Finance & Career
+    if (transactions.isNotEmpty || careerEvents.isNotEmpty) {
+      await ingestionService.ingestCloudData('gmail_api', ParsedData(
+        transactions: transactions,
+        careerEvents: careerEvents,
+      ));
+      
+      // P0: Mark as Parsed for Audit Engine
+      await db.financePlatformDao.updateJournalEntry(FinanceSyncJournalTableCompanion(
+        messageId: Value(messageId),
+        processingResult: const Value('Parsed'),
+      ));
+    }
+
+    // 7. Create Workspace Memory for Reasoning
     final workspaceMemory = workspaceEngine.extractEmail({
       'id': message.id,
       'threadId': message.threadId,

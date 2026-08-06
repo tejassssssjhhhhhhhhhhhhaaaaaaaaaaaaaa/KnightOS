@@ -1,0 +1,22 @@
+# Task List: Knight Data Platform
+
+- [ ] **Infrastructure & Data Hub**
+    - [ ] Create `GoogleDataHub` for unified Google services management.
+    - [ ] Centralize authentication and scope management.
+- [ ] **Enhanced Gmail Historical Import**
+    - [ ] Implement year/month looping in `GmailSyncOrchestrator`.
+    - [ ] Add granular checkpointing and recovery logic.
+    - [ ] Optimize duplicate detection in `processMessageBatch`.
+- [ ] **Intelligence Bridge**
+    - [ ] Update `EntityExtractionService` to populate `TransactionTable` via `DataIngestionService`.
+    - [ ] Ensure cross-linking between entities and evidence (Gmail messages).
+- [ ] **Finance Module Refactor**
+    - [ ] Migrate `LocalMoneyRepository` to `TransactionTable`.
+    - [ ] Remove `HistoricalScannerService` from Finance.
+    - [ ] Update Finance UI to consume from the centralized database.
+- [ ] **Live Import Center**
+    - [ ] Implement `ImportCenterScreen` with real-time progress tracking.
+    - [ ] Wire up `SyncTaskService` to provide live status updates.
+- [ ] **Verification & Validation**
+    - [ ] Run automated tests for historical sync and data consumption.
+    - [ ] Perform real-device validation of the full import cycle.

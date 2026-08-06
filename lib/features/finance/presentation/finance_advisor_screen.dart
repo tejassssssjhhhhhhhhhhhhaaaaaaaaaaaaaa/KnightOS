@@ -67,9 +67,14 @@ class _FinanceAdvisorScreenState extends ConsumerState<FinanceAdvisorScreen> {
 
   Widget _buildInput() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      decoration: BoxDecoration(
-        color: Colors.black,
+      padding: EdgeInsets.only(
+        left: 24, 
+        right: 24, 
+        top: 16, 
+        bottom: MediaQuery.of(context).padding.bottom + 16
+      ),
+      decoration: const BoxDecoration(
+        color: Color(0xFF0A0A0A),
         border: Border(top: BorderSide(color: Colors.white10)),
       ),
       child: Row(

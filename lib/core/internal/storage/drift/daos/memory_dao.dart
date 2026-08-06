@@ -53,9 +53,12 @@ class MemoryDao extends BaseDao<MemoryTable, MemoryTableData>
   }
 
   /// Search logic using LIKE on summary, content, and tags.
-  Future<List<MemoryTableData>> searchMemories(String query) {
+  Future<List<MemoryTableData>> searchMemories(String query, {int? limit}) {
     if (query.isEmpty) {
-      return (select(memoryTable)..where((t) => t.isLatest.equals(true))).get();
+      return (select(memoryTable)
+            ..where((t) => t.isLatest.equals(true))
+            ..limit(limit ?? 100)) // P0: Default limit for empty query
+          .get();
     }
     final pattern = '%$query%';
     return (select(memoryTable)
@@ -65,7 +68,8 @@ class MemoryDao extends BaseDao<MemoryTable, MemoryTableData>
                 t.content.like(pattern) |
                 t.tags.like(pattern),
           )
-          ..where((t) => t.isLatest.equals(true)))
+          ..where((t) => t.isLatest.equals(true))
+          ..limit(limit ?? 50))
         .get();
   }
 
@@ -173,6 +177,14 @@ class MemoryDao extends BaseDao<MemoryTable, MemoryTableData>
   Future<List<MemoryRelationData>> getRelations(String memoryId) {
     return (select(memoryRelationTable)..where(
           (t) => t.sourceId.equals(memoryId) | t.targetId.equals(memoryId),
+        ))
+        .get();
+  }
+
+  /// Retrieves all memories related to the given IDs.
+  Future<List<MemoryRelationData>> getRelationsForMemories(List<String> memoryIds) {
+    return (select(memoryRelationTable)..where(
+          (t) => t.sourceId.isIn(memoryIds) | t.targetId.isIn(memoryIds),
         ))
         .get();
   }

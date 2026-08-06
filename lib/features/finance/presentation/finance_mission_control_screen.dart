@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/widgets/knight_page_scaffold.dart';
 import '../../../core/design_system/knight_tokens.dart';
 import '../../../core/router/app_routes.dart';
+import '../domain/finance_mission_control_data.dart';
 import 'controllers/finance_mission_control_controller.dart';
 import 'widgets/finance_mission_control_widgets.dart';
 
@@ -52,7 +53,7 @@ class FinanceMissionControlScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildOverallHealth(dynamic data) {
+  Widget _buildOverallHealth(FinanceMissionControlData data) {
     final color = data.healthScore > 80 ? Colors.greenAccent : (data.healthScore > 50 ? Colors.orangeAccent : Colors.redAccent);
     return Container(
       padding: const EdgeInsets.all(32),

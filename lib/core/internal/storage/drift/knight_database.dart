@@ -34,6 +34,7 @@ import 'tables/device_registry.dart';
 import 'tables/parser_registry.dart';
 import 'tables/security_metadata.dart';
 import 'tables/gmail_messages.dart';
+import 'tables/google_resources.dart';
 import 'tables/email_classifications.dart';
 import 'tables/extracted_entities.dart';
 import 'tables/entity_evidence.dart';
@@ -82,6 +83,7 @@ import 'daos/reminder_dao.dart';
 import 'daos/device_dao.dart';
 import 'daos/security_dao.dart';
 import 'daos/gmail_message_dao.dart';
+import 'daos/google_resource_dao.dart';
 import 'daos/email_classification_dao.dart';
 import 'daos/extracted_entity_dao.dart';
 import 'daos/canonical_identity_dao.dart';
@@ -114,6 +116,7 @@ export 'daos/reminder_dao.dart';
 export 'daos/device_dao.dart';
 export 'daos/security_dao.dart';
 export 'daos/gmail_message_dao.dart';
+export 'daos/google_resource_dao.dart';
 export 'daos/email_classification_dao.dart';
 export 'daos/extracted_entity_dao.dart';
 export 'daos/canonical_identity_dao.dart';
@@ -170,6 +173,7 @@ class MigrationDao extends BaseDao<MigrationLedger, MigrationLedgerData>
     ParserRegistryTable,
     SecurityMetadataTable,
     GmailMessageTable,
+    GoogleResourceTable,
     EmailClassificationTable,
     ExtractedEntityTable,
     EntityEvidenceTable,
@@ -229,6 +233,7 @@ class MigrationDao extends BaseDao<MigrationLedger, MigrationLedgerData>
     DeviceDao,
     SecurityDao,
     GmailMessageDao,
+    GoogleResourceDao,
     EmailClassificationDao,
     ExtractedEntityDao,
     CanonicalIdentityDao,
@@ -249,7 +254,7 @@ class KnightDatabase extends _$KnightDatabase {
   KnightDatabase.forTesting(super.connection);
 
   @override
-  int get schemaVersion => 26;
+  int get schemaVersion => 27;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -405,6 +410,9 @@ class KnightDatabase extends _$KnightDatabase {
         await customStatement('CREATE INDEX IF NOT EXISTS idx_transactions_merc ON transactions (merchant);');
         await customStatement('CREATE INDEX IF NOT EXISTS idx_transactions_type ON transactions (type);');
         await customStatement('CREATE INDEX IF NOT EXISTS idx_transactions_latest ON transactions (is_latest);');
+      }
+      if (from < 27) {
+        await m.createTable(googleResourceTable);
       }
       debugPrint('KnightDatabase: Migration complete');
     },

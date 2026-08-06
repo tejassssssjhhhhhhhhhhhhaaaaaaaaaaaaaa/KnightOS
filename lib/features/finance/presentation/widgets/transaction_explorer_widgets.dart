@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/design_system/knight_tokens.dart';
 import '../../../../core/internal/storage/drift/knight_database.dart';
 
@@ -159,7 +160,11 @@ class TransactionDetailSheet extends StatelessWidget {
               const SizedBox(width: 16),
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () {}, // Deep link to Gmail
+                  onPressed: () {
+                    if (tx.originalEmailLink != null) {
+                      launchUrl(Uri.parse(tx.originalEmailLink!));
+                    }
+                  },
                   icon: const Icon(Icons.mail_outline_rounded, size: 16),
                   label: const Text('VIEW SOURCE'),
                 ),

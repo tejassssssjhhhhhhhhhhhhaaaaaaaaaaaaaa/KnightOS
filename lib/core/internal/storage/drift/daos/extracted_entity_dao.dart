@@ -14,4 +14,8 @@ class ExtractedEntityDao extends BaseDao<ExtractedEntityTable, ExtractedEntity>
   }
 
   Future<List<ExtractedEntity>> getAllEntities() => select(extractedEntityTable).get();
+
+  Future<List<ExtractedEntity>> getEntitiesByType(String type) {
+    return (select(extractedEntityTable)..where((t) => t.entityType.equals(type))).get();
+  }
 }

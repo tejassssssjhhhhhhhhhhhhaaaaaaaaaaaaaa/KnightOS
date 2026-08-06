@@ -35,25 +35,21 @@ class ReasoningService {
   /// Performs a full reasoning cycle based on current system state and graph relationships.
   Future<ReasoningResult> performReasoningCycle({
     required List<KnightFeatureModule> featureModules,
+    List<KnightMemory>? preFetchedMemories,
   }) async {
     KnightLogger.info('[REASONING] Cycle started', category: KnightLogCategory.intelligence);
     
-    // 1. Fetch relevant memories
-    final memories = await contextEngine.buildActiveContext(
+    // 1. Fetch relevant memories if not provided
+    final memories = preFetchedMemories ?? await contextEngine.buildActiveContext(
       intent: KnightIntent.analysis,
       worldState: worldService.currentState,
     );
 
-    // 2. Query Graph for situational links (e.g. are we at a "Place" from the graph?)
-    final currentState = worldService.currentState;
-    // Heuristic: check if any recent timeline event visit matches a known graph node
-    // Simplified for Wave 2
-
-    // 3. Build current context
+    // 2. Build current context
     final context = contextService.buildContext(
       featureModules: featureModules,
       recentMemories: memories,
-      worldState: currentState,
+      worldState: worldService.currentState,
     );
 
     // 4. Reason with learned weights and Graph awareness

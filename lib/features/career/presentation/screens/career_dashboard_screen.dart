@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/widgets/knight_page_scaffold.dart';
 import '../../../../core/design_system/design_constants.dart';
@@ -9,7 +10,6 @@ import '../widgets/explainable_insight_card.dart';
 import '../widgets/career_quick_actions.dart';
 import '../../../../core/domain/entities/mission.dart';
 import '../../../../core/domain/entities/timeline_event.dart';
-
 import '../../../../core/domain/entities/insight.dart';
 
 class CareerDashboardScreen extends ConsumerWidget {
@@ -276,7 +276,7 @@ class _TimelineItem extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  'Yesterday', // Placeholder for relative time
+                  DateFormat('MMM dd, yyyy').format(event.startTime),
                   style: const TextStyle(color: DesignColors.secondary, fontSize: 10),
                 ),
               ],

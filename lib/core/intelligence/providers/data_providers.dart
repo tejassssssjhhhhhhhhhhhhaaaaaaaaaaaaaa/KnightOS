@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/database_provider.dart';
+import '../../services/google_auth_service.dart';
 import '../services/data_ingestion_service.dart';
 import '../engines/email_extraction_engine.dart';
 import '../services/document_hash_service.dart';
@@ -14,6 +15,8 @@ import '../services/nutrition_sync_service.dart';
 import '../services/workout_orchestrator.dart';
 import '../services/health_tracker_service.dart';
 import '../services/ocr_knowledge_service.dart';
+import '../services/google_drive_provider.dart';
+import '../services/google_calendar_data_provider.dart';
 import '../../internal/storage/backup_service.dart';
 import '../../internal/storage/restore_service.dart';
 import '../providers/intelligence_providers.dart';
@@ -98,4 +101,24 @@ final knowledgeGraphWeaverProvider = Provider<KnowledgeGraphWeaver>((ref) {
 
 final identityResolutionServiceProvider = Provider<IdentityResolutionService>((ref) {
   return IdentityResolutionService(db: ref.watch(knightDatabaseProvider));
+});
+
+final googleDriveProvider = Provider<GoogleDriveProvider>((ref) {
+  return GoogleDriveProvider(
+    backupService: ref.watch(backupServiceProvider),
+    restoreService: ref.watch(restoreServiceProvider),
+    authService: GoogleAuthService.instance,
+    db: ref.watch(knightDatabaseProvider),
+    ingestionService: ref.watch(dataIngestionServiceProvider),
+    workspaceEngine: ref.watch(workspaceExtractionEngineProvider),
+  );
+});
+
+final googleCalendarProvider = Provider<GoogleCalendarDataProvider>((ref) {
+  return GoogleCalendarDataProvider(
+    ingestionService: ref.watch(dataIngestionServiceProvider),
+    authService: GoogleAuthService.instance,
+    db: ref.watch(knightDatabaseProvider),
+    workspaceEngine: ref.watch(workspaceExtractionEngineProvider),
+  );
 });

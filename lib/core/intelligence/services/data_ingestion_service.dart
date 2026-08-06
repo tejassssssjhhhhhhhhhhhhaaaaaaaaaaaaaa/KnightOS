@@ -53,6 +53,22 @@ class DataIngestionService {
     KnightLogger.info('[INGESTION] Full scan complete.');
   }
 
+  Future<void> importDocument(File file) async {
+    final fileName = file.path.split('/').last.toLowerCase();
+    KnightLogger.info('[INGESTION] Manual import requested: $fileName');
+    
+    if (fileName.endsWith('.pdf')) {
+      await _processFile(file);
+    } else if (fileName.endsWith('.csv')) {
+      await _processFile(file);
+    } else if (fileName.endsWith('.jpg') || fileName.endsWith('.png')) {
+      // Future: OCR Parser
+      await _processFile(file);
+    } else {
+      KnightLogger.warn('[INGESTION] Unsupported file type for manual import: $fileName');
+    }
+  }
+
   /// Ingests structured data from cloud providers (Gmail, Calendar, etc.)
   Future<void> ingestCloudData(String providerId, ParsedData data) async {
     KnightLogger.info('[INGESTION] Ingesting cloud data from $providerId');
@@ -92,7 +108,7 @@ class DataIngestionService {
   }
 
   Future<void> _saveCloudData(String importId, String providerId, ParsedData data) async {
-     int recordCount = 0;
+    int recordCount = 0;
     
     await db.transaction(() async {
       // 1. Transactions
@@ -100,8 +116,11 @@ class DataIngestionService {
         final t = tx as TransactionTableCompanion;
         final hash = t.dedupeHash.value;
         
-        final existing = await db.financialDao.transactionExists(hash);
-        if (!existing) {
+        final existing = await (db.select(db.transactionTable)
+              ..where((tbl) => tbl.dedupeHash.equals(hash) | tbl.originResourceId.equals(t.originResourceId.value ?? '')))
+            .getSingleOrNull();
+
+        if (existing == null) {
           await db.financialDao.insertTransaction(t.copyWith(syncStatus: const Value('synced')));
           recordCount++;
         }
@@ -125,6 +144,13 @@ class DataIngestionService {
           await db.healthDao.insertMetrics([comp.copyWith(syncStatus: const Value('synced'))]);
           recordCount++;
         }
+      }
+
+      // 4. Career Events
+      for (final ce in data.careerEvents) {
+        final comp = ce as ExtractedEntityTableCompanion;
+        await db.extractedEntityDao.upsertEntity(comp);
+        recordCount++;
       }
     });
 
@@ -160,13 +186,26 @@ class DataIngestionService {
         await graphWeaver.linkToPlace(evNodeId, e.title.value);
       }
     }
+
+    // 3. Career Events
+    for (final ce in data.careerEvents) {
+      final c = ce as ExtractedEntityTableCompanion;
+      final ceNodeId = await graphService.ensureNode(
+        type: 'career_event',
+        label: c.title.value,
+        externalTable: 'extracted_entities',
+        externalId: c.id.value,
+      );
+
+      final orgName = c.canonicalId.value ?? 'UNKNOWN';
+      await graphWeaver.linkToCareerOrganization(ceNodeId, orgName);
+    }
   }
 
   Future<void> _processFile(File file) async {
     final fileName = file.path.split('/').last;
     final hash = await hashService.calculateHash(file);
 
-    // 1. Check for duplicate FILE
     final existingImport = await db.importDao.getByHash(hash);
     if (existingImport != null) {
       KnightLogger.info('[INGESTION] Skipping duplicate file: $fileName');
@@ -186,6 +225,10 @@ class DataIngestionService {
       else if (fileName.endsWith('.pdf')) {
         data = await _financialParser.parse(file);
       }
+      else if (fileName.endsWith('.csv')) {
+        // Basic CSV handling logic could be added here
+        data = await _financialParser.parse(file); 
+      }
 
       if (data != null) {
         await _saveParsedData(importId, providerId, hash, file, data);
@@ -198,7 +241,6 @@ class DataIngestionService {
   }
 
   Future<void> _weaveIntoGraph(String importId, String providerId, File file, ParsedData data) async {
-    // 1. Weave Document Node
     final docNodeId = await graphService.ensureNode(
       type: 'document',
       label: file.path.split('/').last,
@@ -207,7 +249,6 @@ class DataIngestionService {
       metadata: {'path': file.path},
     );
 
-    // 2. Weave Transactions
     for (final tx in data.transactions) {
       final t = tx as TransactionTableCompanion;
       final txNodeId = await graphService.ensureNode(
@@ -217,18 +258,11 @@ class DataIngestionService {
         externalId: t.id.value,
       );
       
-      await graphService.link(
-        fromId: docNodeId,
-        toId: txNodeId,
-        relationship: 'attachments',
-      );
-
-      // Weave Organization Node
+      await graphService.link(fromId: docNodeId, toId: txNodeId, relationship: 'attachments');
       final orgName = _extractOrgFromDescription(t.description.value);
       await graphWeaver.linkToOrganization(txNodeId, orgName);
     }
 
-    // 3. Weave Timeline
     for (final ev in data.timelineEvents) {
       final e = ev as TimelineEventTableCompanion;
       final evNodeId = await graphService.ensureNode(
@@ -238,15 +272,23 @@ class DataIngestionService {
         externalId: e.id.value,
       );
 
-      await graphService.link(
-        fromId: docNodeId,
-        toId: evNodeId,
-        relationship: 'chronology',
-      );
-      
+      await graphService.link(fromId: docNodeId, toId: evNodeId, relationship: 'chronology');
       if (e.type.value == 'visit') {
         await graphWeaver.linkToPlace(evNodeId, e.title.value);
       }
+    }
+
+    for (final ce in data.careerEvents) {
+      final c = ce as ExtractedEntityTableCompanion;
+      final ceNodeId = await graphService.ensureNode(
+        type: 'career_event',
+        label: c.title.value,
+        externalTable: 'extracted_entities',
+        externalId: c.id.value,
+      );
+      await graphService.link(fromId: docNodeId, toId: ceNodeId, relationship: 'context');
+      final orgName = c.canonicalId.value ?? 'UNKNOWN';
+      await graphWeaver.linkToCareerOrganization(ceNodeId, orgName);
     }
   }
 
@@ -266,7 +308,6 @@ class DataIngestionService {
     int recordCount = 0;
     
     await db.transaction(() async {
-      // 1. Transactions
       if (data.transactions.isNotEmpty) {
         await _ensureAccountsExist();
         for (final tx in data.transactions) {
@@ -287,7 +328,6 @@ class DataIngestionService {
         }
       }
 
-      // 2. Health Metrics
       if (data.healthMetrics.isNotEmpty) {
         for (final m in data.healthMetrics) {
            final comp = m as HealthMetricTableCompanion;
@@ -305,7 +345,6 @@ class DataIngestionService {
         }
       }
 
-      // 3. Timeline Events
       if (data.timelineEvents.isNotEmpty) {
         for (final ev in data.timelineEvents) {
           final comp = ev as TimelineEventTableCompanion;
@@ -321,6 +360,12 @@ class DataIngestionService {
             recordCount++;
           }
         }
+      }
+
+      for (final ce in data.careerEvents) {
+        final comp = ce as ExtractedEntityTableCompanion;
+        await db.extractedEntityDao.upsertEntity(comp);
+        recordCount++;
       }
     });
 

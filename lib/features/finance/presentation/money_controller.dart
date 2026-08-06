@@ -1,14 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/intelligence/providers/intelligence_providers.dart';
-import '../data/memory_money_repository.dart';
+import 'package:knight_os/core/providers/database_provider.dart';
+import '../data/drift_money_repository.dart';
 import '../domain/money_metric.dart';
 import '../domain/money_repository.dart';
 import '../domain/money_state.dart';
 
 /// Provider for the [MoneyRepository] implementation.
 final moneyRepositoryProvider = Provider<MoneyRepository>((ref) {
-  final memoryEngine = ref.watch(memoryEngineProvider);
-  return MemoryMoneyRepository(memoryEngine: memoryEngine);
+  final db = ref.watch(knightDatabaseProvider);
+  return DriftMoneyRepository(db: db);
 });
 
 /// Provider for the money state notifier.

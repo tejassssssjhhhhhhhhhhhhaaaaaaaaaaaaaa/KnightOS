@@ -6,7 +6,6 @@ import '../engine/gmail_audit_engine.dart';
 import '../engine/finance_evidence_vault.dart';
 import '../engine/finance_parser_engine.dart';
 import '../engine/repair_engine.dart';
-import '../sync/historical_scanner_service.dart';
 import '../sync/smart_sync_engine.dart';
 import '../sync/finance_inbox_service.dart';
 import '../../../../core/internal/storage/drift/knight_database.dart';
@@ -44,11 +43,6 @@ final financeEvidenceVaultProvider = Provider<FinanceEvidenceVault>((ref) {
   return FinanceEvidenceVault(db: db, parserEngine: parserEngine, dao: dao);
 });
 
-final historicalScannerServiceProvider = Provider<HistoricalScannerService>((ref) {
-  final db = ref.watch(knightDatabaseProvider);
-  return HistoricalScannerService(db: db, authService: GoogleAuthService.instance);
-});
-
 final repairEngineProvider = Provider<RepairEngine>((ref) {
   final db = ref.watch(knightDatabaseProvider);
   final dao = ref.watch(financePlatformDaoProvider);
@@ -60,7 +54,6 @@ final smartSyncEngineProvider = Provider<SmartSyncEngine>((ref) {
   final db = ref.watch(knightDatabaseProvider);
   final dao = ref.watch(financePlatformDaoProvider);
   final connectionManager = ref.watch(gmailConnectionManagerProvider);
-  final scanner = ref.watch(historicalScannerServiceProvider);
   final vault = ref.watch(financeEvidenceVaultProvider);
   final repairEngine = ref.watch(repairEngineProvider);
   
@@ -68,7 +61,6 @@ final smartSyncEngineProvider = Provider<SmartSyncEngine>((ref) {
     db: db,
     dao: dao,
     connectionManager: connectionManager,
-    scanner: scanner,
     vault: vault,
     repairEngine: repairEngine,
   );

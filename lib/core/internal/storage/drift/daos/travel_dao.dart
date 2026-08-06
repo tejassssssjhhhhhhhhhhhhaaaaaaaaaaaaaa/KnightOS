@@ -54,6 +54,9 @@ class TravelDao extends DatabaseAccessor<KnightDatabase> with _$TravelDaoMixin {
   Future<void> upsertGeoEnrichment(TravelGeographicEnrichmentTableCompanion geo) =>
       into(travelGeographicEnrichmentTable).insertOnConflictUpdate(geo);
 
+  Future<List<TravelGeographicEnrichmentData>> getAllGeoEnrichment() =>
+      select(travelGeographicEnrichmentTable).get();
+
   Future<TravelGeographicEnrichmentData?> getGeoInfo(String placeId) =>
       (select(travelGeographicEnrichmentTable)..where((t) => t.placeId.equals(placeId)))
           .getSingleOrNull();

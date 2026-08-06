@@ -41,16 +41,15 @@ class FinancialDao extends DatabaseAccessor<KnightDatabase> with _$FinancialDaoM
       total += account.balance;
     }
     
-    // Fallback: If accounts have 0 balance, calculate from transactions
+    // P0: Fallback to SQL aggregation to avoid main thread loops over large datasets
     if (total == 0) {
-      final txs = await select(transactionTable).get();
-      for (final tx in txs) {
-        if (tx.type == 'income') {
-          total += tx.amount;
-        } else {
-          total -= tx.amount;
-        }
-      }
+      final incomeQuery = selectOnly(transactionTable)..addColumns([transactionTable.amount.sum()])..where(transactionTable.type.equals('income'));
+      final expenseQuery = selectOnly(transactionTable)..addColumns([transactionTable.amount.sum()])..where(transactionTable.type.equals('expense'));
+      
+      final income = await incomeQuery.map((row) => row.read(transactionTable.amount.sum())).getSingle();
+      final expense = await expenseQuery.map((row) => row.read(transactionTable.amount.sum())).getSingle();
+      
+      total = (income ?? 0.0) - (expense ?? 0.0);
     }
     return total;
   }

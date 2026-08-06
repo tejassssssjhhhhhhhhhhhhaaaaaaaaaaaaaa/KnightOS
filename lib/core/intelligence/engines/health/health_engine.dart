@@ -27,6 +27,8 @@ class HealthEngine {
   final KnowledgeGraphService graphService;
   final VerificationEngine verificationEngine;
 
+  DateTime? _lastGraphUpdateTime;
+
   HealthEngine({
     required this.repository,
     required this.contextEngine,
@@ -89,16 +91,19 @@ class HealthEngine {
       ),
     );
 
-    // Task 3: Knowledge Graph Expansion
-    await _updateKnowledgeGraph(
-      sleep: sleepResult,
-      recovery: recoveryResult,
-      readiness: readinessResult,
-      stress: stressResult,
-      nutrition: nutritionResult,
-      workout: workoutResult,
-      hydration: hydrationResult,
-    );
+    // Task 3: Knowledge Graph Expansion (P0: Throttled to avoid main thread database pressure)
+    if (_lastGraphUpdateTime == null || now.difference(_lastGraphUpdateTime!) > const Duration(hours: 1)) {
+       await _updateKnowledgeGraph(
+        sleep: sleepResult,
+        recovery: recoveryResult,
+        readiness: readinessResult,
+        stress: stressResult,
+        nutrition: nutritionResult,
+        workout: workoutResult,
+        hydration: hydrationResult,
+      );
+      _lastGraphUpdateTime = now;
+    }
 
     // Task 1: Verification Mission triggering
     await _checkVerificationThresholds({

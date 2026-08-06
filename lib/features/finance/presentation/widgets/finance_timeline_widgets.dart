@@ -3,9 +3,16 @@ import 'package:intl/intl.dart';
 import '../../../../core/design_system/knight_tokens.dart';
 import '../../domain/finance_timeline_models.dart';
 
-class MonthTimelineCard extends StatelessWidget {
+class MonthTimelineCard extends StatefulWidget {
   const MonthTimelineCard({super.key, required this.period});
   final FinanceTimelinePeriod period;
+
+  @override
+  State<MonthTimelineCard> createState() => _MonthTimelineCardState();
+}
+
+class _MonthTimelineCardState extends State<MonthTimelineCard> {
+  bool _expanded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -14,15 +21,25 @@ class MonthTimelineCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Text(
-                DateFormat('MMMM yyyy').format(period.date).toUpperCase(),
-                style: KnightTokens.label.copyWith(color: Colors.blueAccent),
-              ),
-              const Spacer(),
-              const Icon(Icons.auto_awesome, size: 14, color: Colors.white10),
-            ],
+          GestureDetector(
+            onTap: () => setState(() => _expanded = !_expanded),
+            child: Row(
+              children: [
+                Text(
+                  DateFormat('MMMM yyyy').format(widget.period.date).toUpperCase(),
+                  style: KnightTokens.label.copyWith(color: Colors.blueAccent),
+                ),
+                const SizedBox(width: 12),
+                Icon(_expanded ? Icons.expand_less_rounded : Icons.expand_more_rounded, size: 14, color: Colors.white24),
+                const Spacer(),
+                if (widget.period.events.isNotEmpty)
+                   Container(
+                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                     decoration: BoxDecoration(color: Colors.blueAccent.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(4)),
+                     child: Text('${widget.period.events.length} EVENTS', style: const TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.blueAccent)),
+                   ),
+              ],
+            ),
           ),
           const SizedBox(height: 16),
           Container(
@@ -38,24 +55,24 @@ class MonthTimelineCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _Metric(label: 'INCOME', value: '₹${period.income.toStringAsFixed(0)}', color: Colors.greenAccent),
-                    _Metric(label: 'EXPENSES', value: '₹${period.expenses.toStringAsFixed(0)}', color: Colors.redAccent),
-                    _Metric(label: 'SAVINGS', value: '₹${period.savings.toStringAsFixed(0)}', color: Colors.blueAccent),
+                    _Metric(label: 'INCOME', value: '₹${widget.period.income.toStringAsFixed(0)}', color: Colors.greenAccent),
+                    _Metric(label: 'EXPENSES', value: '₹${widget.period.expenses.toStringAsFixed(0)}', color: Colors.redAccent),
+                    _Metric(label: 'SAVINGS', value: '₹${widget.period.savings.toStringAsFixed(0)}', color: Colors.blueAccent),
                   ],
                 ),
-                if (period.aiSummary != null) ...[
+                if (widget.period.aiSummary != null) ...[
                   const Divider(height: 32, color: Colors.white10),
                   Text(
-                    period.aiSummary!,
+                    widget.period.aiSummary!,
                     style: const TextStyle(fontSize: 12, color: Colors.white38, fontStyle: FontStyle.italic),
                   ),
                 ],
               ],
             ),
           ),
-          if (period.events.isNotEmpty) ...[
+          if (_expanded && widget.period.events.isNotEmpty) ...[
             const SizedBox(height: 16),
-            ...period.events.map((event) => _MemoryEventTile(event: event)),
+            ...widget.period.events.map((event) => _MemoryEventTile(event: event)),
           ],
         ],
       ),

@@ -8,12 +8,10 @@ import 'package:knight_os/features/finance/platform/engine/finance_health_center
 import 'package:knight_os/features/finance/platform/engine/repair_engine.dart';
 import 'package:knight_os/features/finance/platform/sync/smart_sync_engine.dart';
 import 'package:knight_os/features/finance/platform/auth/gmail_connection_manager.dart';
-import 'package:knight_os/features/finance/platform/sync/historical_scanner_service.dart';
 import 'package:knight_os/features/finance/platform/engine/finance_evidence_vault.dart';
 import 'package:knight_os/features/finance/platform/interfaces/finance_health.dart';
 
 class MockGmailConnectionManager extends Mock implements GmailConnectionManager {}
-class MockHistoricalScannerService extends Mock implements HistoricalScannerService {}
 class MockFinanceEvidenceVault extends Mock implements FinanceEvidenceVault {}
 
 void main() {
@@ -24,14 +22,12 @@ void main() {
   late SmartSyncEngine smartSync;
   
   late MockGmailConnectionManager mockConn;
-  late MockHistoricalScannerService mockScanner;
   late MockFinanceEvidenceVault mockVault;
 
   setUp(() {
     db = KnightDatabase.forTesting(NativeDatabase.memory());
     dao = FinancePlatformDao(db);
     mockConn = MockGmailConnectionManager();
-    mockScanner = MockHistoricalScannerService();
     mockVault = MockFinanceEvidenceVault();
 
     healthCenter = FinanceHealthCenter(db: db, connectionManager: mockConn, dao: dao);
@@ -40,7 +36,6 @@ void main() {
       db: db,
       dao: dao,
       connectionManager: mockConn,
-      scanner: mockScanner,
       vault: mockVault,
       repairEngine: repairEngine,
     );
@@ -64,7 +59,9 @@ void main() {
       final score = await healthCenter.calculateHealthScore();
       expect(score, 100);
     });
-   group('RepairEngine', () {
+  });
+
+  group('RepairEngine', () {
     test('repairs missing sync journal entries', () async {
       await db.into(db.gmailMessageTable).insert(
         GmailMessageTableCompanion.insert(
@@ -96,7 +93,6 @@ void main() {
   group('SmartSyncEngine', () {
     test('executes full pipeline and logs history', () async {
       when(() => mockConn.isConnected()).thenAnswer((_) async => true);
-      when(() => mockScanner.startHistoricalScan()).thenAnswer((_) async {});
       
       await smartSync.startSync();
 
@@ -104,6 +100,5 @@ void main() {
       expect(history, isNotNull);
       expect(history!.overallResult, 'Success');
     });
-  });
   });
 }

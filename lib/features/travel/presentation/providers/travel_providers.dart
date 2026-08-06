@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart';
+import 'package:intl/intl.dart';
 import '../../../../core/providers/database_provider.dart';
 import '../../../../core/internal/storage/drift/knight_database.dart';
 import '../../domain/travel_ui_models.dart';
@@ -59,6 +60,18 @@ class TravelAiService {
        final goaTrips = trips.where((t) => t.title.toLowerCase().contains('goa')).toList();
        if (goaTrips.isEmpty) return 'I don\'t see any trips to Goa in your history.';
        return 'You have ${goaTrips.length} trips to Goa on record. The most recent was "${goaTrips.first.title}".';
+    }
+
+    if (lowerText.contains('total cost') || lowerText.contains('how much spent')) {
+       final metrics = await ref.read(travelMetricsProvider.future);
+       final cost = metrics['total_travel_spend'] ?? 0.0;
+       return 'Your total travel expenditure recorded in KnightOS is ₹${cost.toStringAsFixed(0)}.';
+    }
+
+    if (lowerText.contains('next trip') || lowerText.contains('upcoming')) {
+       final upcoming = trips.where((t) => t.startDate.isAfter(DateTime.now())).toList();
+       if (upcoming.isEmpty) return 'You have no upcoming trips in your calendar or inbox.';
+       return 'Your next journey is "${upcoming.first.title}", starting on ${DateFormat('MMM dd').format(upcoming.first.startDate)}.';
     }
 
     return 'I\'ve analyzed your Travel DNA. You are a ${trips.length > 5 ? "frequent explorer" : "casual traveler"}. Ask me about your longest trips, destinations, or travel stats!';
@@ -200,8 +213,20 @@ final travelSyncStatusProvider = Provider<String>((ref) {
 /// Provider for geographic enrichment data.
 final travelGeoEnrichmentProvider = FutureProvider<List<TravelGeographicEnrichmentData>>((ref) async {
   final db = ref.watch(knightDatabaseProvider);
-  // Future: Add method to travelDao to get all geo enrichment
-  return await db.select(db.travelGeographicEnrichmentTable).get();
+  return await db.travelDao.getAllGeoEnrichment();
+});
+
+/// Provider for Travel Discovery Stats.
+final travelDiscoveryStatsProvider = FutureProvider<Map<String, dynamic>>((ref) async {
+  final db = ref.watch(knightDatabaseProvider);
+  final emails = await (db.select(db.gmailMessageTable)..where((t) => t.labels.like('%travel%'))).get();
+  final evidence = await db.travelDao.getAllEvidence();
+  
+  return {
+    'emails': emails.length,
+    'evidence': evidence.length,
+    'percentage': (emails.length + evidence.length) > 0 ? 0.84 : 0.0, // Placeholder ratio
+  };
 });
 
 /// Provider for travel search results.

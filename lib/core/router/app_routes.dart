@@ -45,10 +45,11 @@ class AppRoutes {
   static const myData = '/my-data';
   static const documents = '/documents';
   static const health = '/health';
-  static const importCenter = '/import-center';
+  static const dataHub = '/data-hub';
+  static const importCenter = '/data-hub';
+  static const dataCenter = '/data-hub';
   static const connectors = '/connectors';
   static const discovery = '/discovery';
-  static const dataCenter = '/data-center';
   static const intelligence = '/intelligence';
   static const aiQa = '/ai-qa';
   static const developerMode = '/developer-mode';

@@ -26,14 +26,17 @@ class PlanningService {
   /// Generates an adaptive daily plan based on the latest intelligence state.
   Future<PlanningResult> generateDailyPlan({
     required List<KnightFeatureModule> featureModules,
+    ReasoningResult? preCalculatedReasoning,
+    List<KnightMemory>? preFetchedMemories,
   }) async {
     // 1. Fetch relevant context and reasoning
-    final reasoning = await reasoningService.performReasoningCycle(
+    final reasoning = preCalculatedReasoning ?? await reasoningService.performReasoningCycle(
       featureModules: featureModules,
+      preFetchedMemories: preFetchedMemories,
     );
 
     // 2. Fetch memories (using same logic as reasoning for consistency)
-    final memories = await memoryEngine.search('');
+    final memories = preFetchedMemories ?? await memoryEngine.search('');
 
     // 3. Build context
     final context = contextService.buildContext(

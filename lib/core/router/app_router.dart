@@ -7,7 +7,6 @@ import '../../app/app_shell.dart';
 import '../../app/screens/account_center_screen.dart';
 import '../../app/screens/error_screen.dart';
 import '../../app/screens/settings_screen.dart';
-import '../../app/screens/data_center_screen.dart';
 import '../../app/screens/settings_sub_pages.dart';
 import '../../app/screens/splash_screen.dart';
 import '../../app/screens/auth_screen.dart';
@@ -143,6 +142,18 @@ class AppRouter {
               path: AppRoutes.myPlace,
               pageBuilder: (context, state) => _fadeTransition(context, state, const MyPlaceScreen()),
             ),
+            GoRoute(
+              path: AppRoutes.finance,
+              pageBuilder: (context, state) => _fadeTransition(context, state, const FinanceTrackerScreen()),
+            ),
+            GoRoute(
+              path: AppRoutes.travelHome,
+              pageBuilder: (context, state) => _fadeTransition(context, state, const TravelHomeScreen()),
+            ),
+            GoRoute(
+              path: AppRoutes.career,
+              pageBuilder: (context, state) => _fadeTransition(context, state, const CareerDashboardScreen()),
+            ),
           ],
         ),
         GoRoute(
@@ -159,7 +170,7 @@ class AppRouter {
         ),
         GoRoute(
           path: AppRoutes.dataCenter,
-          builder: (context, state) => const DataCenterScreen(),
+          builder: (context, state) => const ImportCenterScreen(),
         ),
         GoRoute(
           path: AppRoutes.profile,
@@ -208,10 +219,6 @@ class AppRouter {
         GoRoute(
           path: AppRoutes.timeline,
           builder: (context, state) => const LifeAtlasScreen(),
-        ),
-        GoRoute(
-          path: AppRoutes.finance,
-          builder: (context, state) => const FinanceTrackerScreen(),
         ),
         GoRoute(
           path: AppRoutes.financeInbox,
@@ -314,7 +321,7 @@ class AppRouter {
           builder: (context, state) => const JournalScreen(),
         ),
         GoRoute(
-          path: AppRoutes.importCenter,
+          path: AppRoutes.dataHub,
           builder: (context, state) => const ImportCenterScreen(),
         ),
         GoRoute(
@@ -328,26 +335,6 @@ class AppRouter {
         GoRoute(
           path: AppRoutes.travelImport,
           builder: (context, state) => const TravelImportDashboard(),
-        ),
-        GoRoute(
-          path: AppRoutes.travelQuality,
-          builder: (context, state) => const TravelQualityDashboard(),
-        ),
-        GoRoute(
-          path: AppRoutes.travelMissionControl,
-          builder: (context, state) => const TravelMissionControl(),
-        ),
-        GoRoute(
-          path: AppRoutes.travelDevMode,
-          builder: (context, state) => const TravelDeveloperMode(),
-        ),
-        GoRoute(
-          path: AppRoutes.travelHome,
-          builder: (context, state) => const TravelHomeScreen(),
-        ),
-        GoRoute(
-          path: AppRoutes.travelCommandCenter,
-          builder: (context, state) => const TravelCommandCenterScreen(),
         ),
         GoRoute(
           path: AppRoutes.travelTimeline,
@@ -372,10 +359,6 @@ class AppRouter {
         GoRoute(
           path: AppRoutes.travelCompare,
           builder: (context, state) => TripComparisonScreen(tripIds: state.extra as List<String>),
-        ),
-        GoRoute(
-          path: AppRoutes.career,
-          builder: (context, state) => const CareerDashboardScreen(),
         ),
         GoRoute(
           path: AppRoutes.careerTimeline,

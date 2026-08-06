@@ -55,7 +55,7 @@ class TravelHomeScreen extends ConsumerWidget {
               const SizedBox(height: DesignSpacing.xl),
               EntranceFader(delay: const Duration(milliseconds: 800), child: _buildRecentTrips(context, tripsAsync)),
               const SizedBox(height: DesignSpacing.xl),
-              EntranceFader(delay: const Duration(milliseconds: 900), child: _buildImportStatus(context)),
+              EntranceFader(delay: const Duration(milliseconds: 900), child: _buildImportStatus(context, ref)),
               const SizedBox(height: 100), // Bottom padding
             ],
           ),
@@ -275,33 +275,39 @@ class TravelHomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildImportStatus(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: KnightTokens.glass(accentColor: DesignColors.accentBlue, opacity: 0.05),
-      child: const Column(
-        children: [
-          Row(
-            children: [
-              Icon(Icons.info_outline, color: DesignColors.accentBlue, size: 18),
-              SizedBox(width: 12),
-              Text('Active Discovery', style: TextStyle(fontWeight: FontWeight.bold)),
-              Spacer(),
-              Text('84%', style: TextStyle(color: DesignColors.accentBlue, fontWeight: FontWeight.bold)),
-            ],
-          ),
-          SizedBox(height: 16),
-          LinearProgressIndicator(value: 0.84, color: DesignColors.accentBlue, backgroundColor: Colors.white10),
-          SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('42 Travel emails detected', style: TextStyle(fontSize: 11, color: Colors.white38)),
-              Text('156 GPS photos linked', style: TextStyle(fontSize: 11, color: Colors.white38)),
-            ],
-          ),
-        ],
+  Widget _buildImportStatus(BuildContext context, WidgetRef ref) {
+    final statsAsync = ref.watch(travelDiscoveryStatsProvider);
+
+    return statsAsync.when(
+      data: (stats) => Container(
+        padding: const EdgeInsets.all(24),
+        decoration: KnightTokens.glass(accentColor: DesignColors.accentBlue, opacity: 0.05),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.info_outline, color: DesignColors.accentBlue, size: 18),
+                const SizedBox(width: 12),
+                const Text('Active Discovery', style: TextStyle(fontWeight: FontWeight.bold)),
+                const Spacer(),
+                Text('${(stats['percentage'] * 100).toInt()}%', style: const TextStyle(color: DesignColors.accentBlue, fontWeight: FontWeight.bold)),
+              ],
+            ),
+            const SizedBox(height: 16),
+            LinearProgressIndicator(value: stats['percentage'], color: DesignColors.accentBlue, backgroundColor: Colors.white10),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('${stats['emails']} Travel emails detected', style: const TextStyle(fontSize: 11, color: Colors.white38)),
+                Text('${stats['evidence']} Travel records linked', style: const TextStyle(fontSize: 11, color: Colors.white38)),
+              ],
+            ),
+          ],
+        ),
       ),
+      loading: () => const SizedBox.shrink(),
+      error: (e, s) => const SizedBox.shrink(),
     );
   }
 }

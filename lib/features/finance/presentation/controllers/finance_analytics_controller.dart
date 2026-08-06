@@ -67,7 +67,7 @@ class FinanceAnalyticsController extends AsyncNotifier<FinanceIntelligenceReport
       return MerchantIntelligence(
         merchant: e.key,
         lifetimeSpend: mTxs.fold(0.0, (sum, t) => sum + t.amount),
-        averagePurchase: mTxs.fold(0.0, (sum, t) => sum + t.amount) / mTxs.length,
+        averagePurchase: mTxs.isEmpty ? 0 : (mTxs.fold(0.0, (sum, t) => sum + t.amount) / mTxs.length),
         frequency: mTxs.length,
         lastPurchase: sortedMTxs.first.transactionDate,
         isRecurring: mTxs.length >= 3, // Simple heuristic for recurring
@@ -90,7 +90,7 @@ class FinanceAnalyticsController extends AsyncNotifier<FinanceIntelligenceReport
         category: e.key,
         lifetimeSpend: cTxs.fold(0.0, (sum, t) => sum + t.amount),
         monthlyTrend: monthly.entries.map((entry) => TrendPoint(entry.key, entry.value)).toList(),
-        averageMonthlySpend: cTxs.fold(0.0, (sum, t) => sum + t.amount) / (monthly.isNotEmpty ? monthly.length : 1),
+        averageMonthlySpend: (cTxs.fold(0.0, (sum, t) => sum + t.amount) / (monthly.isNotEmpty ? monthly.length : 1)),
         largestMonth: largestMonthEntry?.key,
       );
     }).toList()..sort((a, b) => b.lifetimeSpend.compareTo(a.lifetimeSpend));
@@ -120,14 +120,14 @@ class FinanceAnalyticsController extends AsyncNotifier<FinanceIntelligenceReport
       savings: SavingsIntelligence(
         currentSavingsRate: monthlyInflow > 0 ? ((monthlyInflow - monthlyOutflow) / monthlyInflow) : 0,
         savingsTrend: savingsTrend,
-        projectedEndOfMonth: monthlyInflow - (monthlyOutflow / now.day * 30),
+        projectedEndOfMonth: monthlyInflow - (now.day > 0 ? (monthlyOutflow / now.day * 30) : 0),
         averageMonthlySavings: savingsTrend.isEmpty ? 0 : savingsTrend.fold(0.0, (sum, p) => sum + p.value) / savingsTrend.length,
       ),
       cashFlow: CashFlowIntelligence(
         inflow: monthlyInflow,
         outflow: monthlyOutflow,
         netCashFlow: monthlyInflow - monthlyOutflow,
-        burnRate: monthlyOutflow / now.day,
+        burnRate: now.day > 0 ? (monthlyOutflow / now.day) : 0,
       ),
       topMerchants: topMerchants.take(10).toList(),
       categories: categoryIntell,
@@ -159,7 +159,7 @@ class FinanceAnalyticsController extends AsyncNotifier<FinanceIntelligenceReport
 
     // 2. Spending Concentration
     final sortedCats = catBreakdown.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
-    if (sortedCats.isNotEmpty) {
+    if (sortedCats.isNotEmpty && currentOutflow > 0) {
       final top = sortedCats.first;
       insights.add(FinanceInsight(
         title: 'Spending Concentration',

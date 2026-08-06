@@ -7,14 +7,12 @@ import '../interfaces/finance_sync.dart';
 import '../auth/gmail_connection_manager.dart';
 import '../engine/finance_evidence_vault.dart';
 import '../engine/repair_engine.dart';
-import 'historical_scanner_service.dart';
 
 class SmartSyncEngine implements ISmartSyncEngine {
   SmartSyncEngine({
     required this.db,
     required this.dao,
     required this.connectionManager,
-    required this.scanner,
     required this.vault,
     required this.repairEngine,
   });
@@ -22,7 +20,6 @@ class SmartSyncEngine implements ISmartSyncEngine {
   final KnightDatabase db;
   final FinancePlatformDao dao;
   final GmailConnectionManager connectionManager;
-  final HistoricalScannerService scanner;
   final FinanceEvidenceVault vault;
   final RepairEngine repairEngine;
 
@@ -43,12 +40,8 @@ class SmartSyncEngine implements ISmartSyncEngine {
         await connectionManager.refreshConnection();
       }
 
-      // 2. Fetch New Messages (Historical Scan with Cursor)
-      _progressController.add(SyncProgress(percentage: 0.3, currentStage: 'Scanning', status: 'Fetching latest emails...'));
-      await scanner.startHistoricalScan();
-
-      // 3. Process Discovered Messages
-      _progressController.add(SyncProgress(percentage: 0.6, currentStage: 'Processing', status: 'Extracting financial data...'));
+      // 2. Process Discovered Messages (from centralized hub)
+      _progressController.add(SyncProgress(percentage: 0.4, currentStage: 'Processing', status: 'Extracting financial data...'));
       final discovered = await dao.getJournalEntriesByResult('Discovered');
       for (final entry in discovered) {
         final msg = await (db.select(db.gmailMessageTable)..where((t) => t.id.equals(entry.messageId))).getSingleOrNull();
@@ -57,11 +50,11 @@ class SmartSyncEngine implements ISmartSyncEngine {
         }
       }
 
-      // 4. Run Repair & Consistency Check
+      // 3. Run Repair & Consistency Check
       _progressController.add(SyncProgress(percentage: 0.8, currentStage: 'Repairing', status: 'Verifying database consistency...'));
       await repairEngine.runFullRepair();
 
-      // 5. Finalize & Report
+      // 4. Finalize & Report
       final endTime = DateTime.now();
       await dao.insertSyncHistory(FinanceSyncHistoryTableCompanion.insert(
         id: const Uuid().v4(),
@@ -87,7 +80,8 @@ class SmartSyncEngine implements ISmartSyncEngine {
 
   @override
   Future<void> startHistoricalScan() async {
-    await scanner.startHistoricalScan();
+    // Finance no longer owns historical scan. It relies on Google Data Hub.
+    KnightLogger.info('[FINANCE] Redirecting historical scan request to Google Data Hub');
   }
 
   @override
