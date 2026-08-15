@@ -12,23 +12,23 @@ class DesignColors {
   static const Color secondary = Color(0xFF94A3B8); // Text Secondary
 
   // Brand Accents
-  static const Color accentBlue = Color(0xFF0EA5E9); // Electric Blue
-  static const Color accentPurple = Color(0xFF6366F1); // Radiant Indigo
-  static const Color accentCyan = Color(0xFF22D3EE); // Neon Cyan
+  static const Color accentBlue = Color(0xFF0EA5E9); // Electric Blue (Primary)
+  static const Color accentPurple = Color(0xFF6366F1); // Radiant Indigo (Logo related)
+  static const Color accentCyan = Color(0xFF22D3EE); // Neon Cyan (Logo related)
 
-  // Functional Colors
-  static const Color success = Color(0xFF10B981);
-  static const Color warning = Color(0xFFF59E0B);
-  static const Color error = Color(0xFFF43F5E);
+  // Functional Colors (Strictly Brand Derived)
+  static const Color success = Color(0xFF22D3EE);
+  static const Color warning = Color(0xFF38BDF8);
+  static const Color error = Color(0xFF0EA5E9); // Use primary for errors to stay brand safe, or a variant
 
-  // Life Area Accents
-  static const Color health = Color(0xFFF43F5E);
-  static const Color finance = Color(0xFF10B981);
+  // Life Area Accents (All BLUE based)
+  static const Color health = Color(0xFF0EA5E9);
+  static const Color finance = Color(0xFF38BDF8);
   static const Color career = Color(0xFF6366F1);
-  static const Color knowledge = Color(0xFF0EA5E9);
-  static const Color travel = Color(0xFF22D3EE);
-  static const Color focus = Color(0xFFD946EF);
-  static const Color achievements = Color(0xFFF59E0B);
+  static const Color knowledge = Color(0xFF22D3EE);
+  static const Color travel = Color(0xFF7DD3FC);
+  static const Color focus = Color(0xFF0EA5E9);
+  static const Color achievements = Color(0xFF38BDF8);
 
   // Utility
   static const Color white05 = Color(0x0DFFFFFF);

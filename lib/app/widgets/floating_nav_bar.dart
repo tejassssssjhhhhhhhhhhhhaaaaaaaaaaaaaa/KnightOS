@@ -1,10 +1,14 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/design_system/design_constants.dart';
 import '../../core/router/app_routes.dart';
 import '../../core/theme/knight_theme_provider.dart';
+
+import '../../core/design_system/widgets/knight_circuit_shield.dart';
+import '../../core/internal/services/greeting_service.dart';
 
 class FloatingNavBar extends ConsumerWidget {
   const FloatingNavBar({required this.currentLocation, super.key});
@@ -14,6 +18,7 @@ class FloatingNavBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final accentColor = ref.watch(adaptiveAccentProvider);
+    final period = ref.watch(currentPeriodProvider);
 
     return Container(
       margin: const EdgeInsets.fromLTRB(24, 0, 24, 32),
@@ -33,7 +38,7 @@ class FloatingNavBar extends ConsumerWidget {
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(40),
@@ -56,6 +61,12 @@ class FloatingNavBar extends ConsumerWidget {
                   onTap: () => context.go(AppRoutes.myPlace),
                   accentColor: accentColor,
                 ),
+                _AiNavIcon(
+                  isActive: currentLocation == AppRoutes.knight,
+                  onTap: () => context.go(AppRoutes.knight),
+                  accentColor: accentColor,
+                  period: period,
+                ),
                 _NavIcon(
                   icon: Icons.task_alt_rounded,
                   label: 'Planner',
@@ -64,14 +75,57 @@ class FloatingNavBar extends ConsumerWidget {
                   accentColor: accentColor,
                 ),
                 _NavIcon(
-                  icon: Icons.settings_rounded,
-                  label: 'Settings',
-                  isActive: currentLocation.startsWith(AppRoutes.settings),
-                  onTap: () => context.go(AppRoutes.settings),
+                  icon: Icons.person_rounded,
+                  label: 'Profile',
+                  isActive: currentLocation.startsWith(AppRoutes.profile),
+                  onTap: () => context.go(AppRoutes.profile),
                   accentColor: accentColor,
                 ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AiNavIcon extends StatelessWidget {
+  const _AiNavIcon({
+    required this.isActive,
+    required this.onTap,
+    required this.accentColor,
+    required this.period,
+  });
+
+  final bool isActive;
+  final VoidCallback onTap;
+  final Color accentColor;
+  final KnightDayPeriod period;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: 'Knight Assistant core',
+      button: true,
+      selected: isActive,
+      child: GestureDetector(
+        onTap: () {
+          HapticFeedback.mediumImpact();
+          onTap();
+        },
+        child: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: isActive ? accentColor.withValues(alpha: 0.1) : Colors.white.withValues(alpha: 0.05),
+            shape: BoxShape.circle,
+            border: isActive ? Border.all(color: accentColor, width: 2) : null,
+            boxShadow: isActive ? [BoxShadow(color: accentColor.withValues(alpha: 0.3), blurRadius: 12)] : null,
+          ),
+          child: KnightCircuitShield(
+            size: 32,
+            period: period,
+            state: isActive ? ShieldState.listening : ShieldState.idle,
           ),
         ),
       ),
@@ -96,34 +150,42 @@ class _NavIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(30),
-      child: AnimatedContainer(
-        duration: DesignAnimations.fast,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 24,
-              color: isActive ? Colors.white : Colors.white24,
-            ),
-            if (isActive)
-              Container(
-                margin: const EdgeInsets.only(top: 4),
-                width: 4,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: accentColor,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(color: accentColor, blurRadius: 4),
-                  ],
-                ),
+    return Semantics(
+      label: '$label tab',
+      button: true,
+      selected: isActive,
+      child: InkWell(
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onTap();
+        },
+        borderRadius: BorderRadius.circular(30),
+        child: AnimatedContainer(
+          duration: DesignAnimations.fast,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 24,
+                color: isActive ? Colors.white : Colors.white24,
               ),
-          ],
+              if (isActive)
+                Container(
+                  margin: const EdgeInsets.only(top: 4),
+                  width: 4,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: accentColor,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(color: accentColor, blurRadius: 4),
+                    ],
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

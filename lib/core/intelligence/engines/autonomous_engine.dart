@@ -47,6 +47,37 @@ class AutonomousEngine {
   final Map<String, Completer<ApprovalStatus>> _approvalCompleters = {};
   final Map<String, Completer<void>> _remoteTaskCompleters = {};
 
+  /// Requests manual approval for a specific action.
+  Future<ApprovalStatus> requestApproval({
+    required String id,
+    required String actionDescription,
+    required String reasoning,
+    ApprovalRisk riskLevel = ApprovalRisk.medium,
+  }) async {
+    final request = ApprovalRequest(
+      id: id,
+      planId: 'system',
+      taskId: id,
+      actionDescription: actionDescription,
+      reasoning: reasoning,
+      riskLevel: riskLevel,
+      timestamp: DateTime.now(),
+    );
+
+    _pendingApprovals[request.id] = request;
+    final completer = Completer<ApprovalStatus>();
+    _approvalCompleters[request.id] = completer;
+
+    bus.emit(ApprovalRequestedEvent(request: request));
+
+    final result = await completer.future;
+    
+    _pendingApprovals.remove(request.id);
+    _approvalCompleters.remove(request.id);
+
+    return result;
+  }
+
   /// Starts execution of a plan.
   Future<void> executePlan(KnightPlan plan) async {
     final firstTask = plan.tasks.firstOrNull;

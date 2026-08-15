@@ -85,6 +85,9 @@ class TimelineParser implements BaseParser {
         endTime: endTime,
         location: Value(location),
         metadata: Value(jsonEncode(segment)),
+        originProviderId: const Value('google_location_history'),
+        confidenceScore: const Value(1.0),
+        verificationState: const Value('OBSERVED'),
       ));
     }
 

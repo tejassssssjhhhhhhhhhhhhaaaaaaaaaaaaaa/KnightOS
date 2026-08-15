@@ -5,6 +5,10 @@ import 'core/router/app_router.dart';
 import 'core/theme/knight_theme_provider.dart';
 import 'core/providers/automation_providers.dart';
 import 'core/intelligence/services/google_data_hub.dart';
+import 'core/intelligence/services/mode_switch_agent.dart';
+import 'app/widgets/approval_overlay.dart';
+import 'app/widgets/living_environment.dart';
+import 'core/providers/relaxation_mode_provider.dart';
 
 class KnightOsApp extends StatefulWidget {
   const KnightOsApp({super.key});
@@ -21,10 +25,14 @@ class _KnightOsAppState extends State<KnightOsApp> {
         final theme = ref.watch(knightAppThemeProvider);
         final themeMode = ref.watch(knightThemeModeProvider);
         final period = ref.watch(currentPeriodProvider);
+        final isRelaxed = ref.watch(relaxationModeProvider);
         final router = ref.watch(AppRouter.provider);
         
         // Initialize Automation Orchestrator
         ref.watch(automationOrchestratorProvider);
+        
+        // Initialize Mode Switch Agent
+        ref.watch(modeSwitchAgentProvider);
         
         final hubStatus = ref.watch(googleDataHubProvider);
         if (hubStatus == HubStatus.disconnected) {
@@ -39,7 +47,16 @@ class _KnightOsAppState extends State<KnightOsApp> {
           darkTheme: theme, 
           themeMode: themeMode,
           routerConfig: router,
-          builder: (context, child) => child!,
+          builder: (context, child) => LivingEnvironment(
+            period: period,
+            isRelaxed: isRelaxed,
+            child: Stack(
+              children: [
+                if (child != null) child,
+                const ApprovalOverlay(),
+              ],
+            ),
+          ),
         );
       },
     );

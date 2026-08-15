@@ -1,4 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:drift/drift.dart';
+import '../../../../core/internal/storage/drift/knight_database.dart';
 import '../../domain/finance_goal_models.dart';
 import '../../platform/providers/finance_platform_providers.dart';
 import '../../../../core/providers/database_provider.dart';
@@ -71,5 +73,30 @@ class FinanceGoalController extends AsyncNotifier<FinanceGoalSummary> {
   Future<void> refresh() async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() => _fetchSummary());
+  }
+
+  Future<void> createGoal({
+    required String name,
+    required double targetAmount,
+    required String type,
+  }) async {
+    final dao = ref.read(financePlatformDaoProvider);
+    final now = DateTime.now();
+
+    await dao.insertGoal(FinanceGoalTableCompanion.insert(
+      id: 'goal-${now.millisecondsSinceEpoch}',
+      name: name,
+      type: type,
+      targetAmount: targetAmount,
+      currentAmount: const Value(0.0),
+      targetDate: Value(now.add(const Duration(days: 365))), // Default 1 year
+      status: const Value('active'),
+      createdAt: Value(now),
+      updatedAt: Value(now),
+      version: const Value(1),
+      syncStatus: const Value('local'),
+    ));
+
+    await refresh();
   }
 }

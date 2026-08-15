@@ -1,9 +1,12 @@
 import '../internal/storage/drift/knight_database.dart';
 import 'package:drift/drift.dart';
+import '../intelligence/services/vaf_shadow_service.dart';
 
 class HealthRepository {
   final KnightDatabase db;
-  HealthRepository({required this.db});
+  final VafShadowService? vafShadowService;
+  
+  HealthRepository({required this.db, this.vafShadowService});
 
   Future<List<WorkoutSessionData>> getRecentWorkouts({int limit = 10}) async {
     return (db.select(db.workoutSessionTable)
@@ -48,9 +51,19 @@ class HealthRepository {
   Future<void> saveSleep(SleepSessionTableCompanion entry) => 
     db.into(db.sleepSessionTable).insertOnConflictUpdate(entry);
 
-  // Tracker Platform Methods
-  Future<void> logBodyMeasurement(BodyMeasurementTableCompanion entry) => db.healthTrackerDao.logMeasurement(entry);
-  Future<void> logHealthTracker(HealthTrackerTableCompanion entry) => db.healthTrackerDao.logTracker(entry);
+  Future<void> logBodyMeasurement(BodyMeasurementTableCompanion entry) async {
+    await db.healthTrackerDao.logMeasurement(entry);
+    if (vafShadowService != null) {
+      await vafShadowService!.shadowBodyMeasurementCompanion(entry);
+    }
+  }
+
+  Future<void> logHealthTracker(HealthTrackerTableCompanion entry) async {
+    await db.healthTrackerDao.logTracker(entry);
+    if (vafShadowService != null) {
+      await vafShadowService!.shadowHealthTrackerCompanion(entry);
+    }
+  }
   Future<List<HealthTrackerData>> getTrackerHistory(String type, {int limit = 30}) => db.healthTrackerDao.getTrackerHistory(type, limit: limit);
   Future<List<BodyMeasurementData>> getMeasurementHistory(String type, {int limit = 30}) => db.healthTrackerDao.getMeasurementHistory(type, limit: limit);
   

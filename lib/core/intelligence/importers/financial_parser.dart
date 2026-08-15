@@ -34,6 +34,9 @@ class FinancialParser implements BaseParser {
           description: 'Acct Statement Entry $i',
           dedupeHash: 'hash-$fileName-$i',
           sourceImportId: const Value('pending'),
+          originProviderId: const Value('bank_statement_import'),
+          confidenceScore: const Value(1.0),
+          verificationState: const Value('OBSERVED'),
         ));
       }
     } else if (fileName.contains('CCStatement')) {
@@ -53,6 +56,9 @@ class FinancialParser implements BaseParser {
           description: 'CC Statement Entry $i',
           dedupeHash: 'hash-$fileName-$i',
           sourceImportId: const Value('pending'),
+          originProviderId: const Value('cc_statement_import'),
+          confidenceScore: const Value(1.0),
+          verificationState: const Value('OBSERVED'),
         ));
       }
     }

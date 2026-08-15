@@ -126,22 +126,64 @@ class GoogleAuthService implements IAuthProvider {
     var account = _googleSignIn.currentUser;
     if (account == null) {
       // Try silent sign in if currentUser is null
-      await signInSilently();
-      account = _googleSignIn.currentUser;
-      if (account == null) throw Exception('No user signed in');
-      return await account.authHeaders;
+      account = await _googleSignIn.signInSilently();
+      if (account == null) {
+        KnightLogger.warn('[AUTH] No user signed in, headers unavailable');
+        throw Exception('No user signed in');
+      }
     }
-    return await account.authHeaders;
+    
+    // Log active scopes for debugging (safely)
+    KnightLogger.info('[AUTH] Active Scopes: ${_googleSignIn.scopes}');
+
+    try {
+      final headers = await account.authHeaders;
+      if (headers.isEmpty || !headers.containsKey('Authorization')) {
+         KnightLogger.warn('[AUTH] Headers empty or missing Authorization. Attempting refresh.');
+         final refreshedAccount = await _googleSignIn.signInSilently();
+         if (refreshedAccount != null) {
+           return await refreshedAccount.authHeaders;
+         }
+      }
+      return headers;
+    } catch (e) {
+      KnightLogger.error('[AUTH] Failed to get auth headers', error: e);
+      // Final attempt: re-authenticate silently
+      final refreshedAccount = await _googleSignIn.signInSilently();
+      if (refreshedAccount != null) {
+        return await refreshedAccount.authHeaders;
+      }
+      rethrow;
+    }
   }
 
   Future<http.Client> getAuthenticatedClient() async {
-    final headers = await getAuthHeaders();
-    return _AuthenticatedClient(headers, http.Client());
+    return _RefreshingAuthenticatedClient(this, http.Client());
   }
 
   Future<bool> hasScopes(List<String> requiredScopes) async {
     final account = _googleSignIn.currentUser;
     return account != null;
+  }
+}
+
+class _RefreshingAuthenticatedClient extends http.BaseClient {
+  _RefreshingAuthenticatedClient(this.authService, this.innerClient);
+
+  final GoogleAuthService authService;
+  final http.Client innerClient;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    final headers = await authService.getAuthHeaders();
+    request.headers.addAll(headers);
+    return innerClient.send(request);
+  }
+
+  @override
+  void close() {
+    innerClient.close();
+    super.close();
   }
 }
 

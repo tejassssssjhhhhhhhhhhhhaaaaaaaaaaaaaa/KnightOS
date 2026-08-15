@@ -251,7 +251,7 @@ class AppTheme {
   /// Adaptive "Time-Aware" Theme Decoration
   static BoxDecoration dynamicBackground(KnightDayPeriod period) {
     switch (period) {
-      case KnightDayPeriod.dawn:
+      case KnightDayPeriod.morning:
         return const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -267,7 +267,15 @@ class AppTheme {
             colors: [Color(0xFF020617), Color(0xFF020408), Color(0xFF0C4A6E)],
           ),
         );
-      case KnightDayPeriod.dusk:
+      case KnightDayPeriod.afternoon:
+        return const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF020617), Color(0xFF0F172A), Color(0xFF1E293B)],
+          ),
+        );
+      case KnightDayPeriod.evening:
         return const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -283,15 +291,25 @@ class AppTheme {
             colors: [Color(0xFF000000), Color(0xFF020408), Color(0xFF020617)],
           ),
         );
+      case KnightDayPeriod.lateNight:
+        return const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF000000), Color(0xFF010204), Color(0xFF020408)],
+          ),
+        );
     }
   }
 
   static Color accentForPeriod(KnightDayPeriod period) {
     switch (period) {
-      case KnightDayPeriod.dawn: return const Color(0xFF818CF8); // Indigo
+      case KnightDayPeriod.morning: return const Color(0xFF818CF8); // Indigo
       case KnightDayPeriod.day: return const Color(0xFF0EA5E9); // Sky Blue
-      case KnightDayPeriod.dusk: return const Color(0xFFF43F5E); // Rose
-      case KnightDayPeriod.night: return const Color(0xFF6366F1); // Indigo Radiant
+      case KnightDayPeriod.afternoon: return const Color(0xFF38BDF8); // Light Sky
+      case KnightDayPeriod.evening: return const Color(0xFF6366F1); // Indigo Radiant
+      case KnightDayPeriod.night: return const Color(0xFF22D3EE); // Cyan
+      case KnightDayPeriod.lateNight: return const Color(0xFF0EA5E9); // Electric Blue
     }
   }
 }

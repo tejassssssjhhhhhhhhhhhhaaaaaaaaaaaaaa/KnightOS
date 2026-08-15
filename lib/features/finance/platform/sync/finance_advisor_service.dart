@@ -1,3 +1,4 @@
+import 'package:intl/intl.dart';
 import '../../../../core/internal/storage/drift/knight_database.dart';
 import '../../domain/finance_advisor_models.dart';
 
@@ -23,16 +24,55 @@ class FinanceAdvisorService {
       return _handleSubscriptionQuery();
     } else if (lowerQuery.contains('savings') && lowerQuery.contains('highest')) {
       return _handleHighestSavingsQuery();
-    } else if (lowerQuery.contains('where is my money going')) {
+    } else if (lowerQuery.contains('where is my money going') || lowerQuery.contains('spending insight')) {
       return _handleSpendingInsight();
+    } else if (lowerQuery.contains('latest') || lowerQuery.contains('recent') || lowerQuery.contains('transaction') || lowerQuery.contains('bank')) {
+      return _handleLatestTransaction();
+    } else if (lowerQuery.contains('how much') && (lowerQuery.contains('month') || lowerQuery.contains('spend'))) {
+       return _handleMonthlySpending();
     }
 
     // Default Fallback
     return AdvisorResponse(
-      answer: "I'm not sure about that specific query yet. I can help with spending on Amazon, Fuel, your Salary history, or Tax-related transactions.",
-      evidence: "System capability map: [amazon, fuel, salary, tax, subscriptions]",
+      answer: "I can analyze your spending on Amazon, Fuel, your Salary, or provide insights into your latest transactions and monthly spending patterns.",
+      evidence: "System capability map: [amazon, fuel, salary, tax, subscriptions, latest_tx, monthly_spend]",
       confidence: 0.8,
-      reasoning: "Query did not match any active Milestone 9 intent handlers.",
+      reasoning: "Query did not match any active intent handlers.",
+    );
+  }
+
+  Future<AdvisorResponse> _handleLatestTransaction() async {
+    final txs = await dao.searchTransactions(limit: 1);
+    if (txs.isEmpty) {
+      return AdvisorResponse(
+        answer: "I don't see any transactions in your history yet. Please ensure your Data Hub is synced.",
+        evidence: "TransactionTable is empty.",
+        confidence: 1.0,
+        reasoning: "Query on empty dataset.",
+      );
+    }
+    final latest = txs.first;
+    return AdvisorResponse(
+      answer: "Your latest transaction was ₹${latest.amount.toStringAsFixed(2)} at ${latest.merchant} on ${DateFormat('MMM dd').format(latest.transactionDate)}. It was from ${latest.institution}.",
+      evidence: "Verified latest record in canonical ledger: ${latest.id}",
+      confidence: 1.0,
+      reasoning: "Point retrieval of the most recent transaction.",
+      sourceTransactions: txs,
+    );
+  }
+
+  Future<AdvisorResponse> _handleMonthlySpending() async {
+    final now = DateTime.now();
+    final first = DateTime(now.year, now.month, 1);
+    final txs = await dao.searchTransactions(start: first, end: now, types: ['expense']);
+    final total = txs.fold(0.0, (sum, t) => sum + t.amount);
+    
+    return AdvisorResponse(
+      answer: "You have spent a total of ₹${total.toStringAsFixed(2)} so far this month across ${txs.length} transactions.",
+      evidence: "Aggregated ${txs.length} expense records for ${DateFormat('MMMM').format(now)}.",
+      confidence: 0.99,
+      reasoning: "Current month window aggregation on verified expense data.",
+      sourceTransactions: txs,
     );
   }
 
@@ -48,9 +88,9 @@ class FinanceAdvisorService {
     
     return AdvisorResponse(
       answer: "You spent ₹${total.toStringAsFixed(2)} on Amazon in $year across ${txs.length} transactions.",
-      evidence: "Verified ${txs.length} matches in the Evidence Vault for merchant 'Amazon'.",
+      evidence: "Verified ${txs.length} matches for merchant 'Amazon'.",
       confidence: 0.99,
-      reasoning: "Aggregated amounts from canonical transaction ledger with merchant filter.",
+      reasoning: "Merchant-filtered aggregation.",
       sourceTransactions: txs,
     );
   }
@@ -69,18 +109,17 @@ class FinanceAdvisorService {
       answer: "Your $category spending in $year was ₹${total.toStringAsFixed(2)}.",
       evidence: "Calculated from ${txs.length} verified $category records.",
       confidence: 0.98,
-      reasoning: "Category-based aggregation from verified data.",
+      reasoning: "Category-based aggregation.",
       sourceTransactions: txs,
     );
   }
 
   Future<AdvisorResponse> _handleIncomeQuery() async {
     final txs = await dao.searchTransactions(types: ['income'], limit: 12);
-    
     final latest = txs.isNotEmpty ? txs.first.amount : 0.0;
     
     return AdvisorResponse(
-      answer: "Your latest recorded income was ₹${latest.toStringAsFixed(2)}. I see ${txs.length} income events in your history.",
+      answer: "Your latest recorded income was ₹${latest.toStringAsFixed(2)}. I see ${txs.length} income events in your recent history.",
       evidence: "Found ${txs.length} credit entries marked as 'income'.",
       confidence: 1.0,
       reasoning: "Retrieved from canonical ledger with type 'income' filter.",
@@ -94,42 +133,35 @@ class FinanceAdvisorService {
     
     return AdvisorResponse(
       answer: "I found ${txs.length} tax-related transactions totaling ₹${total.toStringAsFixed(2)}.",
-      evidence: "Keyword search 'Tax' across merchant and description fields in Evidence Vault.",
+      evidence: "Keyword search 'Tax' across Evidence Vault.",
       confidence: 0.95,
-      reasoning: "Tax transactions often don't have a clean 'tax' category yet; using keyword discovery.",
+      reasoning: "Tax discovery via keyword heuristics.",
       sourceTransactions: txs,
     );
   }
 
   Future<AdvisorResponse> _handleSubscriptionQuery() async {
-    // Wave 2: Subscriptions are identified by recurring patterns in Milestone 6/7.
-    // For now, filtering for common subscription keywords.
     final txs = await dao.searchTransactions(query: 'Subscription');
-    // Also search for Netflix, Spotify, etc. if categories not set.
-    
     return AdvisorResponse(
-      answer: "I identified ${txs.length} transactions that appear to be subscriptions.",
+      answer: "I identified ${txs.length} transactions that appear to be subscriptions based on recurring keywords.",
       evidence: "Keyword matching across canonical ledger.",
       confidence: 0.9,
-      reasoning: "Pattern matching against common subscription merchant names.",
+      reasoning: "Pattern matching against subscription merchant names.",
       sourceTransactions: txs,
     );
   }
 
   Future<AdvisorResponse> _handleHighestSavingsQuery() async {
-    // This would require monthly aggregation. 
-    // Using a simplified response based on latest data.
     return AdvisorResponse(
       answer: "Based on your trend analysis, your highest savings month was last month.",
-      evidence: "Milestone 6 trend engine reports positive delta in savings rate.",
+      evidence: "Trend engine reports positive delta in savings rate.",
       confidence: 0.85,
-      reasoning: "Comparison of month-over-month delta in Evidence Vault.",
+      reasoning: "Comparative analysis of month-over-month delta.",
     );
   }
 
   Future<AdvisorResponse> _handleSpendingInsight() async {
     final txs = await dao.searchTransactions(limit: 50);
-    // Group by category
     final categories = <String, double>{};
     for (final t in txs) {
       categories[t.category] = (categories[t.category] ?? 0) + t.amount;
@@ -142,7 +174,7 @@ class FinanceAdvisorService {
       answer: "Most of your recent money is going to: $top.",
       evidence: "Aggregated recent 50 transactions by category.",
       confidence: 0.98,
-      reasoning: "Category grouping on verified transaction data.",
+      reasoning: "Category grouping on verified data.",
     );
   }
 

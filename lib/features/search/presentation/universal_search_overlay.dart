@@ -2,7 +2,9 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/design_system/knight_tokens.dart';
-import '../../../core/providers/database_provider.dart';
+
+import '../../../core/intelligence/providers/intelligence_providers.dart';
+import '../../../core/intelligence/domain/search_models.dart';
 
 class UniversalSearchOverlay extends ConsumerStatefulWidget {
   const UniversalSearchOverlay({super.key});
@@ -38,18 +40,11 @@ class _UniversalSearchOverlayState extends ConsumerState<UniversalSearchOverlay>
       return;
     }
     
-    final db = ref.read(knightDatabaseProvider);
-    final txs = await db.financialDao.getTransactions();
-    final events = await db.timelineDao.getRecentEvents();
-    
-    // Ranked results
-    final matches = [
-      ...txs.where((t) => t.description.toLowerCase().contains(query.toLowerCase())),
-      ...events.where((e) => e.title.toLowerCase().contains(query.toLowerCase())),
-    ];
+    final service = ref.read(searchServiceProvider);
+    final collection = await service.query(query);
     
     setState(() {
-      _results = matches;
+      _results = collection.results;
     });
   }
 
@@ -114,8 +109,8 @@ class _UniversalSearchOverlayState extends ConsumerState<UniversalSearchOverlay>
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
       itemCount: _results.length,
       itemBuilder: (context, i) {
-        final r = _results[i];
-        final isTransaction = r.runtimeType.toString().contains('Transaction');
+        final r = _results[i] as SearchResult;
+        final icon = _getIcon(r.sourceMemory?.category.name);
         
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
@@ -127,24 +122,30 @@ class _UniversalSearchOverlayState extends ConsumerState<UniversalSearchOverlay>
             contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             leading: CircleAvatar(
               backgroundColor: Colors.white.withValues(alpha: 0.05),
-              child: Icon(
-                isTransaction ? Icons.account_balance_wallet_rounded : Icons.event_note_rounded,
-                color: Colors.white38,
-                size: 18,
-              ),
+              child: Icon(icon, color: Colors.white38, size: 18),
             ),
             title: Text(
-              isTransaction ? (r as dynamic).description : (r as dynamic).title,
+              r.title,
               style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
             ),
             subtitle: Text(
-              isTransaction ? 'Financial Entry' : 'Timeline Event',
+              r.sourceMemory?.category.name.toUpperCase() ?? 'KNOWLEDGE',
               style: const TextStyle(fontSize: 10, color: Colors.white12, fontWeight: FontWeight.w900, letterSpacing: 1.0),
             ),
-            onTap: () => Navigator.pop(context),
+            onTap: () {
+              Navigator.pop(context);
+              // Future: Route mapping for each category
+            },
           ),
         );
       },
     );
+  }
+
+  IconData _getIcon(String? category) {
+    if (category == 'finance') return Icons.account_balance_wallet_rounded;
+    if (category == 'health') return Icons.favorite_rounded;
+    if (category == 'travel') return Icons.flight_takeoff_rounded;
+    return Icons.psychology_outlined;
   }
 }

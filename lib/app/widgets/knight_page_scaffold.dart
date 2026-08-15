@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/router/app_routes.dart';
@@ -13,6 +14,9 @@ class KnightPageScaffold extends ConsumerWidget {
     this.showBackButton = false,
     this.floatingActionButton,
     this.floatingActionButtonLocation,
+    this.onSettingsPressed,
+    this.settingsRoute,
+    this.hideLeadingLogo = false,
     super.key,
   });
 
@@ -22,11 +26,14 @@ class KnightPageScaffold extends ConsumerWidget {
   final bool showBackButton;
   final Widget? floatingActionButton;
   final FloatingActionButtonLocation? floatingActionButtonLocation;
+  final VoidCallback? onSettingsPressed;
+  final String? settingsRoute;
+  final bool hideLeadingLogo;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final canPop = Navigator.of(context).canPop();
+    final canPop = context.canPop();
     final accentColor = ref.watch(adaptiveAccentProvider);
 
     return Scaffold(
@@ -41,6 +48,7 @@ class KnightPageScaffold extends ConsumerWidget {
         leading: showBackButton
             ? IconButton(
                 onPressed: () {
+                  HapticFeedback.mediumImpact();
                   if (canPop) {
                     context.pop();
                   } else {
@@ -54,10 +62,12 @@ class KnightPageScaffold extends ConsumerWidget {
                 ),
                 tooltip: 'Back',
               )
-            : const Padding(
-                padding: EdgeInsets.only(left: 20),
-                child: Center(child: KnightCircuitShieldHeader()),
-              ),
+            : (hideLeadingLogo 
+                ? null 
+                : const Padding(
+                    padding: EdgeInsets.only(left: 20),
+                    child: Center(child: KnightCircuitShieldHeader()),
+                  )),
         title: title != null 
           ? Text(
               title!.toUpperCase(),
@@ -71,9 +81,9 @@ class KnightPageScaffold extends ConsumerWidget {
         actions: [
           ...?actions,
           IconButton(
-            onPressed: () => context.push(AppRoutes.settings),
-            icon: Icon(Icons.settings_outlined, size: 20, color: accentColor.withValues(alpha: 0.5)),
-            tooltip: 'System Settings',
+            onPressed: onSettingsPressed ?? () => context.push(settingsRoute ?? AppRoutes.profile),
+            icon: Icon(Icons.tune_rounded, size: 20, color: accentColor.withValues(alpha: 0.5)),
+            tooltip: 'Settings',
           ),
           const SizedBox(width: 8),
         ],

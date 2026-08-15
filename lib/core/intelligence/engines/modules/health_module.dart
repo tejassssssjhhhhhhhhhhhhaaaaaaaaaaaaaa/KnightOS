@@ -150,7 +150,7 @@ class _HealthScoreProvider implements KnightScoreProvider {
   }
 
   KnightScoreGrade _calculateGrade(double value) {
-    if (value >= 85) return const KnightScoreGrade(label: 'Excellent', rank: 5);
+    if (value >= 85) return const KnightScoreGrade(label: 'Optimal', rank: 5);
     if (value >= 70) return const KnightScoreGrade(label: 'Good', rank: 3);
     return const KnightScoreGrade(label: 'Fair', rank: 2);
   }

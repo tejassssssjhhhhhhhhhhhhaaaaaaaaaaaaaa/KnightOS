@@ -175,7 +175,7 @@ class _MissionScoreProvider implements KnightScoreProvider {
   }
 
   KnightScoreGrade _calculateGrade(double value) {
-    if (value >= 90) return const KnightScoreGrade(label: 'Excellent', rank: 5);
+    if (value >= 90) return const KnightScoreGrade(label: 'Optimal', rank: 5);
     if (value >= 70) return const KnightScoreGrade(label: 'Good', rank: 3);
     return const KnightScoreGrade(label: 'Steady', rank: 2);
   }

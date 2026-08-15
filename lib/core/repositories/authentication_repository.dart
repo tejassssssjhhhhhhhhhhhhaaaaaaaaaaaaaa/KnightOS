@@ -12,6 +12,7 @@ class AuthSession {
     this.isEmailVerified = true,
     this.provider = 'local',
     this.googleAccountEmail,
+    this.photoUrl,
     this.expiresAt,
   });
 
@@ -22,6 +23,7 @@ class AuthSession {
   final bool isEmailVerified;
   final String provider;
   final String? googleAccountEmail;
+  final String? photoUrl;
   final DateTime? expiresAt;
   
   Map<String, dynamic> toJson() => {
@@ -32,6 +34,7 @@ class AuthSession {
     'isEmailVerified': isEmailVerified,
     'provider': provider,
     'googleAccountEmail': googleAccountEmail,
+    'photoUrl': photoUrl,
     'expiresAt': expiresAt?.toIso8601String(),
   };
 
@@ -43,6 +46,7 @@ class AuthSession {
     isEmailVerified: json['isEmailVerified'] as bool? ?? true,
     provider: json['provider'] as String? ?? 'local',
     googleAccountEmail: json['googleAccountEmail'] as String?,
+    photoUrl: json['photoUrl'] as String?,
     expiresAt: json['expiresAt'] != null ? DateTime.tryParse(json['expiresAt'] as String) : null,
   );
 

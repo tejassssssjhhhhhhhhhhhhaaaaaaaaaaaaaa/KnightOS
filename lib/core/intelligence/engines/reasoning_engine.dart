@@ -86,7 +86,13 @@ class ReasoningEngine {
     // 10. Workspace Memory Awareness (Milestone 7)
     _applyWorkspaceReasoning(memories, insights, recommendations, warnings, thoughts);
 
-    // 11. Apply Behavioral Learning Weights (Sprint 5.2)
+    // 11. Contextual Module Suggestions (Sprint V5.2 Phase 3)
+    _applyModuleSuggestions(context, recommendations, thoughts);
+
+    // 11.5. Mode Transition Suggestions (Sprint V5.3)
+    _applyModeSuggestions(context, recommendations, thoughts);
+
+    // 12. Apply Behavioral Learning Weights (Sprint 5.2)
     final filteredInsights = _applyWeightsToInsights(insights, weights, thoughts);
     final filteredRecommendations = _applyWeightsToRecommendations(recommendations, weights, thoughts);
 
@@ -580,6 +586,61 @@ class ReasoningEngine {
           }
         }
       }
+    }
+  }
+
+  void _applyModeSuggestions(
+    KnightContext context,
+    List<KnightRecommendation> recommendations,
+    List<String> thoughts,
+  ) {
+    final now = DateTime.now();
+    
+    // 1. Suggest Relaxation Mode in late hours if not active
+    if (!context.isRelaxationMode && (now.hour >= 23 || now.hour < 5)) {
+      thoughts.add('Rule triggered: Late hour detected. Recommending Relaxation Mode.');
+      recommendations.add(_createRecommendation(
+        id: 'rec-mode-relaxation',
+        title: 'Activate Relaxation Mode',
+        description: 'It is late. I suggest shifting into Relaxation Mode to prioritize rest and background maintenance.',
+        category: KnightRecommendationCategory.system,
+        priority: KnightRecommendationPriority.high,
+      ));
+    }
+
+    // 2. Suggest Focus Mode during high-priority meeting blocks
+    final hasUpcomingMeeting = context.recentTimelineEvents.any((e) => 
+      e.type == 'meeting' && 
+      e.startTime.isAfter(now) && 
+      e.startTime.isBefore(now.add(const Duration(minutes: 15)))
+    );
+
+    if (hasUpcomingMeeting && !context.isFocusMode) {
+      thoughts.add('Rule triggered: Meeting imminent. Recommending Focus Mode.');
+      recommendations.add(_createRecommendation(
+        id: 'rec-mode-focus',
+        title: 'Enter Focus Mode',
+        description: 'You have a meeting starting soon. Would you like to silence non-essential notifications?',
+        category: KnightRecommendationCategory.work,
+        priority: KnightRecommendationPriority.high,
+      ));
+    }
+  }
+
+  void _applyModuleSuggestions(
+    KnightContext context,
+    List<KnightRecommendation> recommendations,
+    List<String> thoughts,
+  ) {
+    if (context.currentModule == 'finance' && context.totalBalance < 1000) {
+      recommendations.add(_createRecommendation(
+        id: 'rec-finance-check-budget',
+        title: 'Review Budget',
+        description: 'Your balance is lower than usual. Would you like to review your active budget?',
+        category: KnightRecommendationCategory.finance,
+        priority: KnightRecommendationPriority.high,
+      ));
+      thoughts.add('Contextual Rule: Low balance suggestion for Finance module.');
     }
   }
 

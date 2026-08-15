@@ -53,15 +53,40 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       body: Center(
-        child: Hero(
-          tag: 'knight_shield',
-          child: SizedBox(
-            width: 120,
-            height: 120,
-            child: KnightCircuitShield(
-              period: period,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Hero(
+              tag: 'knight_shield',
+              child: SizedBox(
+                width: 120,
+                height: 120,
+                child: KnightCircuitShield(
+                  period: period,
+                ),
+              ),
             ),
-          ),
+            const SizedBox(height: 32),
+            const Text(
+              'KNIGHT OS',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 8.0,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'V5.2 NEURAL CORE',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.2),
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 2.0,
+              ),
+            ),
+          ],
         ),
       ),
     );

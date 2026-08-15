@@ -12,6 +12,8 @@ import 'knowledge_graph_service.dart';
 import 'knowledge_graph_weaver.dart';
 import '../../internal/utils/knight_logger.dart';
 
+import 'vaf_shadow_service.dart';
+
 class DataIngestionService {
   DataIngestionService({
     required this.db,
@@ -20,6 +22,7 @@ class DataIngestionService {
     required this.graphService,
     required this.graphWeaver,
     required this.memoryEngine,
+    required this.vafShadowService,
   });
 
   final KnightDatabase db;
@@ -28,6 +31,7 @@ class DataIngestionService {
   final KnowledgeGraphService graphService;
   final KnowledgeGraphWeaver graphWeaver;
   final MemoryEngine memoryEngine;
+  final VafShadowService vafShadowService;
 
   final _timelineParser = TimelineParser();
   final _financialParser = FinancialParser();
@@ -121,7 +125,9 @@ class DataIngestionService {
             .getSingleOrNull();
 
         if (existing == null) {
-          await db.financialDao.insertTransaction(t.copyWith(syncStatus: const Value('synced')));
+          final updated = t.copyWith(syncStatus: const Value('synced'));
+          await db.financialDao.insertTransaction(updated);
+          await vafShadowService.shadowTransactionCompanion(updated);
           recordCount++;
         }
       }
@@ -131,7 +137,9 @@ class DataIngestionService {
         final comp = ev as TimelineEventTableCompanion;
         final existing = await (db.select(db.timelineEventTable)..where((t) => t.id.equals(comp.id.value))).getSingleOrNull();
         if (existing == null) {
-          await db.timelineDao.insertEvents([comp.copyWith(syncStatus: const Value('synced'))]);
+          final updated = comp.copyWith(syncStatus: const Value('synced'));
+          await db.timelineDao.insertEvents([updated]);
+          await vafShadowService.shadowTimelineCompanion(updated);
           recordCount++;
         }
       }
@@ -141,7 +149,9 @@ class DataIngestionService {
         final comp = m as HealthMetricTableCompanion;
         final existing = await (db.select(db.healthMetricTable)..where((t) => t.id.equals(comp.id.value))).getSingleOrNull();
         if (existing == null) {
-          await db.healthDao.insertMetrics([comp.copyWith(syncStatus: const Value('synced'))]);
+          final updated = comp.copyWith(syncStatus: const Value('synced'));
+          await db.healthDao.insertMetrics([updated]);
+          await vafShadowService.shadowHealthCompanion(updated);
           recordCount++;
         }
       }
@@ -323,6 +333,7 @@ class DataIngestionService {
               syncStatus: const Value('synced'),
             );
             await db.financialDao.insertTransaction(updated);
+            await vafShadowService.shadowTransactionCompanion(updated);
             recordCount++;
           }
         }
@@ -340,6 +351,7 @@ class DataIngestionService {
                 syncStatus: const Value('synced'),
               );
               await db.healthDao.insertMetrics([updated]);
+              await vafShadowService.shadowHealthCompanion(updated);
               recordCount++;
            }
         }
@@ -357,6 +369,7 @@ class DataIngestionService {
               syncStatus: const Value('synced'),
             );
             await db.timelineDao.insertEvents([updated]);
+            await vafShadowService.shadowTimelineCompanion(updated);
             recordCount++;
           }
         }

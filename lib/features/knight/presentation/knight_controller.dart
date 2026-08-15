@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/intelligence/providers/intelligence_providers.dart';
+import '../../../core/router/router_providers.dart';
 import '../data/memory_knight_repository.dart';
 import '../domain/knight_conversation.dart';
 import '../domain/knight_message.dart';
@@ -8,6 +9,9 @@ import '../domain/knight_repository.dart';
 import '../domain/knight_state.dart';
 import '../../../core/intelligence/domain/memory_metadata.dart';
 import '../../../core/intelligence/domain/memory_version.dart';
+
+import '../../../core/providers/mission_providers.dart';
+import '../../../core/domain/entities/mission.dart';
 
 /// Provider for the [KnightRepository].
 final knightRepositoryProvider = Provider<KnightRepository>((ref) {
@@ -59,24 +63,84 @@ class KnightController extends AsyncNotifier<KnightState> {
 
     await _repository.saveConversation(updatedActive);
 
-    // Process through Cognitive Layer
-    final cognition = ref.read(knightCognitionProvider);
-    final result = await cognition.processRequest(text);
+    try {
+      // Process through Cognitive Layer
+      final cognition = ref.read(knightCognitionProvider);
+      final history = updatedActive.messages.take(10).map((m) => '${m.role.name}: ${m.content}').toList();
+      
+      final currentModule = ref.read(currentModuleProvider);
+      final currentScreen = ref.read(currentLocationProvider);
 
-    state = AsyncValue.data(state.value!.copyWith(lastTrace: result.trace));
+      final result = await cognition.processRequest(
+        text, 
+        history: history,
+        currentModule: currentModule,
+        currentScreen: currentScreen,
+      );
 
-    await receiveMessage(result.response);
+      state = AsyncValue.data(state.value!.copyWith(lastTrace: result.trace));
+
+      // Handle structured response metadata (like navigation)
+      String cleanResponse = result.response;
+      String? navigateTo;
+      if (cleanResponse.contains('[NAVIGATE:')) {
+        final match = RegExp(r'\[NAVIGATE:(.+?)\]').firstMatch(cleanResponse);
+        if (match != null) {
+          navigateTo = match.group(1);
+          cleanResponse = cleanResponse.replaceFirst(match.group(0)!, '').trim();
+        }
+      }
+
+      // Handle AI Actions
+      if (cleanResponse.contains('[ACTION:CREATE_TASK:')) {
+        final match = RegExp(r'\[ACTION:CREATE_TASK:(.+?)\]').firstMatch(cleanResponse);
+        if (match != null) {
+          final taskTitle = match.group(1)!;
+          await ref.read(missionServiceProvider).createMission(
+            title: taskTitle,
+            type: MissionType.task,
+            owningDomain: 'system',
+            priority: MissionPriority.medium,
+          );
+          cleanResponse = cleanResponse.replaceFirst(match.group(0)!, '').trim();
+        }
+      }
+
+      await receiveMessage(
+        cleanResponse,
+        metadata: {
+          'intent': result.trace.intent.name,
+          'navigateTo': navigateTo,
+          'evidence': result.trace.evidence.map((e) => {
+            'source': e.source,
+            'timestamp': e.timestamp.toIso8601String(),
+            'metadata': e.metadata,
+          }).toList(),
+        },
+      );
+    } catch (e, s) {
+      state = AsyncValue.error(e, s);
+      await receiveMessage(
+        "I'm sorry, I encountered an internal error while processing your request. Please check your connection or try again later.",
+        role: KnightMessageRole.assistant,
+      );
+    }
   }
 
   /// Receives a message from the assistant (or system).
   Future<void> receiveMessage(
     String text, {
     KnightMessageRole role = KnightMessageRole.assistant,
+    Map<String, dynamic> metadata = const {},
   }) async {
     final current = state.value;
     if (current == null) return;
 
-    final assistantMessage = KnightMessage(role: role, content: text);
+    final assistantMessage = KnightMessage(
+      role: role, 
+      content: text,
+      metadata: metadata,
+    );
 
     final updatedActive = current.activeConversation.copyWith(
       messages: [...current.activeConversation.messages, assistantMessage],

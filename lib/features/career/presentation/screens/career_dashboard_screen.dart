@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/widgets/knight_page_scaffold.dart';
+import '../../../../core/router/app_routes.dart';
 import '../../../../core/design_system/design_constants.dart';
 import '../controllers/career_dashboard_controller.dart';
 import '../widgets/career_health_card.dart';
@@ -22,6 +23,7 @@ class CareerDashboardScreen extends ConsumerWidget {
     return KnightPageScaffold(
       title: 'Career Dashboard',
       showBackButton: true,
+      settingsRoute: AppRoutes.careerDna,
       body: stateAsync.when(
         data: (state) => SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),

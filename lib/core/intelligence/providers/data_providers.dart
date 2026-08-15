@@ -17,10 +17,12 @@ import '../services/health_tracker_service.dart';
 import '../services/ocr_knowledge_service.dart';
 import '../services/google_drive_provider.dart';
 import '../services/google_calendar_data_provider.dart';
+import '../services/import_preference_service.dart';
 import '../../internal/storage/backup_service.dart';
 import '../../internal/storage/restore_service.dart';
 import '../providers/intelligence_providers.dart';
 import '../../providers/storage_providers.dart';
+import '../../providers/preferences_provider.dart';
 
 final dataIngestionServiceProvider = Provider<DataIngestionService>((ref) {
   return DataIngestionService(
@@ -30,6 +32,7 @@ final dataIngestionServiceProvider = Provider<DataIngestionService>((ref) {
     graphService: ref.watch(knowledgeGraphServiceProvider),
     graphWeaver: ref.watch(knowledgeGraphWeaverProvider),
     memoryEngine: ref.watch(memoryEngineProvider),
+    vafShadowService: ref.watch(vafShadowServiceProvider),
   );
 });
 
@@ -120,5 +123,6 @@ final googleCalendarProvider = Provider<GoogleCalendarDataProvider>((ref) {
     authService: GoogleAuthService.instance,
     db: ref.watch(knightDatabaseProvider),
     workspaceEngine: ref.watch(workspaceExtractionEngineProvider),
+    prefs: ref.watch(importPreferenceServiceProvider),
   );
 });

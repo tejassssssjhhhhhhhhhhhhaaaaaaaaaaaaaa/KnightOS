@@ -7,14 +7,17 @@ import 'sync_orchestrator.dart';
 import '../../internal/storage/drift/knight_database.dart';
 import '../../internal/utils/knight_logger.dart';
 import '../../services/google_auth_service.dart';
+import 'import_preference_service.dart';
 
 class CalendarSyncOrchestrator extends SyncOrchestrator {
   CalendarSyncOrchestrator({
     required super.db,
     required this.authService,
+    this.prefs,
   }) : super(providerId: 'google_calendar_api');
 
   final GoogleAuthService authService;
+  final ImportPreferenceService? prefs;
 
   @override
   Future<void> executeSync() async {
@@ -22,8 +25,7 @@ class CalendarSyncOrchestrator extends SyncOrchestrator {
     await updateCursor('sync_status', 'in_progress');
 
     try {
-      final headers = await authService.getAuthHeaders();
-      final client = _AuthenticatedClient(headers, http.Client());
+      final client = await authService.getAuthenticatedClient();
       final calendarApi = cal.CalendarApi(client);
 
       final lastSyncTimeStr = await getCursor('last_sync_time');
@@ -47,8 +49,9 @@ class CalendarSyncOrchestrator extends SyncOrchestrator {
   }
 
   Future<void> _runHistoricalSync(cal.CalendarApi api) async {
-    KnightLogger.info('[CALENDAR] Starting historical sync (last 5 years)');
-    final timeMin = DateTime.now().subtract(const Duration(days: 365 * 5)).toUtc();
+    final lookback = prefs?.getLookbackYears() ?? 5;
+    KnightLogger.info('[CALENDAR] Starting historical sync (last $lookback years)');
+    final timeMin = DateTime.now().subtract(Duration(days: 365 * lookback)).toUtc();
     await _fetchAndProcessEvents(api, timeMin: timeMin);
   }
 
@@ -72,6 +75,7 @@ class CalendarSyncOrchestrator extends SyncOrchestrator {
       );
 
       if (events.items != null && events.items!.isNotEmpty) {
+        fetchedCount += events.items!.length;
         for (final event in events.items!) {
           await _processEvent(event);
           processed++;
@@ -86,39 +90,49 @@ class CalendarSyncOrchestrator extends SyncOrchestrator {
 
   Future<void> _processEvent(cal.Event event) async {
     final start = event.start?.dateTime ?? event.start?.date;
-    if (start == null) return;
+    if (start == null) {
+      skippedCount++;
+      return;
+    }
 
     final accountEmail = authService.currentUser?.email ?? 'unknown';
 
-    await db.googleResourceDao.upsertResource(GoogleResourceTableCompanion.insert(
-      id: event.id!,
-      resourceType: 'calendar',
-      title: event.summary ?? 'No Title',
-      resourceDate: start,
-      metadata: Value(jsonEncode({
-        'description': event.description,
-        'location': event.location,
-        'status': event.status,
-        'htmlLink': event.htmlLink,
-      })),
-      originAccount: accountEmail,
-      rawMetadata: Value(jsonEncode(event.toJson())),
-      syncStatus: const Value('synced'),
-    ));
-
-    // Also update Timeline
-    await db.timelineDao.insertEvents([
-      TimelineEventTableCompanion.insert(
-        id: 'cal-${event.id}',
+    try {
+      await db.googleResourceDao.upsertResource(GoogleResourceTableCompanion.insert(
+        id: event.id!,
+        resourceType: 'calendar',
         title: event.summary ?? 'No Title',
-        startTime: start,
-        endTime: event.end?.dateTime ?? event.end?.date ?? start,
-        type: 'meeting',
-        metadata: Value(event.description ?? ''),
-        originProviderId: const Value('google_calendar_api'),
-        originResourceId: Value(event.id),
-      )
-    ]);
+        resourceDate: start,
+        metadata: Value(jsonEncode({
+          'description': event.description,
+          'location': event.location,
+          'status': event.status,
+          'htmlLink': event.htmlLink,
+        })),
+        originAccount: accountEmail,
+        rawMetadata: Value(jsonEncode(event.toJson())),
+        syncStatus: const Value('synced'),
+      ));
+
+      // Also update Timeline
+      await db.timelineDao.insertEvents([
+        TimelineEventTableCompanion.insert(
+          id: 'cal-${event.id}',
+          title: event.summary ?? 'No Title',
+          startTime: start,
+          endTime: event.end?.dateTime ?? event.end?.date ?? start,
+          type: 'meeting',
+          metadata: Value(event.description ?? ''),
+          sourceProvider: const Value('google_calendar_api'),
+          sourceIdentifier: Value(event.id),
+        )
+      ]);
+      
+      createdCount++;
+    } catch (e) {
+      failedCount++;
+      KnightLogger.error('[CALENDAR] Failed to process event ${event.id}', error: e);
+    }
   }
 }
 

@@ -38,7 +38,7 @@ class WorkoutOrchestrator {
       WorkoutSessionTableCompanion.insert(
         id: 'ws-${DateTime.now().millisecondsSinceEpoch}',
         workoutType: type,
-        durationMinutes: duration,
+        durationMinutes: Value(duration),
         caloriesBurned: Value(calories),
         notes: Value(notes),
         startTime: DateTime.now(),

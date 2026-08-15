@@ -8,16 +8,20 @@ import '../models/extraction_result.dart';
 import 'duplicate_detection_engine.dart';
 import 'normalization_engine.dart';
 
+import 'package:knight_os/core/intelligence/services/vaf_shadow_service.dart';
+
 class FinanceEvidenceVault {
   FinanceEvidenceVault({
     required this.db,
     required this.parserEngine,
     required this.dao,
+    this.vafShadowService,
   });
 
   final KnightDatabase db;
   final IParserEngine parserEngine;
   final FinancePlatformDao dao;
+  final VafShadowService? vafShadowService;
 
   /// Processes a Gmail message, extracts data, and updates the vault.
   Future<void> ingestMessage(GmailMessageData msg) async {
@@ -107,7 +111,7 @@ class FinanceEvidenceVault {
     String fingerprint,
   ) async {
     final txId = const Uuid().v4();
-    await dao.insertTransaction(TransactionTableCompanion.insert(
+    final txComp = TransactionTableCompanion.insert(
       id: const Uuid().v4(), // Version ID
       transactionId: txId,
       accountId: 'main-savings', // Simplified for now
@@ -125,7 +129,12 @@ class FinanceEvidenceVault {
       parserVersion: Value(result.parserVersion),
       extractionTimestamp: Value(DateTime.now()),
       supportingEvidenceIds: Value(jsonEncode([extractionId])),
-    ));
+    );
+
+    await dao.insertTransaction(txComp);
+    if (vafShadowService != null) {
+      await vafShadowService!.shadowTransactionCompanion(txComp);
+    }
   }
 
   Future<void> _mergeEvidence(TransactionData existing, String extractionId, ExtractionResult result) async {
@@ -137,7 +146,7 @@ class FinanceEvidenceVault {
     // Create New Version of Transaction
     await dao.markTransactionAsOld(existing.transactionId);
     
-    await dao.insertTransaction(TransactionTableCompanion.insert(
+    final txComp = TransactionTableCompanion.insert(
       id: const Uuid().v4(),
       transactionId: existing.transactionId,
       accountId: existing.accountId,
@@ -160,7 +169,12 @@ class FinanceEvidenceVault {
         'new_evidence_id': extractionId,
         'previous_version_id': existing.id,
       })),
-    ));
+    );
+
+    await dao.insertTransaction(txComp);
+    if (vafShadowService != null) {
+      await vafShadowService!.shadowTransactionCompanion(txComp);
+    }
   }
 
   String _inferType(ExtractionResult result) {

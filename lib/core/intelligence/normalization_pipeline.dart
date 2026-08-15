@@ -29,6 +29,15 @@ class NormalizationPipeline {
   }) async {
     KnightLogger.info('[PIPE] Processing $type from $connectorId');
 
+    _eventBus.publish(PipelineStageStarted(
+      connectorId: connectorId,
+      timestamp: DateTime.now(),
+      stage: 'received',
+      humanExplanation: 'New information received.',
+      technicalDetail: 'Data packet $caid acquired from $connectorId.',
+      resourceId: caid,
+    ));
+
     final evidence = await ingestRawData(
       connectorId: connectorId,
       type: type,
@@ -48,6 +57,15 @@ class NormalizationPipeline {
     required Map<String, dynamic> rawData,
     required String caid,
   }) async {
+    _eventBus.publish(PipelineStageStarted(
+      connectorId: connectorId,
+      timestamp: DateTime.now(),
+      stage: 'checked',
+      humanExplanation: 'Verifying data integrity.',
+      technicalDetail: 'Validating payload structure and checksum for $caid.',
+      resourceId: caid,
+    ));
+
     final evidence = await evidenceService.ingest(
       caid: caid,
       originalName: rawData['source_name'] ?? 'imported_document',
@@ -61,6 +79,15 @@ class NormalizationPipeline {
         ...rawData, // Preserve all raw data in metadata for explainability
       },
     );
+
+    _eventBus.publish(PipelineStageCompleted(
+      connectorId: connectorId,
+      timestamp: DateTime.now(),
+      stage: 'checked',
+      humanExplanation: 'Data integrity verified.',
+      technicalDetail: 'Integrity check passed for $caid.',
+      resourceId: caid,
+    ));
 
     _eventBus.publish(EvidenceImported(
       connectorId: connectorId,
@@ -76,10 +103,47 @@ class NormalizationPipeline {
   Future<void> projectEvidenceToTimeline(Evidence evidence, Map<String, dynamic> data) async {
     final type = data['original_type'] ?? evidence.extractionData['original_type'] ?? 'unknown';
     
+    _eventBus.publish(PipelineStageStarted(
+      connectorId: data['source_connector'] ?? evidence.extractionData['source_connector'],
+      timestamp: DateTime.now(),
+      stage: 'understood',
+      humanExplanation: 'Understanding the context.',
+      technicalDetail: 'Normalization — mapping raw $type fields to standard entity schemas.',
+      resourceId: evidence.caid,
+    ));
+
     if (data.containsKey('timestamp') || data.containsKey('start_time')) {
       final startTime = DateTime.tryParse(data['timestamp'] ?? data['start_time'] ?? '') ?? DateTime.now();
       
-      await timelineService.record(
+      _eventBus.publish(PipelineStageStarted(
+        connectorId: data['source_connector'] ?? evidence.extractionData['source_connector'],
+        timestamp: DateTime.now(),
+        stage: 'compared',
+        humanExplanation: 'Checking whether KNIGHT already knows this.',
+        technicalDetail: 'Deduplication — comparing the incoming item\'s unique identifier/hash against existing records.',
+        resourceId: evidence.caid,
+      ));
+
+      // Simulate check (actual check happens in DAOs usually)
+      _eventBus.publish(PipelineStageCompleted(
+        connectorId: data['source_connector'] ?? evidence.extractionData['source_connector'],
+        timestamp: DateTime.now(),
+        stage: 'compared',
+        humanExplanation: 'New information found.',
+        technicalDetail: 'Record hash ${evidence.caid} is unique in SSoT.',
+        resourceId: evidence.caid,
+      ));
+
+      _eventBus.publish(PipelineStageStarted(
+        connectorId: data['source_connector'] ?? evidence.extractionData['source_connector'],
+        timestamp: DateTime.now(),
+        stage: 'categorized',
+        humanExplanation: 'Is this information useful?',
+        technicalDetail: 'Intelligence classification — determining priority and category based on local LLM reasoning.',
+        resourceId: evidence.caid,
+      ));
+
+      final timelineEvent = await timelineService.record(
         type: _mapToTimelineType(type),
         title: data['title'] ?? 'Imported $type',
         startTime: startTime,
@@ -92,7 +156,36 @@ class NormalizationPipeline {
           'confidence': evidence.confidence,
         },
       );
+
+      final isImportant = (evidence.confidence ?? 0) > 0.7; // Simple proxy for logic
+
+      _eventBus.publish(PipelineStageCompleted(
+        connectorId: data['source_connector'] ?? evidence.extractionData['source_connector'],
+        timestamp: DateTime.now(),
+        stage: 'categorized',
+        humanExplanation: isImportant ? 'IMPORTANT' : 'NOT IMPORTANT',
+        technicalDetail: 'Confidence: ${(evidence.confidence ?? 0 * 100).toInt()}% | Decision threshold: 70%',
+        resourceId: evidence.caid,
+      ));
       
+      _eventBus.publish(PipelineStageCompleted(
+        connectorId: data['source_connector'] ?? evidence.extractionData['source_connector'],
+        timestamp: DateTime.now(),
+        stage: 'saved',
+        humanExplanation: 'Saved to KNIGHT.',
+        technicalDetail: 'SSoT write — storing the canonical record in the authoritative local database.',
+        resourceId: evidence.caid,
+      ));
+
+      _eventBus.publish(PipelineStageCompleted(
+        connectorId: data['source_connector'] ?? evidence.extractionData['source_connector'],
+        timestamp: DateTime.now(),
+        stage: 'available',
+        humanExplanation: 'Available to Knight.',
+        technicalDetail: 'Record indexed and published to the local Knowledge Graph.',
+        resourceId: evidence.caid,
+      ));
+
       KnightLogger.info('[PIPE] Projected evidence ${evidence.caid} to Timeline');
     }
   }

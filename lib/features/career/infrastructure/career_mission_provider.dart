@@ -2,7 +2,6 @@ import 'dart:async';
 import '../../../core/domain/entities/mission.dart';
 import '../../../core/domain/providers/i_mission_provider.dart';
 import '../../../core/intelligence/engines/memory_engine.dart';
-import '../../../core/intelligence/domain/memory_category.dart';
 
 /// Provides transient career missions based on intelligence analysis.
 class CareerMissionProvider implements IMissionProvider {

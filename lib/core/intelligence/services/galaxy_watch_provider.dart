@@ -1,26 +1,18 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import '../domain/data_provider.dart';
 import '../../internal/storage/drift/knight_database.dart';
 import 'device_intelligence_service.dart';
 import '../../internal/utils/knight_logger.dart';
+import 'base_data_provider.dart';
 
-class GalaxyWatchProvider implements DataProvider {
+class GalaxyWatchProvider extends BaseDataProvider {
   GalaxyWatchProvider({
-    required this.db,
+    required super.db,
     required this.deviceIntelligenceService,
-    this.onChanged,
+    super.onChanged,
   });
 
-  final KnightDatabase db;
   final DeviceIntelligenceService deviceIntelligenceService;
-  
-  @override
-  final VoidCallback? onChanged;
-
-  ProviderStatus _status = ProviderStatus.disconnected;
-  DateTime? _lastSyncTime;
-  String? _lastError;
 
   @override
   String get id => 'galaxy_watch_provider';
@@ -29,44 +21,27 @@ class GalaxyWatchProvider implements DataProvider {
   String get name => 'Galaxy Watch';
 
   @override
-  ProviderStatus get status => _status;
-
-  @override
-  DateTime? get lastSyncTime => _lastSyncTime;
-
-  @override
-  String? get lastError => _lastError;
-
-  @override
-  SyncStats get stats => const SyncStats();
-
-  @override
   Future<void> connect() async {
-    _status = ProviderStatus.syncing;
-    onChanged?.call();
+    updateInternalState(status: ProviderStatus.syncing, error: '');
     try {
       // Simulation for foundation
       await Future.delayed(const Duration(seconds: 1));
-      _status = ProviderStatus.connected;
+      updateInternalState(status: ProviderStatus.connected, error: '');
       KnightLogger.info('Galaxy Watch connected');
     } catch (e) {
-      _status = ProviderStatus.error;
-      _lastError = e.toString();
+      updateInternalState(status: ProviderStatus.error, error: e.toString());
     }
-    onChanged?.call();
   }
 
   @override
   Future<void> disconnect() async {
-    _status = ProviderStatus.disconnected;
-    onChanged?.call();
+    updateInternalState(status: ProviderStatus.disconnected, error: '');
   }
 
   @override
   Future<void> syncIncremental() async {
-    if (_status != ProviderStatus.connected) return;
-    _status = ProviderStatus.syncing;
-    onChanged?.call();
+    if (status != ProviderStatus.connected) return;
+    updateInternalState(status: ProviderStatus.syncing, attempted: DateTime.now());
     
     // Simulate battery/watch health update in Device Mesh
     await deviceIntelligenceService.recordDeviceHealth(
@@ -76,8 +51,6 @@ class GalaxyWatchProvider implements DataProvider {
        networkType: 'bluetooth',
     );
 
-    _lastSyncTime = DateTime.now();
-    _status = ProviderStatus.connected;
-    onChanged?.call();
+    updateInternalState(status: ProviderStatus.connected, successful: DateTime.now(), error: '');
   }
 }

@@ -6,8 +6,20 @@ class ImportPreferenceService {
   final SharedPreferences _prefs;
 
   static const String _kImportPathsKey = 'import_paths';
+  static const String _kSyncFrequencyKey = 'sync_frequency';
+  static const String _kAutoSyncEnabledKey = 'auto_sync_enabled';
+  static const String _kLookbackYearsKey = 'sync_lookback_years';
   static const String _kDefaultPathWindows = 'C:/Users/tejas/OneDrive/ドキュメント/knight_os';
   static const String _kDefaultPathAndroid = '/sdcard/Download/knight_os';
+
+  String getSyncFrequency() => _prefs.getString(_kSyncFrequencyKey) ?? 'daily';
+  Future<void> setSyncFrequency(String freq) => _prefs.setString(_kSyncFrequencyKey, freq);
+
+  bool isAutoSyncEnabled() => _prefs.getBool(_kAutoSyncEnabledKey) ?? true;
+  Future<void> setAutoSyncEnabled(bool enabled) => _prefs.setBool(_kAutoSyncEnabledKey, enabled);
+
+  int getLookbackYears() => _prefs.getInt(_kLookbackYearsKey) ?? 5;
+  Future<void> setLookbackYears(int years) => _prefs.setInt(_kLookbackYearsKey, years);
 
   List<String> getImportPaths() {
     final storedPaths = _prefs.getStringList(_kImportPathsKey);

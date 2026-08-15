@@ -49,6 +49,7 @@ class TasksSyncOrchestrator extends SyncOrchestrator {
       do {
         final tasksResponse = await api.tasks.list(list.id!, pageToken: nextPageToken);
         if (tasksResponse.items != null) {
+          fetchedCount += tasksResponse.items!.length;
           for (final task in tasksResponse.items!) {
             await _processTask(task, list.title ?? 'Default');
             processed++;
@@ -62,41 +63,49 @@ class TasksSyncOrchestrator extends SyncOrchestrator {
   }
 
   Future<void> _processTask(tasks.Task task, String listTitle) async {
-    if (task.id == null) return;
+    if (task.id == null) {
+      skippedCount++;
+      return;
+    }
 
     final accountEmail = authService.currentUser?.email ?? 'unknown';
 
-    await db.googleResourceDao.upsertResource(GoogleResourceTableCompanion.insert(
-      id: task.id!,
-      resourceType: 'task',
-      title: task.title ?? 'Untitled Task',
-      resourceDate: task.updated != null ? DateTime.parse(task.updated!) : DateTime.now(),
-      metadata: Value(jsonEncode({
-        'list': listTitle,
-        'notes': task.notes,
-        'due': task.due,
-        'status': task.status,
-      })),
-      originAccount: accountEmail,
-      rawMetadata: Value(jsonEncode(task.toJson())),
-      syncStatus: const Value('synced'),
-    ));
-    
-    // Link to Timeline if it has a due date
-    if (task.due != null) {
-      final dueDate = DateTime.parse(task.due!);
-      await db.timelineDao.insertEvents([
-        TimelineEventTableCompanion.insert(
-          id: 'task-${task.id}',
-          title: '[TASK] ${task.title}',
-          startTime: dueDate,
-          endTime: dueDate,
-          type: 'task',
-          metadata: Value(task.notes ?? ''),
-          originProviderId: const Value('google_tasks_api'),
-          originResourceId: Value(task.id),
-        )
-      ]);
+    try {
+      await db.googleResourceDao.upsertResource(GoogleResourceTableCompanion.insert(
+        id: task.id!,
+        resourceType: 'task',
+        title: task.title ?? 'Untitled Task',
+        resourceDate: task.updated != null ? DateTime.parse(task.updated!) : DateTime.now(),
+        metadata: Value(jsonEncode({
+          'list': listTitle,
+          'notes': task.notes,
+          'due': task.due,
+          'status': task.status,
+        })),
+        originAccount: accountEmail,
+        rawMetadata: Value(jsonEncode(task.toJson())),
+        syncStatus: const Value('synced'),
+      ));
+      
+      // Link to Timeline if it has a due date
+      if (task.due != null) {
+        final dueDate = DateTime.parse(task.due!);
+        await db.timelineDao.insertEvents([
+          TimelineEventTableCompanion.insert(
+            id: 'task-${task.id}',
+            title: '[TASK] ${task.title}',
+            startTime: dueDate,
+            endTime: dueDate,
+            type: 'task',
+            metadata: Value(task.notes ?? ''),
+            originProviderId: const Value('google_tasks_api'),
+            originResourceId: Value(task.id),
+          )
+        ]);
+      }
+      createdCount++;
+    } catch (e) {
+      failedCount++;
     }
   }
 }

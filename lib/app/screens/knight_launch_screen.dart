@@ -3,20 +3,24 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/internal/utils/knight_logger.dart';
-import '../../core/repositories/authentication_repository.dart';
-import '../../core/router/app_routes.dart';
-import '../../core/services/launch_experience_service.dart';
+import 'package:knight_os/core/internal/utils/knight_logger.dart';
+import 'package:knight_os/core/repositories/authentication_repository.dart';
+import 'package:knight_os/core/router/app_routes.dart';
+import 'package:knight_os/core/services/launch_experience_service.dart';
+import 'package:knight_os/core/intelligence/providers/intelligence_providers.dart';
+import 'package:knight_os/core/theme/knight_theme_provider.dart';
+import 'package:knight_os/core/design_system/widgets/logo_entrance_animation.dart';
 
-class PremiumLaunchScreen extends StatefulWidget {
-  const PremiumLaunchScreen({super.key});
+class KnightLaunchScreen extends ConsumerStatefulWidget {
+  const KnightLaunchScreen({super.key});
 
   @override
-  State<PremiumLaunchScreen> createState() => _PremiumLaunchScreenState();
+  ConsumerState<KnightLaunchScreen> createState() => _KnightLaunchScreenState();
 }
 
-class _PremiumLaunchScreenState extends State<PremiumLaunchScreen>
+class _KnightLaunchScreenState extends ConsumerState<KnightLaunchScreen>
     with TickerProviderStateMixin {
   late final AnimationController _backgroundController;
   late final AnimationController _bootController;
@@ -141,17 +145,7 @@ class _PremiumLaunchScreenState extends State<PremiumLaunchScreen>
   }
 
   String _buildGreeting() {
-    final hour = DateTime.now().hour;
-    if (hour < 5 || hour >= 21) {
-      return 'Good Night';
-    }
-    if (hour < 12) {
-      return 'Good Morning';
-    }
-    if (hour < 17) {
-      return 'Good Afternoon';
-    }
-    return 'Good Evening';
+    return ref.read(greetingServiceProvider).getGreeting();
   }
 
   LaunchInsight _selectInsight() {
@@ -188,7 +182,7 @@ class _PremiumLaunchScreenState extends State<PremiumLaunchScreen>
 
   @override
   Widget build(BuildContext context) {
-    KnightLogger.info('[STARTUP 10] PremiumLaunchScreen build()', category: KnightLogCategory.ui);
+    KnightLogger.info('[STARTUP 10] KnightLaunchScreen build()', category: KnightLogCategory.ui);
     final theme = Theme.of(context);
     final topColor = _interpolatedColor(
       const Color(0xFF08101F),
@@ -274,10 +268,9 @@ class _PremiumLaunchScreenState extends State<PremiumLaunchScreen>
                             child: Stack(
                               children: [
                                 Center(
-                                  child: Icon(
-                                    Icons.auto_awesome_rounded,
-                                    size: 60,
-                                    color: theme.colorScheme.primary,
+                                  child: LogoEntranceAnimation(
+                                    size: 80,
+                                    period: ref.watch(currentPeriodProvider),
                                   ),
                                 ),
                                 AnimatedBuilder(

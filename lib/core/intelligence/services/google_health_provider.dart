@@ -1,28 +1,22 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:health/health.dart';
 import '../domain/data_provider.dart';
 import '../importers/base_parser.dart';
 import 'data_ingestion_service.dart';
-import '../../internal/storage/drift/knight_database.dart';
+import 'base_data_provider.dart';
 import 'package:drift/drift.dart';
+import '../../internal/storage/drift/knight_database.dart';
 import '../../internal/utils/knight_logger.dart';
 
-class GoogleHealthProvider implements DataProvider {
+class GoogleHealthProvider extends BaseDataProvider {
   GoogleHealthProvider({
     required this.ingestionService,
-    this.onChanged,
+    required super.db,
+    super.onChanged,
   });
 
   final DataIngestionService ingestionService;
   final Health _health = Health();
-  
-  @override
-  final VoidCallback? onChanged;
-
-  ProviderStatus _status = ProviderStatus.disconnected;
-  DateTime? _lastSyncTime;
-  String? _lastError;
 
   @override
   String get id => 'google_health_provider';
@@ -31,21 +25,8 @@ class GoogleHealthProvider implements DataProvider {
   String get name => 'Health Connect';
 
   @override
-  ProviderStatus get status => _status;
-
-  @override
-  DateTime? get lastSyncTime => _lastSyncTime;
-
-  @override
-  String? get lastError => _lastError;
-
-  @override
-  SyncStats get stats => const SyncStats();
-
-  @override
   Future<void> connect() async {
-    _status = ProviderStatus.syncing;
-    onChanged?.call();
+    updateInternalState(status: ProviderStatus.syncing, error: '');
     try {
       final types = [
         HealthDataType.STEPS,
@@ -57,34 +38,30 @@ class GoogleHealthProvider implements DataProvider {
       
       bool requested = await _health.requestAuthorization(types);
       if (requested) {
-        _status = ProviderStatus.connected;
+        updateInternalState(status: ProviderStatus.connected, error: '');
         KnightLogger.info('Health Connect connected');
       } else {
-        _status = ProviderStatus.disconnected;
+        updateInternalState(status: ProviderStatus.disconnected);
       }
     } catch (e) {
-      _status = ProviderStatus.error;
-      _lastError = e.toString();
+      updateInternalState(status: ProviderStatus.error, error: e.toString());
       KnightLogger.error('Health Connect connection failed', error: e);
     }
-    onChanged?.call();
   }
 
   @override
   Future<void> disconnect() async {
-    _status = ProviderStatus.disconnected;
-    onChanged?.call();
+    updateInternalState(status: ProviderStatus.disconnected, error: '');
   }
 
   @override
   Future<void> syncIncremental() async {
-    if (_status != ProviderStatus.connected) return;
+    if (status != ProviderStatus.connected) return;
 
-    _status = ProviderStatus.syncing;
-    onChanged?.call();
+    updateInternalState(status: ProviderStatus.syncing, attempted: DateTime.now());
     try {
       final now = DateTime.now();
-      final startTime = _lastSyncTime ?? now.subtract(const Duration(days: 7));
+      final startTime = lastSuccessfulSync ?? now.subtract(const Duration(days: 7));
       
       final types = [
         HealthDataType.STEPS,
@@ -134,14 +111,16 @@ class GoogleHealthProvider implements DataProvider {
       );
       await ingestionService.ingestCloudData('google_health', parsedData);
 
-      _lastSyncTime = now;
-      _status = ProviderStatus.connected;
+      updateInternalState(
+        status: ProviderStatus.connected, 
+        successful: now, 
+        error: '', 
+        stats: SyncStats(fetched: healthData.length, created: healthData.length)
+      );
       KnightLogger.info('Synced ${healthData.length} health records');
     } catch (e) {
-      _status = ProviderStatus.error;
-      _lastError = e.toString();
+      updateInternalState(status: ProviderStatus.error, error: e.toString());
       KnightLogger.error('Health sync failed', error: e);
     }
-    onChanged?.call();
   }
 }

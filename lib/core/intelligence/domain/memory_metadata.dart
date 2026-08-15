@@ -17,6 +17,12 @@ enum KnowledgeState {
   /// Explicitly rejected or modified by the owner.
   userCorrected,
 
+  /// Knight is not sufficiently certain and wants the user to verify this.
+  needsReview,
+
+  /// Explicitly rejected by the owner.
+  userRejected,
+
   /// Previously true but no longer current.
   deprecated,
 }

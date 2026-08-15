@@ -56,7 +56,7 @@ class FakeMemoryRepository implements MemoryRepository {
   @override
   Future<List<KnightMemory>> getHistory(String memoryId) async => [];
   @override
-  Future<List<KnightMemory>> search(String query) async => [];
+  Future<List<KnightMemory>> search(String query, {int? limit}) async => [];
   @override
   Future<List<KnightMemory>> searchByDateRange(DateTime start, DateTime end) async => [];
   @override
@@ -120,3 +120,4 @@ void main() {
     expect(mockModule.lastEvent, event);
   });
 }
+

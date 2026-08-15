@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:collection/collection.dart';
 import '../../../app/widgets/knight_page_scaffold.dart';
+import 'package:go_router/go_router.dart';
+import '../../../core/router/app_routes.dart';
 import '../../../core/design_system/design_constants.dart';
 import '../../../core/intelligence/knight_context_models.dart';
 import '../../../core/intelligence/knight_context_provider.dart';
@@ -28,6 +30,7 @@ class _HealthDashboardScreenState extends ConsumerState<HealthDashboardScreen> {
     return KnightPageScaffold(
       title: 'Health & Fitness',
       showBackButton: true,
+      settingsRoute: AppRoutes.integrations, // Data Hub/Sync is health settings
       body: contextAsync.when(
         data: (knightContext) => _buildContent(knightContext),
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -48,6 +51,8 @@ class _HealthDashboardScreenState extends ConsumerState<HealthDashboardScreen> {
           const SizedBox(height: 32),
           if (_activeTab == 'Overview') ...[
             _buildScoreAndStats(context),
+            const SizedBox(height: 32),
+            _buildVitalityBreakdown(context),
             const SizedBox(height: 32),
             const Text('ACTIVITY TREND', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white38)),
             const SizedBox(height: 16),
@@ -151,6 +156,68 @@ class _HealthDashboardScreenState extends ConsumerState<HealthDashboardScreen> {
     );
   }
 
+  Widget _buildVitalityBreakdown(KnightContext context) {
+    final scores = context.healthScores;
+    if (scores == null) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('VITALITY BREAKDOWN', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white38)),
+        const SizedBox(height: 16),
+        GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: 2,
+          childAspectRatio: 2.2,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          children: [
+            _buildVitalityItem('Recovery', scores.recoveryScore.score, DesignColors.accentBlue),
+            _buildVitalityItem('Sleep', scores.sleepScore.score, DesignColors.accentPurple),
+            _buildVitalityItem('Stress', scores.stressScore.score, Colors.orangeAccent),
+            _buildVitalityItem('Readiness', scores.readinessScore.score, DesignColors.success),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildVitalityItem(String label, int score, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.02),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(label.toUpperCase(), style: const TextStyle(fontSize: 8, color: Colors.white24, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Text('$score%', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: color)),
+              const Spacer(),
+              SizedBox(
+                width: 32,
+                height: 32,
+                child: CircularProgressIndicator(
+                  value: score / 100,
+                  strokeWidth: 3,
+                  backgroundColor: Colors.white.withValues(alpha: 0.05),
+                  color: color,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildMetricChart(String metric, ChartType type) {
     final chartData = ref.watch(healthChartDataProvider(metric));
     
@@ -169,41 +236,48 @@ class _HealthDashboardScreenState extends ConsumerState<HealthDashboardScreen> {
     );
   }
 
-  Widget _buildScoreAndStats(KnightContext context) {
+  Widget _buildScoreAndStats(KnightContext knightContext) {
     return Row(
       children: [
         Expanded(
           flex: 4,
-          child: Card(
-            color: DesignColors.surfaceHigh.withValues(alpha: 0.5),
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  const Text('HEALTH SCORE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white38)),
-                  const SizedBox(height: 20),
-                  Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      const SizedBox(
-                        width: 100,
-                        height: 100,
-                        child: CircularProgressIndicator(
-                          value: 0.84,
-                          strokeWidth: 8,
-                          backgroundColor: DesignColors.white05,
-                          color: DesignColors.accentBlue,
+          child: InkWell(
+            onTap: () => context.push(AppRoutes.providerHealth),
+            borderRadius: BorderRadius.circular(12),
+            child: Card(
+              color: DesignColors.surfaceHigh.withValues(alpha: 0.5),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    const Text('VITALITY INDEX', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white38)),
+                    const SizedBox(height: 20),
+                    Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        SizedBox(
+                          width: 100,
+                          height: 100,
+                          child: CircularProgressIndicator(
+                            value: (knightContext.healthScores?.dailyScore.score ?? 0) / 100.0,
+                            strokeWidth: 8,
+                            backgroundColor: DesignColors.white05,
+                            color: DesignColors.accentBlue,
+                          ),
                         ),
-                      ),
-                      Column(
-                        children: [
-                          const Text('84%', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
-                          Text(context.healthStatus.toUpperCase(), style: const TextStyle(fontSize: 10, color: DesignColors.success)),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
+                        Column(
+                          children: [
+                            Text(
+                              '${knightContext.healthScores?.dailyScore.score ?? '--'}%', 
+                              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
+                            ),
+                            const Text('STATUS: NOMINAL', style: TextStyle(fontSize: 10, color: DesignColors.success)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -213,11 +287,11 @@ class _HealthDashboardScreenState extends ConsumerState<HealthDashboardScreen> {
           flex: 5,
           child: Column(
             children: [
-              _buildSmallStat(Icons.directions_run_rounded, 'Steps', '${context.steps}', DesignColors.accentBlue),
+              _buildSmallStat(Icons.directions_run_rounded, 'Steps', '${knightContext.steps}', DesignColors.accentBlue, onTap: () => setState(() => _activeTab = 'Overview')),
               const SizedBox(height: 12),
-              _buildSmallStat(Icons.local_fire_department_rounded, 'Calories', '${context.calories}', DesignColors.achievements),
+              _buildSmallStat(Icons.local_fire_department_rounded, 'Calories', '${knightContext.calories}', DesignColors.achievements, onTap: () => setState(() => _activeTab = 'Nutrition')),
               const SizedBox(height: 12),
-              _buildSmallStat(Icons.timer_outlined, 'Active Mins', '45', DesignColors.success),
+              _buildSmallStat(Icons.timer_outlined, 'Active Mins', '45', DesignColors.success, onTap: () => setState(() => _activeTab = 'Workout')),
             ],
           ),
         ),
@@ -225,22 +299,26 @@ class _HealthDashboardScreenState extends ConsumerState<HealthDashboardScreen> {
     );
   }
 
-  Widget _buildSmallStat(IconData icon, String label, String value, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: DesignColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: DesignColors.white05),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 16, color: color),
-          const SizedBox(width: 12),
-          Text(label, style: const TextStyle(fontSize: 11, color: Colors.white38)),
-          const Spacer(),
-          Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-        ],
+  Widget _buildSmallStat(IconData icon, String label, String value, Color color, {VoidCallback? onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: DesignColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: DesignColors.white05),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 16, color: color),
+            const SizedBox(width: 12),
+            Text(label, style: const TextStyle(fontSize: 11, color: Colors.white38)),
+            const Spacer(),
+            Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+          ],
+        ),
       ),
     );
   }

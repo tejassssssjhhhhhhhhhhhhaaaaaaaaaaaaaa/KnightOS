@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/design_system/knight_tokens.dart';
 import '../../../../core/internal/services/greeting_service.dart';
+import '../../../../core/router/app_routes.dart';
 
 class NetWorthCard extends StatelessWidget {
   const NetWorthCard({
@@ -18,30 +20,34 @@ class NetWorthCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = KnightTokens.accent(period);
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: KnightTokens.glass(accentColor: accent, opacity: 0.1),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('NET WORTH', style: KnightTokens.label),
-          const SizedBox(height: 8),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              '₹${amount.toStringAsFixed(2)}',
-              style: KnightTokens.headline.copyWith(color: accent),
+    return InkWell(
+      onTap: () => context.push(AppRoutes.financeMissionControl),
+      borderRadius: KnightTokens.radiusCard,
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: KnightTokens.glass(accentColor: accent, opacity: 0.1),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('NET WORTH', style: KnightTokens.label),
+            const SizedBox(height: 8),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                '₹${amount.toStringAsFixed(2)}',
+                style: KnightTokens.headline.copyWith(color: accent),
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              _MiniMetric(label: 'CASH', value: '₹${cash.toStringAsFixed(0)}'),
-              const SizedBox(width: 24),
-              _MiniMetric(label: 'DEBT', value: '₹${debt.toStringAsFixed(0)}'),
-            ],
-          ),
-        ],
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                _MiniMetric(label: 'CASH', value: '₹${cash.toStringAsFixed(0)}'),
+                const SizedBox(width: 24),
+                _MiniMetric(label: 'DEBT', value: '₹${debt.toStringAsFixed(0)}'),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -61,6 +67,84 @@ class _MiniMetric extends StatelessWidget {
         const SizedBox(height: 4),
         Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white70)),
       ],
+    );
+  }
+}
+
+class ProjectedRunwayCard extends StatelessWidget {
+  const ProjectedRunwayCard({
+    super.key,
+    required this.months,
+    required this.burnRate,
+    required this.status,
+  });
+
+  final int months;
+  final double burnRate;
+  final String status;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = status == 'Healthy' ? Colors.greenAccent : (status == 'Stable' ? Colors.blueAccent : Colors.redAccent);
+
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.05),
+        borderRadius: KnightTokens.radiusCard,
+        border: Border.all(color: color.withValues(alpha: 0.1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('PROJECTED RUNWAY', style: KnightTokens.label),
+              _StatusBadge(label: status.toUpperCase(), color: color),
+            ],
+          ),
+          const SizedBox(height: 24),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text(
+                months > 24 ? '12+' : months.toString(),
+                style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: Colors.white),
+              ),
+              const SizedBox(width: 8),
+              const Text('MONTHS', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white24)),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Based on average monthly burn of ₹${burnRate.toStringAsFixed(0)}',
+            style: const TextStyle(fontSize: 11, color: Colors.white38),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatusBadge extends StatelessWidget {
+  const _StatusBadge({required this.label, required this.color});
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: color),
+      ),
     );
   }
 }
@@ -86,37 +170,42 @@ class FinanceMetricGrid extends StatelessWidget {
       mainAxisSpacing: 16,
       childAspectRatio: 1.5,
       children: [
-        _MetricCard(label: 'INCOME', value: '₹${income.toStringAsFixed(0)}', color: Colors.greenAccent),
-        _MetricCard(label: 'EXPENSES', value: '₹${expenses.toStringAsFixed(0)}', color: Colors.redAccent),
-        _MetricCard(label: 'SAVINGS', value: '₹${savings.toStringAsFixed(0)}', color: Colors.blueAccent),
-        _MetricCard(label: 'UTILIZATION', value: '0%', color: Colors.orangeAccent),
+        _MetricCard(label: 'INCOME', value: '₹${income.toStringAsFixed(0)}', color: Colors.greenAccent, onTap: () => context.push(AppRoutes.financeExplorer)),
+        _MetricCard(label: 'EXPENSES', value: '₹${expenses.toStringAsFixed(0)}', color: Colors.redAccent, onTap: () => context.push(AppRoutes.financeExplorer)),
+        _MetricCard(label: 'SAVINGS', value: '₹${savings.toStringAsFixed(0)}', color: Colors.blueAccent, onTap: () => context.push(AppRoutes.financeAnalytics)),
+        _MetricCard(label: 'UTILIZATION', value: '0%', color: Colors.orangeAccent, onTap: () => context.push(AppRoutes.financeAnalytics)),
       ],
     );
   }
 }
 
 class _MetricCard extends StatelessWidget {
-  const _MetricCard({required this.label, required this.value, required this.color});
+  const _MetricCard({required this.label, required this.value, required this.color, this.onTap});
   final String label;
   final String value;
   final Color color;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: KnightTokens.glass(accentColor: color),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(label, style: KnightTokens.label.copyWith(fontSize: 8)),
-          const SizedBox(height: 8),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: color)),
-          ),
-        ],
+    return InkWell(
+      onTap: onTap,
+      borderRadius: KnightTokens.radiusCard,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: KnightTokens.glass(accentColor: color),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(label, style: KnightTokens.label.copyWith(fontSize: 8)),
+            const SizedBox(height: 8),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: color)),
+            ),
+          ],
+        ),
       ),
     );
   }

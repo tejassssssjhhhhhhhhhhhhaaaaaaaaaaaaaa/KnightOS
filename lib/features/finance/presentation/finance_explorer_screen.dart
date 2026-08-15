@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import '../../../app/widgets/knight_page_scaffold.dart';
 import '../../../core/design_system/knight_tokens.dart';
 import '../domain/finance_explorer_filter.dart';
@@ -19,7 +20,7 @@ class FinanceExplorerScreen extends ConsumerWidget {
       showBackButton: true,
       body: Column(
         children: [
-          _buildSearchBar(ref, filter),
+          _buildSearchBar(context, ref, filter),
           Expanded(
             child: stateAsync.when(
               data: (state) => state.transactions.isEmpty
@@ -57,7 +58,7 @@ class FinanceExplorerScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSearchBar(WidgetRef ref, ExplorerFilter filter) {
+  Widget _buildSearchBar(BuildContext context, WidgetRef ref, ExplorerFilter filter) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.05)))),
@@ -78,15 +79,110 @@ class FinanceExplorerScreen extends ConsumerWidget {
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                _FilterChip(label: 'DATE', selected: filter.dateRange != null, onTap: () {}),
-                _FilterChip(label: 'CATEGORY', selected: filter.categories.isNotEmpty, onTap: () {}),
-                _FilterChip(label: 'TYPE', selected: filter.types.isNotEmpty, onTap: () {}),
-                _FilterChip(label: 'VERIFIED', selected: false, onTap: () {}),
+                _FilterChip(
+                  label: filter.dateRange != null 
+                    ? '${DateFormat('MMM dd').format(filter.dateRange!.start)} - ${DateFormat('MMM dd').format(filter.dateRange!.end)}'
+                    : 'DATE', 
+                  selected: filter.dateRange != null, 
+                  onTap: () => _selectDateRange(context, ref, filter),
+                ),
+                _FilterChip(
+                  label: filter.categories.isNotEmpty ? filter.categories.join(', ') : 'CATEGORY', 
+                  selected: filter.categories.isNotEmpty, 
+                  onTap: () => _selectCategories(context, ref, filter),
+                ),
+                _FilterChip(
+                  label: filter.types.isNotEmpty ? filter.types.join(', ') : 'TYPE', 
+                  selected: filter.types.isNotEmpty, 
+                  onTap: () => _selectTypes(context, ref, filter),
+                ),
+                _FilterChip(
+                  label: 'VERIFIED', 
+                  selected: filter.minConfidence != null && filter.minConfidence! > 0.9, 
+                  onTap: () {
+                    final newConf = filter.minConfidence == 0.95 ? null : 0.95;
+                    ref.read(explorerFilterProvider.notifier).update(filter.copyWith(minConfidence: newConf));
+                  },
+                ),
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Future<void> _selectDateRange(BuildContext context, WidgetRef ref, ExplorerFilter filter) async {
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2010),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      initialDateRange: filter.dateRange,
+    );
+    if (picked != null) {
+      ref.read(explorerFilterProvider.notifier).update(filter.copyWith(dateRange: picked));
+    }
+  }
+
+  void _selectCategories(BuildContext context, WidgetRef ref, ExplorerFilter filter) {
+    final options = ['Food', 'Shopping', 'Transport', 'Bills', 'Salary', 'Investment', 'Loan', 'Travel', 'Others'];
+    _showMultiSelect(context, 'Select Categories', options, filter.categories, (selected) {
+      ref.read(explorerFilterProvider.notifier).update(filter.copyWith(categories: selected));
+    });
+  }
+
+  void _selectTypes(BuildContext context, WidgetRef ref, ExplorerFilter filter) {
+    final options = ['income', 'expense'];
+    _showMultiSelect(context, 'Select Types', options, filter.types, (selected) {
+      ref.read(explorerFilterProvider.notifier).update(filter.copyWith(types: selected));
+    });
+  }
+
+  void _showMultiSelect(BuildContext context, String title, List<String> options, List<String> current, Function(List<String>) onSelected) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        List<String> temp = List.from(current);
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFF1A1A1A),
+              title: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: options.length,
+                  itemBuilder: (context, i) {
+                    final opt = options[i];
+                    final isSelected = temp.contains(opt);
+                    return CheckboxListTile(
+                      title: Text(opt, style: const TextStyle(fontSize: 14)),
+                      value: isSelected,
+                      onChanged: (v) {
+                        setDialogState(() {
+                          if (v == true) {
+                            temp.add(opt);
+                          } else {
+                            temp.remove(opt);
+                          }
+                        });
+                      },
+                    );
+                  },
+                ),
+              ),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(context), child: const Text('CANCEL')),
+                FilledButton(onPressed: () {
+                  onSelected(temp);
+                  Navigator.pop(context);
+                }, child: const Text('APPLY')),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 

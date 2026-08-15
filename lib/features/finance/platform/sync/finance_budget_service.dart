@@ -50,7 +50,9 @@ class FinanceBudgetService {
 
   Future<Map<String, double>> calculateDailySafeSpend() async {
     final reports = await calculateBudgetStatus();
-    final overall = reports.firstWhere((r) => r.budget.type == 'overall', orElse: () => _defaultOverallReport());
+    
+    // P0: If no 'overall' budget, use sum of all active category budgets
+    BudgetReport overall = reports.firstWhere((r) => r.budget.type == 'overall', orElse: () => _sumOfAllBudgets(reports));
     
     final now = DateTime.now();
     final daysInMonth = DateTime(now.year, now.month + 1, 0).day;
@@ -62,6 +64,39 @@ class FinanceBudgetService {
       'daily_limit': dailyLimit > 0 ? dailyLimit : 0,
       'remaining_monthly': overall.remaining > 0 ? overall.remaining : 0,
     };
+  }
+
+  BudgetReport _sumOfAllBudgets(List<BudgetReport> reports) {
+    if (reports.isEmpty) return _defaultOverallReport();
+    
+    double totalAllocated = 0;
+    double totalSpent = 0;
+    
+    for (final r in reports) {
+       totalAllocated += r.budget.allocatedAmount;
+       totalSpent += r.spent;
+    }
+
+    return BudgetReport(
+      budget: FinanceBudgetData(
+        id: 'sum', 
+        name: 'Aggregated', 
+        type: 'overall', 
+        allocatedAmount: totalAllocated, 
+        startDate: DateTime.now(), 
+        isActive: true, 
+        period: 'monthly',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        version: 1,
+        syncStatus: 'local',
+        isDeleted: false,
+      ),
+      spent: totalSpent,
+      remaining: totalAllocated - totalSpent,
+      percentageUsed: totalAllocated > 0 ? totalSpent / totalAllocated : 0,
+      projectedEndOfMonth: 0,
+    );
   }
 
   BudgetReport _defaultOverallReport() {

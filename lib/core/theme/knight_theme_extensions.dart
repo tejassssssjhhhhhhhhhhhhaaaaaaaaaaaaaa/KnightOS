@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 @immutable
-class KnightPremiumTheme extends ThemeExtension<KnightPremiumTheme> {
-  const KnightPremiumTheme({
+class KnightHorizonTheme extends ThemeExtension<KnightHorizonTheme> {
+  const KnightHorizonTheme({
     required this.auroraColors,
     required this.glassBlur,
     required this.glassOpacity,
@@ -15,13 +15,13 @@ class KnightPremiumTheme extends ThemeExtension<KnightPremiumTheme> {
   final Color accentColor;
 
   @override
-  KnightPremiumTheme copyWith({
+  KnightHorizonTheme copyWith({
     List<Color>? auroraColors,
     double? glassBlur,
     double? glassOpacity,
     Color? accentColor,
   }) {
-    return KnightPremiumTheme(
+    return KnightHorizonTheme(
       auroraColors: auroraColors ?? this.auroraColors,
       glassBlur: glassBlur ?? this.glassBlur,
       glassOpacity: glassOpacity ?? this.glassOpacity,
@@ -30,9 +30,9 @@ class KnightPremiumTheme extends ThemeExtension<KnightPremiumTheme> {
   }
 
   @override
-  KnightPremiumTheme lerp(ThemeExtension<KnightPremiumTheme>? other, double t) {
-    if (other is! KnightPremiumTheme) return this;
-    return KnightPremiumTheme(
+  KnightHorizonTheme lerp(ThemeExtension<KnightHorizonTheme>? other, double t) {
+    if (other is! KnightHorizonTheme) return this;
+    return KnightHorizonTheme(
       auroraColors:
           Color.lerp(auroraColors.first, other.auroraColors.first, t) != null
           ? [

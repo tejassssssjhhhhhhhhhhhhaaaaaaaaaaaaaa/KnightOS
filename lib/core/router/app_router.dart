@@ -6,14 +6,15 @@ import '../../app/home_screen.dart';
 import '../../app/app_shell.dart';
 import '../../app/screens/account_center_screen.dart';
 import '../../app/screens/error_screen.dart';
-import '../../app/screens/settings_screen.dart';
+import '../../app/screens/profile_screen.dart';
 import '../../app/screens/settings_sub_pages.dart';
 import '../../app/screens/splash_screen.dart';
 import '../../app/screens/auth_screen.dart';
-import '../../app/screens/premium_launch_screen.dart';
+import '../../app/screens/knight_launch_screen.dart';
 import '../../app/screens/dashboard_screen.dart';
 import '../../app/screens/voice_capture_screen.dart';
 import '../../app/screens/app_updates_screen.dart';
+import '../../app/screens/relaxation_control_screen.dart';
 import '../../app/screens/executive_dashboard_screen.dart';
 import '../../features/settings/presentation/gmail_sync_dashboard.dart';
 import '../../features/settings/presentation/calendar_sync_dashboard.dart';
@@ -38,6 +39,7 @@ import '../../features/finance/presentation/finance_advisor_screen.dart';
 import '../../features/finance/presentation/finance_reports_screen.dart';
 import '../../features/finance/presentation/finance_settings_screen.dart';
 import '../../features/fitness/presentation/fitness_tracker_screen.dart';
+import '../../features/fitness/presentation/workout_logger_screen.dart';
 import '../../features/sleep/presentation/sleep_tracker_screen.dart';
 import '../../features/work_tracker/presentation/work_tracker_screen.dart';
 import '../../features/knowledge/presentation/knowledge_vault_screen.dart';
@@ -52,12 +54,13 @@ import '../../features/learning/presentation/learning_screen.dart';
 import '../../features/memory/presentation/memory_screen.dart';
 import '../../features/journal/presentation/journal_screen.dart';
 import '../../features/import/presentation/import_center_screen.dart';
+import '../../features/import/presentation/knight_core_screen.dart';
+import '../../features/import/presentation/my_knight_brain_screen.dart';
 import '../../features/import/presentation/screens/evidence_inbox_screen.dart';
 import '../../features/settings/presentation/sync_center_screen.dart';
 import '../../features/knight/presentation/knight_ai_qa_screen.dart';
 import '../../features/travel/presentation/travel_foundation_dashboards.dart';
 import '../../features/travel/presentation/travel_home_screen.dart';
-import '../../features/travel/presentation/travel_command_center_screen.dart';
 import '../../features/travel/presentation/travel_timeline_screen.dart';
 import '../../features/travel/presentation/memory_lane_screen.dart';
 import '../../features/travel/presentation/trip_story_screen.dart';
@@ -70,10 +73,13 @@ import '../../features/career/presentation/screens/career_dna_screen.dart';
 import '../../features/career/presentation/screens/achievement_vault_screen.dart';
 import '../../features/career/presentation/screens/north_star_screen.dart';
 import '../../features/career/presentation/screens/mission_center_screen.dart';
+import '../../features/import/presentation/hub_resource_list_screen.dart';
 
 import 'app_routes.dart';
 import 'knight_route_observer.dart';
 import 'router_notifier.dart';
+
+import '../../features/import/presentation/google_data_audit_screen.dart';
 
 /// Centralized router configuration for Knight OS.
 class AppRouter {
@@ -109,7 +115,7 @@ class AppRouter {
         ),
         GoRoute(
           path: AppRoutes.launch,
-          builder: (context, state) => const PremiumLaunchScreen(),
+          builder: (context, state) => const KnightLaunchScreen(),
         ),
         GoRoute(
           path: AppRoutes.dashboard,
@@ -122,6 +128,10 @@ class AppRouter {
         GoRoute(
           path: AppRoutes.appUpdates,
           builder: (context, state) => const AppUpdatesScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.relaxation,
+          builder: (context, state) => const RelaxationControlScreen(),
         ),
         ShellRoute(
           builder: (context, state, child) => KnightShell(child: child),
@@ -154,11 +164,27 @@ class AppRouter {
               path: AppRoutes.career,
               pageBuilder: (context, state) => _fadeTransition(context, state, const CareerDashboardScreen()),
             ),
+            GoRoute(
+              path: AppRoutes.profile,
+              pageBuilder: (context, state) => _fadeTransition(context, state, const ProfileScreen()),
+            ),
+            GoRoute(
+              path: AppRoutes.planner,
+              pageBuilder: (context, state) => _fadeTransition(context, state, const PlannerHomeScreen()),
+            ),
+            GoRoute(
+              path: AppRoutes.health,
+              pageBuilder: (context, state) => _fadeTransition(context, state, const HealthDashboardScreen()),
+            ),
+            GoRoute(
+              path: AppRoutes.mission,
+              pageBuilder: (context, state) => _fadeTransition(context, state, const MissionDashboardScreen()),
+            ),
           ],
         ),
         GoRoute(
           path: AppRoutes.settings,
-          builder: (context, state) => const SettingsScreen(),
+          redirect: (context, state) => AppRoutes.profile,
         ),
         GoRoute(
           path: AppRoutes.account,
@@ -170,11 +196,27 @@ class AppRouter {
         ),
         GoRoute(
           path: AppRoutes.dataCenter,
-          builder: (context, state) => const ImportCenterScreen(),
+          builder: (context, state) => const KnightCoreScreen(),
         ),
         GoRoute(
-          path: AppRoutes.profile,
-          builder: (context, state) => const MyDataScreen(),
+          path: '/hub/tasks',
+          builder: (context, state) => const HubResourceListScreen(resourceType: 'task'),
+        ),
+        GoRoute(
+          path: '/hub/contacts',
+          builder: (context, state) => const HubResourceListScreen(resourceType: 'contact'),
+        ),
+        GoRoute(
+          path: '/hub/emails',
+          builder: (context, state) => const HubResourceListScreen(resourceType: 'email'),
+        ),
+        GoRoute(
+          path: '/hub/calendar',
+          builder: (context, state) => const HubResourceListScreen(resourceType: 'calendar'),
+        ),
+        GoRoute(
+          path: '/hub/drive',
+          builder: (context, state) => const HubResourceListScreen(resourceType: 'drive'),
         ),
         GoRoute(
           path: AppRoutes.privacy,
@@ -203,6 +245,10 @@ class AppRouter {
         GoRoute(
           path: AppRoutes.providerHealth,
           builder: (context, state) => const ProviderHealthScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.googleDataAudit,
+          builder: (context, state) => const GoogleDataAuditScreen(),
         ),
         GoRoute(
           path: AppRoutes.executiveDashboard,
@@ -265,6 +311,10 @@ class AppRouter {
           builder: (context, state) => const FitnessTrackerScreen(),
         ),
         GoRoute(
+          path: AppRoutes.workoutLogger,
+          builder: (context, state) => const WorkoutLoggerScreen(),
+        ),
+        GoRoute(
           path: AppRoutes.sleep,
           builder: (context, state) => const SleepTrackerScreen(),
         ),
@@ -281,24 +331,12 @@ class AppRouter {
           builder: (context, state) => const KnowledgeGraphExplorerScreen(),
         ),
         GoRoute(
-          path: AppRoutes.planner,
-          builder: (context, state) => const PlannerHomeScreen(),
-        ),
-        GoRoute(
-          path: AppRoutes.mission,
-          builder: (context, state) => const MissionDashboardScreen(),
-        ),
-        GoRoute(
           path: AppRoutes.connectors,
           builder: (context, state) => const ConnectorDashboardScreen(),
         ),
         GoRoute(
           path: AppRoutes.discovery,
           builder: (context, state) => const DiscoveryDashboardScreen(),
-        ),
-        GoRoute(
-          path: AppRoutes.health,
-          builder: (context, state) => const HealthDashboardScreen(),
         ),
         GoRoute(
           path: AppRoutes.documents,
@@ -321,8 +359,16 @@ class AppRouter {
           builder: (context, state) => const JournalScreen(),
         ),
         GoRoute(
-          path: AppRoutes.dataHub,
+          path: AppRoutes.importCenter,
           builder: (context, state) => const ImportCenterScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.brain,
+          builder: (context, state) => const MyKnightBrainScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.dataHub,
+          builder: (context, state) => const KnightCoreScreen(),
         ),
         GoRoute(
           path: '/evidence/inbox',

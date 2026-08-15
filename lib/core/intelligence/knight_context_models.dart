@@ -2,6 +2,7 @@ import 'domain/activity_feed_models.dart';
 import '../internal/storage/drift/knight_database.dart';
 import '../platform/engine/feature_interfaces.dart';
 import '../platform/engine/scoring_models.dart';
+import '../internal/services/greeting_service.dart';
 import 'domain/knight_memory.dart';
 import 'domain/reasoning_models.dart';
 import 'domain/planning_models.dart';
@@ -237,6 +238,11 @@ class KnightContext {
     this.activeTrips = const [],
     this.healthScores,
     this.activeActivity = 'stationary',
+    this.currentModule = 'system',
+    this.currentScreen = '/',
+    this.period = KnightDayPeriod.day,
+    this.isFocusMode = false,
+    this.isRelaxationMode = false,
   }) : lastSyncTime = lastSyncTime ?? DateTime.fromMillisecondsSinceEpoch(0),
        timestamp = timestamp ?? DateTime.now();
 
@@ -284,6 +290,11 @@ class KnightContext {
     List<TripData>? activeTrips,
     HealthScores? healthScores,
     String? activeActivity,
+    String? currentModule,
+    String? currentScreen,
+    KnightDayPeriod? period,
+    bool? isFocusMode,
+    bool? isRelaxationMode,
   }) {
     return KnightContext(
       registeredModules: registeredModules ?? this.registeredModules,
@@ -329,6 +340,11 @@ class KnightContext {
       activeTrips: activeTrips ?? this.activeTrips,
       healthScores: healthScores ?? this.healthScores,
       activeActivity: activeActivity ?? this.activeActivity,
+      currentModule: currentModule ?? this.currentModule,
+      currentScreen: currentScreen ?? this.currentScreen,
+      period: period ?? this.period,
+      isFocusMode: isFocusMode ?? this.isFocusMode,
+      isRelaxationMode: isRelaxationMode ?? this.isRelaxationMode,
     );
   }
 
@@ -377,4 +393,9 @@ class KnightContext {
   final List<TripData> activeTrips;
   final HealthScores? healthScores;
   final String activeActivity;
+  final String currentModule;
+  final String currentScreen;
+  final KnightDayPeriod period;
+  final bool isFocusMode;
+  final bool isRelaxationMode;
 }

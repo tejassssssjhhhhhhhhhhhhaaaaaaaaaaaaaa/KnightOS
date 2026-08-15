@@ -1,5 +1,7 @@
 import '../engines/planning_engine.dart';
 import '../domain/planning_models.dart';
+import '../domain/reasoning_models.dart';
+import '../domain/knight_memory.dart';
 import '../engines/memory_engine.dart';
 import '../knight_context_service.dart';
 import 'world_service.dart';

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../domain/data_provider.dart';
 import '../services/local_file_data_provider.dart';
 import '../services/gmail_data_provider.dart';
@@ -13,6 +12,7 @@ import '../services/galaxy_watch_provider.dart';
 import '../services/google_contacts_provider.dart';
 import '../services/google_tasks_provider.dart';
 import 'device_intelligence_service.dart';
+import 'sync_task_service.dart';
 import '../providers/intelligence_providers.dart';
 import '../../internal/utils/knight_logger.dart';
 import '../../providers/database_provider.dart';
@@ -35,11 +35,36 @@ class DataProviderRegistry extends Notifier<List<DataProvider>> {
       final prefs = ref.watch(sharedPreferencesProvider);
       final auth = ref.watch(googleAuthServiceProvider);
 
+      // Helper to initialize and load provider state
+      void addProvider(DataProvider provider) {
+        providers.add(provider);
+        provider.loadState().then((_) async {
+          // Migration from SharedPreferences if SQLite state is missing
+          final hasSqlIntent = await db.syncMetadataDao.getMetadata(provider.id, 'is_enabled') != null;
+          if (!hasSqlIntent) {
+            final legacyIntent = prefs.getBool('$_persistenceKeyPrefix${provider.id}') ?? false;
+            if (legacyIntent) {
+              KnightLogger.info('[REGISTRY] Migrating legacy intent for ${provider.id}');
+              await provider.setEnabled(true);
+            }
+          }
+
+          // If the user enabled this source, attempt to connect
+          if (provider.isEnabled && 
+              (provider.status == ProviderStatus.disconnected || 
+               provider.status == ProviderStatus.notConfigured)) {
+            provider.connect();
+          }
+          notifyChanged();
+        });
+      }
+
       // 1. Local File Provider
       try {
-        providers.add(LocalFileDataProvider(
+        addProvider(LocalFileDataProvider(
           ingestionService: ref.watch(dataIngestionServiceProvider),
           prefsService: ref.watch(importPreferenceServiceProvider),
+          db: db,
           onChanged: notifyChanged,
         ));
       } catch (e, s) {
@@ -48,19 +73,18 @@ class DataProviderRegistry extends Notifier<List<DataProvider>> {
 
       // 2. Google Providers
       try {
-        final gmail = GmailDataProvider(
+        addProvider(GmailDataProvider(
           extractionEngine: ref.watch(emailExtractionEngineProvider),
           authService: auth,
           db: db,
           onChanged: notifyChanged,
-        );
-        providers.add(gmail);
+        ));
       } catch (e, s) {
         KnightLogger.error('[REGISTRY] Failed to init GmailDataProvider', error: e, stackTrace: s);
       }
 
       try {
-        providers.add(GoogleDriveProvider(
+        addProvider(GoogleDriveProvider(
           backupService: ref.watch(backupServiceProvider),
           restoreService: ref.watch(restoreServiceProvider),
           authService: auth,
@@ -74,11 +98,12 @@ class DataProviderRegistry extends Notifier<List<DataProvider>> {
       }
 
       try {
-        providers.add(GoogleCalendarDataProvider(
+        addProvider(GoogleCalendarDataProvider(
           ingestionService: ref.watch(dataIngestionServiceProvider),
           authService: auth,
           db: db,
           workspaceEngine: ref.watch(workspaceExtractionEngineProvider),
+          prefs: ref.watch(importPreferenceServiceProvider),
           onChanged: notifyChanged,
         ));
       } catch (e, s) {
@@ -86,8 +111,9 @@ class DataProviderRegistry extends Notifier<List<DataProvider>> {
       }
 
       try {
-        providers.add(GoogleHealthProvider(
+        addProvider(GoogleHealthProvider(
           ingestionService: ref.watch(dataIngestionServiceProvider),
+          db: db,
           onChanged: notifyChanged,
         ));
       } catch (e, s) {
@@ -95,7 +121,7 @@ class DataProviderRegistry extends Notifier<List<DataProvider>> {
       }
 
       try {
-        providers.add(SamsungHealthProvider(
+        addProvider(SamsungHealthProvider(
           ingestionService: ref.watch(dataIngestionServiceProvider),
           db: db,
           onChanged: notifyChanged,
@@ -105,9 +131,10 @@ class DataProviderRegistry extends Notifier<List<DataProvider>> {
       }
 
       try {
-        providers.add(GalaxyWatchProvider(
+        final deviceIntelligence = ref.watch(deviceIntelligenceServiceProvider);
+        addProvider(GalaxyWatchProvider(
           db: db,
-          deviceIntelligenceService: ref.watch(deviceIntelligenceServiceProvider),
+          deviceIntelligenceService: deviceIntelligence,
           onChanged: notifyChanged,
         ));
       } catch (e, s) {
@@ -115,7 +142,7 @@ class DataProviderRegistry extends Notifier<List<DataProvider>> {
       }
 
       try {
-        providers.add(GoogleContactsProvider(
+        addProvider(GoogleContactsProvider(
           authService: auth,
           db: db,
           onChanged: notifyChanged,
@@ -125,7 +152,7 @@ class DataProviderRegistry extends Notifier<List<DataProvider>> {
       }
 
       try {
-        providers.add(GoogleTasksProvider(
+        addProvider(GoogleTasksProvider(
           authService: auth,
           db: db,
           onChanged: notifyChanged,
@@ -133,9 +160,6 @@ class DataProviderRegistry extends Notifier<List<DataProvider>> {
       } catch (e, s) {
         KnightLogger.error('[REGISTRY] Failed to init GoogleTasksProvider', error: e, stackTrace: s);
       }
-
-      // P0: Synchronization - If user intended to connect, trigger it
-      _restoreConnectionIntents(providers, prefs);
     } catch (e, s) {
       KnightLogger.error('[REGISTRY] Critical failure in DataProviderRegistry.build', error: e, stackTrace: s);
     }
@@ -143,41 +167,40 @@ class DataProviderRegistry extends Notifier<List<DataProvider>> {
     return List.unmodifiable(providers);
   }
 
-  void _restoreConnectionIntents(List<DataProvider> providers, SharedPreferences prefs) {
-    for (final provider in providers) {
-      final intended = prefs.getBool('$_persistenceKeyPrefix${provider.id}') ?? false;
-      if (intended && provider.status == ProviderStatus.disconnected) {
-        KnightLogger.info('[REGISTRY] Restoring connection intent for ${provider.id}');
-        Future.microtask(() => provider.connect());
-      }
-    }
-  }
-
   void notifyChanged() {
     state = List.from(state);
   }
 
-  Future<void> setConnectionIntent(String providerId, bool connected) async {
-    final prefs = ref.read(sharedPreferencesProvider);
-    await prefs.setBool('$_persistenceKeyPrefix$providerId', connected);
-    
+  /// Sets the enabled state of a specific data source.
+  Future<void> setEnabled(String providerId, bool enabled) async {
     final provider = state.firstWhereOrNull((p) => p.id == providerId);
     if (provider == null) {
-      KnightLogger.warn('[REGISTRY] Cannot set intent: provider $providerId not found');
+      KnightLogger.warn('[REGISTRY] Cannot set enabled: provider $providerId not found');
       return;
     }
 
-    if (connected) {
-      await provider.connect();
-    } else {
-      await provider.disconnect();
-    }
+    await provider.setEnabled(enabled);
+    notifyChanged();
+  }
+
+  @Deprecated('Use setEnabled')
+  Future<void> setConnectionIntent(String providerId, bool connected) => setEnabled(providerId, connected);
+
+  Future<void> setSyncFrequency(String freq) async {
+    await ref.read(importPreferenceServiceProvider).setSyncFrequency(freq);
+    ref.read(syncTaskServiceProvider.notifier).refreshSchedule();
+    notifyChanged();
+  }
+
+  Future<void> setAutoSyncEnabled(bool enabled) async {
+    await ref.read(importPreferenceServiceProvider).setAutoSyncEnabled(enabled);
+    ref.read(syncTaskServiceProvider.notifier).refreshSchedule();
     notifyChanged();
   }
 
   Future<void> syncAll() async {
     for (final provider in state) {
-      if (provider.status == ProviderStatus.connected || provider.status == ProviderStatus.error) {
+      if (provider.isEnabled && (provider.status == ProviderStatus.connected || provider.status == ProviderStatus.error)) {
         try {
           await provider.syncIncremental();
         } catch (e) {

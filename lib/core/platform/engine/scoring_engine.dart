@@ -154,8 +154,8 @@ class DefaultScoreAggregator implements KnightScoreAggregator {
   }
 
   KnightScoreGrade _calculateGrade(double value) {
-    if (value >= 90) return const KnightScoreGrade(label: 'Excellent', rank: 5);
-    if (value >= 80) return const KnightScoreGrade(label: 'Great', rank: 4);
+    if (value >= 90) return const KnightScoreGrade(label: 'Optimal', rank: 5);
+    if (value >= 80) return const KnightScoreGrade(label: 'Nominal', rank: 4);
     if (value >= 70) return const KnightScoreGrade(label: 'Good', rank: 3);
     if (value >= 60) return const KnightScoreGrade(label: 'Fair', rank: 2);
     return const KnightScoreGrade(label: 'Poor', rank: 1);

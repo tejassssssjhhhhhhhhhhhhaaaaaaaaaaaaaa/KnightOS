@@ -4,9 +4,15 @@ import 'package:knight_os/core/intelligence/engines/planning_engine.dart';
 import 'package:knight_os/core/intelligence/knight_context_models.dart';
 import 'package:knight_os/core/intelligence/domain/knight_memory.dart';
 
+import 'package:knight_os/core/intelligence/domain/cognitive_models.dart';
+
 class MockAiProvider extends Fake implements KnightAiProvider {
   @override
-  Future<String> chat({required List<KnightMemory> context, required String prompt}) async {
+  Future<String> chat({
+    required List<KnightMemory> context, 
+    List<Evidence> evidence = const [],
+    required String prompt
+  }) async {
     return 'Plan generated successfully';
   }
 }

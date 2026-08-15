@@ -79,6 +79,8 @@ class _CategoryIcon extends StatelessWidget {
       case 'transport': icon = Icons.directions_car_rounded; color = Colors.blueAccent; break;
       case 'bills': icon = Icons.receipt_long_rounded; color = Colors.redAccent; break;
       case 'salary': icon = Icons.payments_rounded; color = Colors.greenAccent; break;
+      case 'investment': icon = Icons.trending_up_rounded; color = Colors.cyanAccent; break;
+      case 'loan': icon = Icons.account_balance_rounded; color = Colors.amberAccent; break;
       default: icon = Icons.account_balance_wallet_rounded; color = Colors.white24;
     }
 
@@ -152,7 +154,7 @@ class TransactionDetailSheet extends StatelessWidget {
             children: [
               Expanded(
                 child: FilledButton.icon(
-                  onPressed: () {}, // Milestone 9
+                  onPressed: () => _showExplanation(context),
                   icon: const Icon(Icons.auto_awesome, size: 16),
                   label: const Text('EXPLAIN'),
                 ),
@@ -179,6 +181,51 @@ class TransactionDetailSheet extends StatelessWidget {
               child: const Text('VIEW EVIDENCE HISTORY', style: TextStyle(color: Colors.white24, fontSize: 12)),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  void _showExplanation(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A1A),
+        title: Row(
+          children: [
+            const Icon(Icons.auto_awesome, color: Colors.blueAccent, size: 18),
+            const SizedBox(width: 12),
+            const Text('Knight Analysis', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('SOURCE EVIDENCE', style: TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: Colors.white24, letterSpacing: 1.0)),
+            const SizedBox(height: 8),
+            Text('Detected from ${tx.originProviderId == 'gmail_api' ? 'Gmail message' : 'Data Hub'}.', style: const TextStyle(fontSize: 13, color: Colors.white70)),
+            const SizedBox(height: 20),
+            const Text('REASONING', style: TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: Colors.white24, letterSpacing: 1.0)),
+            const SizedBox(height: 8),
+            Text(
+              'This ${tx.type} of ₹${tx.amount} at ${tx.merchant} was extracted using the financial heuristic engine. '
+              'The confidence score is ${((tx.confidenceScore ?? 0.0) * 100).toInt()}%.',
+              style: const TextStyle(fontSize: 13, color: Colors.white70, height: 1.4),
+            ),
+            const SizedBox(height: 20),
+            const Text('IMPACT', style: TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: Colors.white24, letterSpacing: 1.0)),
+            const SizedBox(height: 8),
+            Text(
+              tx.type == 'expense' 
+                ? 'This transaction reduces your cash position. It is categorized under ${tx.category}.'
+                : 'This transaction increases your net worth.',
+              style: const TextStyle(fontSize: 13, color: Colors.white70),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('DISMISS')),
         ],
       ),
     );

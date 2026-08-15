@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../app/widgets/knight_page_scaffold.dart';
+import '../../../core/router/app_routes.dart';
+import '../../../core/design_system/knight_tokens.dart';
 import '../../../core/platform/engine/analytics_models.dart';
 import '../../../core/platform/engine/search_models.dart';
 import '../data/fitness_engine_adapter.dart';
@@ -127,20 +130,106 @@ class _FitnessTrackerScreenState extends State<FitnessTrackerScreen> {
 
     return KnightPageScaffold(
       title: 'Fitness',
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildProfileCard(),
-            const SizedBox(height: 20),
-            _buildSearchCard(),
-            const SizedBox(height: 20),
-            _buildEquipmentSection(),
-            const SizedBox(height: 20),
-            _buildAnalyticsSection(),
-          ],
+      showBackButton: true,
+      actions: [
+        IconButton(
+          onPressed: () => context.push(AppRoutes.profile), 
+          icon: const Icon(Icons.tune_rounded, size: 20),
+        ),
+      ],
+      body: RefreshIndicator(
+        onRefresh: _loadState,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildActiveWorkoutCard(),
+              const SizedBox(height: 24),
+              _buildHistorySection(),
+              const SizedBox(height: 32),
+              _buildProfileCard(),
+              const SizedBox(height: 24),
+              _buildSearchCard(),
+              const SizedBox(height: 24),
+              _buildEquipmentSection(),
+              const SizedBox(height: 24),
+              _buildAnalyticsSection(),
+              const SizedBox(height: 120),
+            ],
+          ),
         ),
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _startNewWorkout(context),
+        label: const Text('START WORKOUT', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1.2)),
+        icon: const Icon(Icons.play_arrow_rounded),
+        backgroundColor: Colors.blueAccent,
+      ),
+    );
+  }
+
+  Widget _buildActiveWorkoutCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(28),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.blueAccent.withValues(alpha: 0.1), Colors.transparent],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(32),
+        border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.fitness_center_rounded, color: Colors.blueAccent, size: 18),
+              const SizedBox(width: 12),
+              Text('READY FOR ACTION', style: KnightTokens.label.copyWith(color: Colors.blueAccent)),
+            ],
+          ),
+          const SizedBox(height: 24),
+          const Text('Maintain your momentum.', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+          const SizedBox(height: 8),
+          const Text('Knight OS tracks your sets and reps for progressive overload.', style: TextStyle(color: Colors.white38, fontSize: 13)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHistorySection() {
+     return Column(
+       crossAxisAlignment: CrossAxisAlignment.start,
+       children: [
+         const Padding(
+           padding: EdgeInsets.symmetric(horizontal: 4),
+           child: Text('RECENT HISTORY', style: KnightTokens.label),
+         ),
+         const SizedBox(height: 16),
+         // Future: Stream history from DB
+         Container(
+           padding: const EdgeInsets.all(20),
+           decoration: BoxDecoration(
+             color: Colors.white.withValues(alpha: 0.03),
+             borderRadius: BorderRadius.circular(24),
+           ),
+           child: const Center(
+             child: Text('No recent workouts. Time to lift.', style: TextStyle(color: Colors.white24, fontSize: 12)),
+           ),
+         ),
+       ],
+     );
+  }
+
+  void _startNewWorkout(BuildContext context) {
+    // Navigate to logger
+    // context.push(AppRoutes.workoutLogger);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('V1.0 Workout Logger initializing...')),
     );
   }
 

@@ -2,6 +2,7 @@ import '../engines/reasoning_engine.dart';
 import '../engines/context_engine.dart';
 import '../engines/optimization_engine.dart';
 import '../domain/reasoning_models.dart';
+import '../domain/knight_memory.dart';
 import '../domain/cognitive_models.dart';
 import '../domain/intelligence_models.dart';
 import '../engines/memory_engine.dart';

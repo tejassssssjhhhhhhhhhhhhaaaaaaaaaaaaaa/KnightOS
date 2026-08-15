@@ -97,14 +97,18 @@ class _CircuitShieldPainter extends CustomPainter {
 
   List<Color> _getMaterialColors(KnightDayPeriod period) {
     switch (period) {
-      case KnightDayPeriod.dawn: 
+      case KnightDayPeriod.morning: 
         return [const Color(0xFFFDE68A), const Color(0xFFF59E0B), const Color(0xFFD97706)]; // Warm Gold
       case KnightDayPeriod.day:
         return [const Color(0xFFF1F5F9), const Color(0xFFCBD5E1), const Color(0xFF94A3B8)]; // Silver
-      case KnightDayPeriod.dusk:
+      case KnightDayPeriod.afternoon:
+        return [const Color(0xFFE2E8F0), const Color(0xFF94A3B8), const Color(0xFF64748B)]; // Mid-Day Silver
+      case KnightDayPeriod.evening:
         return [const Color(0xFFFB923C), const Color(0xFFEA580C), const Color(0xFF9A3412)]; // Copper
       case KnightDayPeriod.night:
-        return [const Color(0xFF0F172A), const Color(0xFF020617), const Color(0xFF000000)]; // Navy
+        return [const Color(0xFF1E293B), const Color(0xFF0F172A), const Color(0xFF020617)]; // Slate to Dark
+      case KnightDayPeriod.lateNight:
+        return [const Color(0xFF0F172A), const Color(0xFF020408), const Color(0xFF000000)]; // Deep Slate to Black
     }
   }
 

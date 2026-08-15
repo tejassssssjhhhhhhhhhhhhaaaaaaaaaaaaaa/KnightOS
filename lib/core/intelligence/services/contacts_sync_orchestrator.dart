@@ -51,6 +51,7 @@ class ContactsSyncOrchestrator extends SyncOrchestrator {
       );
 
       if (response.connections != null) {
+        fetchedCount += response.connections!.length;
         for (final person in response.connections!) {
           await _processPerson(person);
           processed++;
@@ -66,24 +67,32 @@ class ContactsSyncOrchestrator extends SyncOrchestrator {
   Future<void> _processPerson(people.Person person) async {
     final name = person.names?.first.displayName ?? 'Unknown';
     final email = person.emailAddresses?.first.value ?? '';
-    if (person.resourceName == null) return;
+    if (person.resourceName == null) {
+      skippedCount++;
+      return;
+    }
 
     final accountEmail = authService.currentUser?.email ?? 'unknown';
 
-    await db.googleResourceDao.upsertResource(GoogleResourceTableCompanion.insert(
-      id: person.resourceName!,
-      resourceType: 'contact',
-      title: name,
-      resourceDate: DateTime.now(),
-      metadata: Value(jsonEncode({
-        'email': email,
-        'phone': person.phoneNumbers?.first.value,
-        'org': person.organizations?.first.name,
-      })),
-      originAccount: accountEmail,
-      rawMetadata: Value(jsonEncode(person.toJson())),
-      syncStatus: const Value('synced'),
-    ));
+    try {
+      await db.googleResourceDao.upsertResource(GoogleResourceTableCompanion.insert(
+        id: person.resourceName!,
+        resourceType: 'contact',
+        title: name,
+        resourceDate: DateTime.now(),
+        metadata: Value(jsonEncode({
+          'email': email,
+          'phone': person.phoneNumbers?.first.value,
+          'org': person.organizations?.first.name,
+        })),
+        originAccount: accountEmail,
+        rawMetadata: Value(jsonEncode(person.toJson())),
+        syncStatus: const Value('synced'),
+      ));
+      createdCount++;
+    } catch (e) {
+      failedCount++;
+    }
   }
 }
 

@@ -6,8 +6,10 @@ import '../../../core/design_system/knight_tokens.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../core/intelligence/providers/intelligence_providers.dart';
 import '../../../core/intelligence/services/google_data_hub.dart';
+import '../domain/finance_dashboard_data.dart';
 import 'controllers/finance_dashboard_controller.dart';
 import 'widgets/finance_dashboard_widgets.dart';
+import 'widgets/add_transaction_sheet.dart';
 import '../platform/providers/finance_platform_providers.dart';
 import '../platform/interfaces/finance_sync.dart';
 
@@ -46,6 +48,8 @@ class FinanceTrackerScreen extends ConsumerWidget {
                 cash: data.cashPosition,
                 debt: data.cashPosition - data.netWorth,
               ),
+              const SizedBox(height: 16),
+              _buildSpecialistInsight(data),
               const SizedBox(height: 24),
               FinanceMetricGrid(
                 income: data.monthlyIncome,
@@ -100,6 +104,24 @@ class FinanceTrackerScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, s) => Center(child: Text('Dashboard Error: $e')),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => AddTransactionSheet.show(context),
+        backgroundColor: Colors.blueAccent,
+        child: const Icon(Icons.add_rounded, color: Colors.white),
+      ),
+    );
+  }
+
+  Widget _buildSpecialistInsight(FinanceDashboardData data) {
+    // Specialist Logic: Calculate simple runway or burn status
+    final monthlyBurn = data.monthlyExpenses;
+    final cash = data.cashPosition;
+    final runwayMonths = monthlyBurn > 0 ? (cash / monthlyBurn).floor() : 99;
+
+    return ProjectedRunwayCard(
+      months: runwayMonths,
+      burnRate: monthlyBurn,
+      status: runwayMonths > 12 ? 'Healthy' : (runwayMonths > 3 ? 'Stable' : 'Critical'),
     );
   }
 

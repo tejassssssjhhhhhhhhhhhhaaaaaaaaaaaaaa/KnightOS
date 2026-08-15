@@ -5,13 +5,18 @@ import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../internal/storage/drift/knight_database.dart';
 import '../../internal/utils/knight_logger.dart';
-import '../providers/intelligence_providers.dart';
-import '../../providers/database_provider.dart';
+import 'package:knight_os/core/providers/storage_providers.dart';
+import 'package:knight_os/core/providers/database_provider.dart';
+import 'package:knight_os/core/providers/preferences_provider.dart';
+import 'package:knight_os/core/providers/relaxation_mode_provider.dart';
+import 'package:knight_os/core/intelligence/providers/intelligence_providers.dart';
+import 'travel_history_orchestrator.dart';
 
 enum WorkerState { idle, processing, waiting, failed }
 
 class SyncTaskService extends Notifier<WorkerState> {
   Timer? _pollingTimer;
+  Timer? _scheduleTimer;
   bool _isProcessing = false;
   SyncTask? _currentTask;
 
@@ -25,29 +30,59 @@ class SyncTaskService extends Notifier<WorkerState> {
     // P0: Reduce polling frequency to avoid database lock contention and main thread lag
     _pollingTimer = Timer.periodic(const Duration(seconds: 5), (_) => _processQueue());
     KnightLogger.info('[TASK] Sync task queue polling started', category: KnightLogCategory.worker);
-    _scheduleProviderSyncs();
+    refreshSchedule();
   }
 
   void stopPolling() {
     _pollingTimer?.cancel();
+    _scheduleTimer?.cancel();
     state = WorkerState.idle;
   }
 
-  void _scheduleProviderSyncs() {
+  void refreshSchedule() {
+    _scheduleTimer?.cancel();
+    final prefs = ref.read(importPreferenceServiceProvider);
+    if (!prefs.isAutoSyncEnabled()) {
+      KnightLogger.info('[TASK] Auto-sync disabled by user.');
+      return;
+    }
+
+    final freq = prefs.getSyncFrequency();
+    Duration interval;
+    switch (freq) {
+      case 'hourly': interval = const Duration(hours: 1); break;
+      case 'daily': interval = const Duration(days: 1); break;
+      case 'weekly': interval = const Duration(days: 7); break;
+      default: interval = const Duration(days: 1);
+    }
+    
+    KnightLogger.info('[TASK] Scheduling provider syncs every $freq ($interval)');
+    _scheduleTimer = Timer.periodic(interval, (_) => _queueProviderSyncs());
+    
+    // Initial trigger check could go here
+  }
+
+  Future<void> _queueProviderSyncs() async {
     final db = ref.read(knightDatabaseProvider);
-    Timer.periodic(const Duration(minutes: 15), (_) async {
-       final providers = ['gmail_api', 'google_calendar_api', 'google_drive_api', 'google_contacts_api', 'google_tasks_api'];
-       for (final p in providers) {
-         await db.syncTaskDao.into(db.syncTaskQueueTable).insert(SyncTaskQueueTableCompanion.insert(
-          id: 'sync-$p-${DateTime.now().millisecondsSinceEpoch}',
-          providerId: p,
-          taskType: 'sync_provider',
-          payload: '{}',
-          priority: const Value(1),
-          updatedAt: Value(DateTime.now()),
-        ), mode: InsertMode.insertOrIgnore);
-       }
-    });
+    final registry = ref.read(dataProviderRegistryProvider);
+    final providers = ['gmail_api', 'google_calendar_api', 'google_drive_api', 'google_contacts_api', 'google_tasks_api'];
+    for (final p in providers) {
+      final provider = registry.firstWhereOrNull((dp) => dp.id == p);
+      if (provider == null || !provider.isEnabled) continue;
+
+      await db.syncTaskDao.into(db.syncTaskQueueTable).insert(SyncTaskQueueTableCompanion.insert(
+        id: 'sync-$p-${DateTime.now().millisecondsSinceEpoch}',
+        providerId: p,
+        taskType: 'sync_provider',
+        payload: '{}',
+        priority: const Value(1),
+        updatedAt: Value(DateTime.now()),
+      ), mode: InsertMode.insertOrIgnore);
+    }
+  }
+
+  Future<void> runFullQueue() async {
+     await _processQueue();
   }
 
   Future<void> _processQueue() async {
@@ -56,7 +91,11 @@ class SyncTaskService extends Notifier<WorkerState> {
 
     try {
       final db = ref.read(knightDatabaseProvider);
-      // P0: Process smaller batches to maintain UI responsiveness
+      
+      // 1. Run Maintenance (Sprint 1.2 Cleanup)
+      await _runMaintenance(db);
+
+      // 2. Process smaller batches to maintain UI responsiveness
       final tasks = await db.syncTaskDao.getPendingTasks(limit: 10);
       if (tasks.isEmpty) {
         _isProcessing = false;
@@ -78,6 +117,20 @@ class SyncTaskService extends Notifier<WorkerState> {
     } finally {
       _isProcessing = false;
       if (state != WorkerState.failed) state = WorkerState.idle;
+    }
+  }
+
+  Future<void> _runMaintenance(KnightDatabase db) async {
+    final sevenDaysAgo = DateTime.now().subtract(const Duration(days: 7));
+    
+    // Cleanup old sync history
+    final deletedHistory = await db.syncHistoryDao.deleteOldRecords(sevenDaysAgo);
+    
+    // Cleanup completed/failed tasks older than 7 days
+    final deletedTasks = await db.syncTaskDao.cleanupCompletedTasks(sevenDaysAgo);
+
+    if (deletedHistory > 0 || deletedTasks > 0) {
+      KnightLogger.info('[TASK] Maintenance: Deleted $deletedHistory history records and $deletedTasks old tasks.');
     }
   }
 
@@ -113,11 +166,20 @@ class SyncTaskService extends Notifier<WorkerState> {
           await ref.read(entityExtractionServiceProvider).extractEntitiesFromEmail(messageId, batchId);
           break;
 
+        case 'reconstruct_travel':
+          final travelOrch = TravelHistoryOrchestrator(db: db);
+          await travelOrch.reconstructTravelHistory();
+          break;
+
         case 'sync_provider':
           final registry = ref.read(dataProviderRegistryProvider);
           final provider = registry.firstWhereOrNull((p) => p.id == task.providerId);
           if (provider != null) {
-            await provider.syncIncremental();
+            if (provider.isEnabled) {
+              await provider.syncIncremental();
+            } else {
+              KnightLogger.info('[TASK] Skipping sync for disabled provider: ${task.providerId}');
+            }
           } else {
             throw Exception('Provider ${task.providerId} not found in registry');
           }

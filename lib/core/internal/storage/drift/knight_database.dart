@@ -66,6 +66,7 @@ import 'tables/finance_sync_history.dart';
 import 'tables/finance_budgets.dart';
 import 'tables/finance_goals.dart';
 import 'tables/finance_reports.dart';
+import 'tables/sync_history.dart';
 
 import 'daos/user_profile_dao.dart';
 import 'daos/memory_dao.dart';
@@ -97,6 +98,7 @@ import 'daos/medication_dao.dart';
 import 'daos/health_tracker_dao.dart';
 import 'daos/workout_foundation_dao.dart';
 import 'daos/finance_platform_dao.dart';
+import 'daos/sync_history_dao.dart';
 import 'base_dao.dart';
 import 'utils/type_converters.dart';
 
@@ -126,6 +128,7 @@ export 'daos/runtime_recorder_dao.dart';
 export 'daos/snapshot_dao.dart';
 export 'daos/travel_dao.dart';
 export 'daos/finance_platform_dao.dart';
+export 'daos/sync_history_dao.dart';
 export 'base_dao.dart';
 
 part 'knight_database.g.dart';
@@ -165,6 +168,7 @@ class MigrationDao extends BaseDao<MigrationLedger, MigrationLedgerData>
     GraphNodeTable,
     GraphEdgeTable,
     WorkoutSessionTable,
+    WorkoutSetTable,
     SleepSessionTable,
     ProviderSyncMetadataTable,
     SyncTaskQueueTable,
@@ -214,6 +218,7 @@ class MigrationDao extends BaseDao<MigrationLedger, MigrationLedgerData>
     FinanceBudgetTable,
     FinanceGoalTable,
     FinanceReportTable,
+    SyncHistoryTable,
   ],
   daos: [
     MigrationDao,
@@ -247,6 +252,7 @@ class MigrationDao extends BaseDao<MigrationLedger, MigrationLedgerData>
     HealthTrackerDao,
     WorkoutFoundationDao,
     FinancePlatformDao,
+    SyncHistoryDao,
   ],
 )
 class KnightDatabase extends _$KnightDatabase {
@@ -254,7 +260,7 @@ class KnightDatabase extends _$KnightDatabase {
   KnightDatabase.forTesting(super.connection);
 
   @override
-  int get schemaVersion => 27;
+  int get schemaVersion => 29;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -413,6 +419,15 @@ class KnightDatabase extends _$KnightDatabase {
       }
       if (from < 27) {
         await m.createTable(googleResourceTable);
+      }
+      if (from < 28) {
+        await m.createTable(syncHistoryTable);
+      }
+      if (from < 29) {
+        await m.createTable(workoutSetTable);
+        await m.addColumn(workoutSessionTable, workoutSessionTable.isComplete);
+        await m.addColumn(workoutSessionTable, workoutSessionTable.mobilityCompleted);
+        await m.addColumn(workoutSessionTable, workoutSessionTable.endTime);
       }
       debugPrint('KnightDatabase: Migration complete');
     },

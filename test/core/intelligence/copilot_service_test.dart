@@ -18,9 +18,16 @@ import 'package:knight_os/core/intelligence/engines/intent_engine.dart';
 import 'package:knight_os/core/intelligence/engines/context_engine.dart';
 import 'package:knight_os/core/intelligence/engines/reasoning_engine.dart';
 
+import 'package:knight_os/core/intelligence/domain/cognitive_models.dart';
+import 'package:knight_os/core/intelligence/services/data_retrieval_service.dart';
+
 class MockAiProvider extends Fake implements KnightAiProvider {
   @override
-  Future<String> chat({required List<KnightMemory> context, required String prompt}) async => 'Response';
+  Future<String> chat({
+    required List<KnightMemory> context, 
+    List<Evidence> evidence = const [],
+    required String prompt
+  }) async => 'Response';
 }
 
 void main() {
@@ -34,6 +41,7 @@ void main() {
     final mem = FakeMemoryEngine();
     final ctx = KnightContextService();
     final world = WorldService(engine: WorldEngine(bus: IntelligenceBus()), memoryEngine: mem);
+    final ret = FakeRetrievalService();
     final cog = KnightCognition(
       intentEngine: const IntentEngine(),
       contextEngine: ContextEngine(memoryEngine: mem),
@@ -42,6 +50,7 @@ void main() {
       contextService: ctx,
       planningService: FakePlanningService(),
       worldService: world,
+      retrievalService: ret,
     );
     
     service = CopilotService(
@@ -72,8 +81,14 @@ class FakeMemoryEngine extends Fake implements MemoryEngine {
   @override
   Future<List<KnightMemory>> getByCategory(BookCategory cat) async => [];
   @override
-  Future<List<KnightMemory>> search(String query) async => [];
+  Future<List<KnightMemory>> search(String query, {int? limit}) async => [];
+}
+
+class FakeRetrievalService extends Fake implements DataRetrievalService {
+  @override
+  Future<List<Evidence>> retrieveEvidence(KnightIntent intent, String query) async => [];
 }
 
 class FakePlanningEngine extends Fake {}
 class FakePlanningService extends Fake implements PlanningService {}
+

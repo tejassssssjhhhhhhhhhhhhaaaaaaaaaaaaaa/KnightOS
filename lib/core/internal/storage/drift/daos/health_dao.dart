@@ -43,4 +43,16 @@ class HealthDao extends DatabaseAccessor<KnightDatabase> with _$HealthDaoMixin {
     final result = await query.map((row) => row.read(healthMetricTable.value.sum())).getSingle();
     return result ?? 0.0;
   }
+
+  Stream<double> watchDailyTotal(String type, DateTime date) {
+    final start = DateTime(date.year, date.month, date.day);
+    final end = start.add(const Duration(days: 1));
+    
+    return (selectOnly(healthMetricTable)
+      ..addColumns([healthMetricTable.value.sum()])
+      ..where(healthMetricTable.metricType.equals(type))
+      ..where(healthMetricTable.startTime.isBetweenValues(start, end)))
+    .watch()
+    .map((rows) => rows.first.read(healthMetricTable.value.sum()) ?? 0.0);
+  }
 }

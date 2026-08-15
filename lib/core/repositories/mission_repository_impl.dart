@@ -29,6 +29,30 @@ class MissionRepositoryImpl implements IMissionRepository {
         metadata: Value(json.encode(mission.metadata)),
       ),
     );
+
+    // Sprint V5.2: Mirror basic tasks to TaskTable for Planner UI compatibility
+    if (mission.type == MissionType.task) {
+      await _dao.upsertMission(const MissionTableCompanion(
+        id: Value('system'),
+        title: Value('System Mission'),
+        type: Value('system'),
+        owningDomain: Value('system'),
+      ));
+
+      await _dao.upsertGoal(const GoalTableCompanion(
+        id: Value('legacy-uncategorized'),
+        missionId: Value('system'),
+        title: Value('System Tasks'),
+      ));
+      
+      await _dao.upsertTask(TaskTableCompanion.insert(
+        id: mission.id,
+        goalId: 'legacy-uncategorized', // Default goal anchor
+        title: mission.title,
+        isCompleted: Value(mission.status == MissionStatus.completed),
+        priority: Value(mission.priority.name),
+      ));
+    }
   }
 
   @override
@@ -64,6 +88,20 @@ class MissionRepositoryImpl implements IMissionRepository {
   }
 
   Mission _mapToEntity(MissionData data) {
+    Map<String, dynamic> decodedMetadata = {};
+    try {
+      final meta = data.metadata;
+      if (meta != null && meta.trim().isNotEmpty) {
+        final decoded = json.decode(meta);
+        if (decoded is Map<String, dynamic>) {
+          decodedMetadata = decoded;
+        }
+      }
+    } catch (e) {
+      // P1: Fail-safe for corrupted JSON in metadata
+      print('[MISSION REPO] Metadata decode failed for ${data.id}');
+    }
+
     return Mission(
       id: data.id,
       title: data.title,
@@ -88,9 +126,7 @@ class MissionRepositoryImpl implements IMissionRepository {
       alignmentScore: data.alignmentScore,
       createdAt: data.createdAt,
       completedAt: data.completedAt,
-      metadata: data.metadata != null 
-          ? json.decode(data.metadata!) as Map<String, dynamic> 
-          : {},
+      metadata: decodedMetadata,
     );
   }
 }

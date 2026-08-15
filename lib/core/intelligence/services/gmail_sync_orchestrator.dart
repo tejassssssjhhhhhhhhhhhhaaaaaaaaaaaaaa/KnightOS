@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:collection/collection.dart';
 import 'package:googleapis/gmail/v1.dart' as gmail;
-import 'package:http/http.dart' as http;
+import '../domain/historical_sync_models.dart';
 import 'sync_orchestrator.dart';
 import '../../internal/storage/drift/knight_database.dart';
 import '../../internal/utils/knight_logger.dart';
@@ -31,17 +31,15 @@ class GmailSyncOrchestrator extends SyncOrchestrator {
     await updateCursor('sync_status', 'in_progress');
 
     try {
-      final headers = await authService.getAuthHeaders();
-      final client = _AuthenticatedClient(headers, http.Client());
+      final client = await authService.getAuthenticatedClient();
       final gmailApi = gmail.GmailApi(client);
 
       final lastHistoryId = await getCursor('last_history_id');
       final batchId = 'batch-${DateTime.now().millisecondsSinceEpoch}';
 
       if (lastHistoryId == null) {
-        // Fallback to phased if no historyId
-        final currentPhase = int.tryParse(await getCursor('sync_phase') ?? '1') ?? 1;
-        await _runPhasedSync(gmailApi, currentPhase, batchId);
+        // --- Historical Deep Sync (D1.3.2 Sliced Implementation) ---
+        await _runSlicedHistoricalSync(gmailApi, batchId);
       } else {
         // Incremental Sync (Forwards)
         await _runIncrementalSync(gmailApi, lastHistoryId, batchId);
@@ -64,42 +62,102 @@ class GmailSyncOrchestrator extends SyncOrchestrator {
     }
   }
 
-  Future<void> syncMonth(int year, int month) async {
-    final headers = await authService.getAuthHeaders();
-    final client = _AuthenticatedClient(headers, http.Client());
-    final api = gmail.GmailApi(client);
-    final batchId = 'historical-$year-$month';
+  /// New sliced historical ingestion logic (D1.3.2).
+  /// Replaces the legacy nested loop with a resumable temporal crawl.
+  Future<void> _runSlicedHistoricalSync(gmail.GmailApi api, String batchId) async {
+    HistoricalSyncState state = await getHistoricalState();
 
-    final end = DateTime(year, month + 1, 1).subtract(const Duration(seconds: 1));
+    // 1. Discovery / Initialization
+    if (state.status == 'pending' || state.rangeStart == null) {
+      final now = DateTime.now();
+      final start = DateTime(now.year - 5, now.month, now.day);
+      await initHistoricalJob(start, now);
+      state = await getHistoricalState();
+    }
+
+    if (state.isCompleted) {
+      KnightLogger.info('[GMAIL] Historical ingestion already completed.');
+      await anchorToPresent();
+      return;
+    }
+
+    KnightLogger.info('[GMAIL] Resuming historical crawl from ${state.nextSliceStart}');
+
+    // 2. Process Slices (30-day windows)
+    const sliceWindow = Duration(days: 30);
     
-    // P0: Deep target financial transaction alerts to ensure Dashboard populates first
-    final query = 'after:${year}/${month.toString().padLeft(2, '0')}/01 '
-                  'before:${end.year}/${end.month.toString().padLeft(2, '0')}/${end.day.toString().padLeft(2, '0')} '
-                  '("credited" OR "debited" OR "spent" OR "transaction alert" OR "statement" OR "invoice" OR "order confirmation")';
+    while (!state.isCompleted) {
+       final sliceStart = state.nextSliceStart!;
+       final sliceEnd = state.calculateNextSliceEnd(sliceWindow)!;
+       
+       try {
+         await _fetchAndProcessSlice(api, sliceStart, sliceEnd, batchId);
+         
+         // 3. Persistent Checkpoint
+         await completeHistoricalSlice(sliceEnd);
+         
+         // Update local state for loop condition
+         state = await getHistoricalState();
+       } catch (e) {
+         await recordHistoricalFailure(e.toString());
+         rethrow;
+       }
 
-    KnightLogger.info('[GMAIL] Syncing Month: $year-$month Query: $query');
+       // Yield to allow background worker to check for cancellation or handle other tasks
+       await Future.delayed(const Duration(milliseconds: 100));
+    }
+    
+    await anchorToPresent();
+  }
+
+  /// Fetches all messages within a specific temporal slice using pagination.
+  Future<void> _fetchAndProcessSlice(
+    gmail.GmailApi api, 
+    DateTime start, 
+    DateTime end, 
+    String batchId
+  ) async {
+    // Gmail Query: YYYY/MM/DD (Note: Gmail is inclusive 'after' and exclusive 'before' usually)
+    // We use a query that targets financial and general activity to build the life picture.
+    final q = 'after:${start.year}/${start.month.toString().padLeft(2, '0')}/${start.day.toString().padLeft(2, '0')} '
+              'before:${end.year}/${end.month.toString().padLeft(2, '0')}/${end.day.toString().padLeft(2, '0')} '
+              '("credited" OR "debited" OR "spent" OR "transaction alert" OR "statement" OR "invoice" OR "order confirmation")';
+
+    KnightLogger.info('[GMAIL] Fetching Slice: ${start.toIso8601String()} -> ${end.toIso8601String()}');
 
     String? pageToken;
     do {
-      final listResponse = await api.users.messages.list('me', q: query, pageToken: pageToken, maxResults: 100);
+      final listResponse = await api.users.messages.list(
+        'me', 
+        q: q, 
+        pageToken: pageToken, 
+        maxResults: 100
+      );
+      
       final messages = listResponse.messages ?? [];
-
       if (messages.isNotEmpty) {
         await _processMessageBatch(api, messages, batchId);
       }
-
+      
       pageToken = listResponse.nextPageToken;
     } while (pageToken != null);
   }
 
   Future<void> anchorToPresent() async {
-    final headers = await authService.getAuthHeaders();
-    final client = _AuthenticatedClient(headers, http.Client());
+    final client = await authService.getAuthenticatedClient();
     final api = gmail.GmailApi(client);
     
-    final profile = await api.users.getProfile('me');
-    if (profile.historyId != null) {
-      await updateCursor('last_history_id', profile.historyId!);
+    try {
+      final profile = await api.users.getProfile('me');
+      if (profile.historyId != null) {
+        await updateCursor('last_history_id', profile.historyId!);
+      }
+      if (profile.messagesTotal != null) {
+        await updateCursor('total_messages_on_google', profile.messagesTotal!.toString());
+        KnightLogger.info('[GMAIL] Authoritative total on Google: ${profile.messagesTotal}');
+      }
+    } catch (e) {
+      KnightLogger.error('[GMAIL] Failed to anchor to present', error: e);
     }
   }
 
@@ -180,6 +238,8 @@ class GmailSyncOrchestrator extends SyncOrchestrator {
     int indexed = 0;
     int duplicates = 0;
 
+    fetchedCount += partialMessages.length;
+
     for (final partial in partialMessages) {
       if (partial.id == null) continue;
 
@@ -189,53 +249,60 @@ class GmailSyncOrchestrator extends SyncOrchestrator {
       final existing = await db.gmailMessageDao.getByMessageId(partial.id!);
       if (existing != null) {
         duplicates++;
+        skippedCount++;
         continue;
       }
 
-      final message = await api.users.messages.get('me', partial.id!);
-      
-      KnightLogger.info('[GMAIL] Processing message: ${message.id} Subject: ${_getHeader(message.payload?.headers, 'Subject')}');
+      try {
+        final message = await api.users.messages.get('me', partial.id!);
+        
+        KnightLogger.info('[GMAIL] Processing message: ${message.id} Subject: ${_getHeader(message.payload?.headers, 'Subject')}');
 
-      await db.gmailMessageDao.upsertMessage(GmailMessageTableCompanion.insert(
-        id: message.id!,
-        threadId: message.threadId!,
-        historyId: message.historyId!,
-        subject: _getHeader(message.payload?.headers, 'Subject'),
-        sender: _getHeader(message.payload?.headers, 'From'),
-        recipients: _getHeader(message.payload?.headers, 'To'),
-        messageDate: DateTime.fromMillisecondsSinceEpoch(int.tryParse(message.internalDate ?? '0') ?? 0),
-        labels: jsonEncode(message.labelIds ?? []),
-        snippet: message.snippet ?? '',
-        internalDate: BigInt.from(int.tryParse(message.internalDate ?? '0') ?? 0),
-        originAccount: accountEmail,
-        rawMetadata: Value(jsonEncode(message.toJson())),
-        syncStatus: const Value('synced'),
-      ));
-      
-      KnightLogger.info('[GMAIL] Successfully saved message to DB: ${message.id}');
-
-      // P0: Create Journal Entry for Finance Audit Engine
-      await db.into(db.financeSyncJournalTable).insert(
-        FinanceSyncJournalTableCompanion.insert(
+        await db.gmailMessageDao.upsertMessage(GmailMessageTableCompanion.insert(
           id: message.id!,
-          messageId: message.id!,
-          parserVersion: '1.0.0',
-          processingResult: 'Discovered',
-          processedAt: DateTime.now(),
-        ),
-        mode: InsertMode.insertOrIgnore,
-      );
+          threadId: message.threadId!,
+          historyId: message.historyId!,
+          subject: _getHeader(message.payload?.headers, 'Subject'),
+          sender: _getHeader(message.payload?.headers, 'From'),
+          recipients: _getHeader(message.payload?.headers, 'To'),
+          messageDate: DateTime.fromMillisecondsSinceEpoch(int.tryParse(message.internalDate ?? '0') ?? 0),
+          labels: jsonEncode(message.labelIds ?? []),
+          snippet: message.snippet ?? '',
+          internalDate: BigInt.from(int.tryParse(message.internalDate ?? '0') ?? 0),
+          originAccount: accountEmail,
+          rawMetadata: Value(jsonEncode(message.toJson())),
+          syncStatus: const Value('synced'),
+        ));
+        
+        KnightLogger.info('[GMAIL] Successfully saved message to DB: ${message.id}');
 
-      indexed++;
+        // P0: Create Journal Entry for Finance Audit Engine
+        await db.into(db.financeSyncJournalTable).insert(
+          FinanceSyncJournalTableCompanion.insert(
+            id: message.id!,
+            messageId: message.id!,
+            parserVersion: '1.0.0',
+            processingResult: 'Discovered',
+            processedAt: DateTime.now(),
+          ),
+          mode: InsertMode.insertOrIgnore,
+        );
 
-      await db.syncTaskDao.into(db.syncTaskQueueTable).insert(SyncTaskQueueTableCompanion.insert(
-        id: 'classify-${message.id}',
-        providerId: providerId,
-        taskType: 'classify_email',
-        payload: jsonEncode({'messageId': message.id, 'batchId': batchId}),
-        priority: const Value(3),
-        updatedAt: Value(DateTime.now()),
-      ), mode: InsertMode.insertOrIgnore);
+        createdCount++;
+        indexed++;
+
+        await db.syncTaskDao.into(db.syncTaskQueueTable).insert(SyncTaskQueueTableCompanion.insert(
+          id: 'classify-${message.id}',
+          providerId: providerId,
+          taskType: 'classify_email',
+          payload: jsonEncode({'messageId': message.id, 'batchId': batchId}),
+          priority: const Value(3),
+          updatedAt: Value(DateTime.now()),
+        ), mode: InsertMode.insertOrIgnore);
+      } catch (e) {
+        KnightLogger.error('[GMAIL] Failed to process message ${partial.id}', error: e);
+        failedCount++;
+      }
     }
 
     return _BatchResult(indexed: indexed, duplicates: duplicates);
@@ -247,7 +314,7 @@ class GmailSyncOrchestrator extends SyncOrchestrator {
     final grouped = groupBy(allMessages, (m) => m.id);
     
     for (final entry in grouped.entries) {
-      if (entry.value.length > 1) {
+      if (entry.value.isNotEmpty && entry.value.length > 1) {
         final toDelete = entry.value.skip(1);
         for (final d in toDelete) {
           await (db.delete(db.gmailMessageTable)..where((t) => t.id.equals(d.id))).go();
@@ -258,7 +325,7 @@ class GmailSyncOrchestrator extends SyncOrchestrator {
     final journal = await db.select(db.financeSyncJournalTable).get();
     final journalGrouped = groupBy(journal, (j) => j.messageId);
     for (final entry in journalGrouped.entries) {
-      if (entry.value.length > 1) {
+      if (entry.value.isNotEmpty && entry.value.length > 1) {
         final toDelete = entry.value.skip(1);
         for (final d in toDelete) {
           await (db.delete(db.financeSyncJournalTable)..where((t) => t.id.equals(d.id))).go();
@@ -277,18 +344,5 @@ class GmailSyncOrchestrator extends SyncOrchestrator {
     if (headers == null) return '';
     final header = (headers as List).firstWhereOrNull((h) => h.name == name);
     return header?.value ?? '';
-  }
-}
-
-class _AuthenticatedClient extends http.BaseClient {
-  final Map<String, String> _headers;
-  final http.Client _inner;
-
-  _AuthenticatedClient(this._headers, this._inner);
-
-  @override
-  Future<http.StreamedResponse> send(http.BaseRequest request) {
-    request.headers.addAll(_headers);
-    return _inner.send(request);
   }
 }

@@ -150,6 +150,7 @@ class FinancePlatformDao extends DatabaseAccessor<KnightDatabase> with _$Finance
     List<String> types = const [],
     DateTime? start,
     DateTime? end,
+    double? minConfidence,
     int limit = 100,
     int offset = 0,
   }) {
@@ -178,6 +179,10 @@ class FinancePlatformDao extends DatabaseAccessor<KnightDatabase> with _$Finance
     }
     if (end != null) {
       statement.where((t) => t.transactionDate.isSmallerOrEqualValue(end));
+    }
+
+    if (minConfidence != null) {
+      statement.where((t) => t.confidenceScore.isBiggerOrEqualValue(minConfidence));
     }
 
     statement.orderBy([(t) => OrderingTerm.desc(t.transactionDate)]);

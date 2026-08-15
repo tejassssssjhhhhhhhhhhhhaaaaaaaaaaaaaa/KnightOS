@@ -1,13 +1,15 @@
 import '../domain/entities/timeline_event.dart';
 import '../domain/repositories/i_timeline_repository.dart';
 import '../internal/utils/knight_logger.dart';
+import '../intelligence/services/vaf_shadow_service.dart';
 import 'package:uuid/uuid.dart';
 
 /// Service for managing the Universal Life Timeline.
 class TimelineService {
-  TimelineService(this._repository);
+  TimelineService(this._repository, {this.vafShadowService});
 
   final ITimelineRepository _repository;
+  final VafShadowService? vafShadowService;
   final _uuid = const Uuid();
 
   /// Records a new event in the timeline.
@@ -36,6 +38,11 @@ class TimelineService {
     );
 
     await _repository.storeEvent(event);
+
+    if (vafShadowService != null) {
+       await vafShadowService!.shadowTimelineEntity(event);
+    }
+
     KnightLogger.info('[TIMELINE] Event recorded: ${event.title} (${event.type.name})');
     return event;
   }

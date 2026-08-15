@@ -15,6 +15,19 @@ class HealthVisualizationService {
   }) async {
     final DateTime startDate = _calculateStartDate(period, endDate);
     
+    if (metricType == 'weight') {
+      final query = db.select(db.bodyMeasurementTable)
+        ..where((t) => t.measurementType.equals('weight'))
+        ..where((t) => t.measuredAt.isBetweenValues(startDate, endDate))
+        ..orderBy([(t) => OrderingTerm.asc(t.measuredAt)]);
+      final measurements = await query.get();
+      final dataPoints = measurements.map((m) => HealthChartDataPoint(
+        x: m.measuredAt.difference(startDate).inDays.toDouble(),
+        y: m.value,
+      )).toList();
+      return HealthChartSeries(metricType: 'weight', dataPoints: dataPoints, unit: 'kg');
+    }
+
     final query = db.select(db.healthMetricTable)
       ..where((t) => t.metricType.equals(metricType))
       ..where((t) => t.startTime.isBetweenValues(startDate, endDate))

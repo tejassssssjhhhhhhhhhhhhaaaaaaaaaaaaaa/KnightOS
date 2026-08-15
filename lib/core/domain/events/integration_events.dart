@@ -84,3 +84,66 @@ class EvidenceVerified extends IntegrationEvent {
   @override
   List<Object?> get props => [evidenceId, ...super.props];
 }
+
+/// Granular pipeline stage events for real-time visualization.
+abstract class PipelineStageEvent extends IntegrationEvent {
+  const PipelineStageEvent({
+    required super.connectorId,
+    required super.timestamp,
+    required this.stage,
+    required this.humanExplanation,
+    required this.technicalDetail,
+    this.resourceId,
+    this.metadata,
+  });
+
+  final String stage;
+  final String humanExplanation;
+  final String technicalDetail;
+  final String? resourceId;
+  final Map<String, dynamic>? metadata;
+
+  @override
+  List<Object?> get props => [stage, humanExplanation, technicalDetail, resourceId, metadata, ...super.props];
+}
+
+class PipelineStageStarted extends PipelineStageEvent {
+  const PipelineStageStarted({
+    required super.connectorId,
+    required super.timestamp,
+    required super.stage,
+    required super.humanExplanation,
+    required super.technicalDetail,
+    super.resourceId,
+    super.metadata,
+  });
+}
+
+class PipelineStageCompleted extends PipelineStageEvent {
+  const PipelineStageCompleted({
+    required super.connectorId,
+    required super.timestamp,
+    required super.stage,
+    required super.humanExplanation,
+    required super.technicalDetail,
+    super.resourceId,
+    super.metadata,
+  });
+}
+
+class PipelineStageFailed extends PipelineStageEvent {
+  const PipelineStageFailed({
+    required super.connectorId,
+    required super.timestamp,
+    required super.stage,
+    required super.humanExplanation,
+    required super.technicalDetail,
+    required this.error,
+    super.resourceId,
+    super.metadata,
+  });
+  final String error;
+
+  @override
+  List<Object?> get props => [error, ...super.props];
+}

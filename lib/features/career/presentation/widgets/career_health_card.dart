@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/design_system/design_constants.dart';
+import '../../../../core/router/app_routes.dart';
 
 class CareerHealthCard extends StatelessWidget {
   const CareerHealthCard({
@@ -17,64 +19,68 @@ class CareerHealthCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: DesignColors.surfaceHigh.withValues(alpha: 0.6),
-        borderRadius: DesignRadius.card,
-        border: Border.all(color: DesignColors.white05),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Career Health',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: DesignColors.secondary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: DesignColors.career.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Text(
-                  'EXCELLENT',
-                  style: TextStyle(
-                    color: DesignColors.career,
-                    fontSize: 10,
+    return InkWell(
+      onTap: () => context.push(AppRoutes.careerDna),
+      borderRadius: DesignRadius.card,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: DesignColors.surfaceHigh.withValues(alpha: 0.6),
+          borderRadius: DesignRadius.card,
+          border: Border.all(color: DesignColors.white05),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Career Health',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: DesignColors.secondary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          _HealthMetricRow(
-            label: 'Career Momentum',
-            value: momentum,
-            color: DesignColors.career,
-          ),
-          const SizedBox(height: 16),
-          _HealthMetricRow(
-            label: 'Skill Growth (Monthly)',
-            value: skillGrowth,
-            color: DesignColors.accentCyan,
-            isPercentageChange: true,
-          ),
-          const SizedBox(height: 16),
-          _HealthMetricRow(
-            label: 'Learning Progress',
-            value: learningProgress,
-            color: DesignColors.accentPurple,
-          ),
-        ],
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: DesignColors.career.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text(
+                    'STATUS: NOMINAL',
+                    style: TextStyle(
+                      color: DesignColors.career,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            _HealthMetricRow(
+              label: 'Execution Consistency',
+              value: momentum,
+              color: DesignColors.career,
+            ),
+            const SizedBox(height: 16),
+            _HealthMetricRow(
+              label: 'Skill Growth (Monthly)',
+              value: skillGrowth,
+              color: DesignColors.accentCyan,
+              isPercentageChange: true,
+            ),
+            const SizedBox(height: 16),
+            _HealthMetricRow(
+              label: 'Knowledge Acquisition',
+              value: learningProgress,
+              color: DesignColors.accentPurple,
+            ),
+          ],
+        ),
       ),
     );
   }

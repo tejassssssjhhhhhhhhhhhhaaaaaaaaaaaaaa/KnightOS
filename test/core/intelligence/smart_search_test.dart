@@ -9,7 +9,7 @@ import 'package:knight_os/core/intelligence/domain/memory_domain.dart';
 class MockMemoryEngine extends Fake implements MemoryEngine {
   List<KnightMemory> memories = [];
   @override
-  Future<List<KnightMemory>> search(String query) async => memories;
+  Future<List<KnightMemory>> search(String query, {int? limit}) async => memories;
 }
 
 void main() {
@@ -52,3 +52,4 @@ void main() {
     });
   });
 }
+

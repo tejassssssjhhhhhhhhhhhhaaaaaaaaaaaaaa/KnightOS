@@ -1,4 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:drift/drift.dart';
+import '../../../../core/internal/storage/drift/knight_database.dart';
 import '../../domain/finance_budget_models.dart';
 import '../../platform/providers/finance_platform_providers.dart';
 import '../../../../core/providers/database_provider.dart';
@@ -73,5 +75,32 @@ class FinanceBudgetController extends AsyncNotifier<BudgetSummary> {
   Future<void> refresh() async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() => _fetchSummary());
+  }
+
+  Future<void> createBudget({
+    required String name,
+    required double amount,
+    required String type,
+    String? targetId,
+  }) async {
+    final dao = ref.read(financePlatformDaoProvider);
+    final now = DateTime.now();
+    
+    await dao.insertBudget(FinanceBudgetTableCompanion.insert(
+      id: 'bud-${now.millisecondsSinceEpoch}',
+      name: name,
+      type: type,
+      allocatedAmount: amount,
+      startDate: now,
+      isActive: const Value(true),
+      period: const Value('monthly'),
+      targetId: Value(targetId),
+      createdAt: Value(now),
+      updatedAt: Value(now),
+      version: const Value(1),
+      syncStatus: const Value('local'),
+    ));
+
+    await refresh();
   }
 }

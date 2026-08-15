@@ -53,4 +53,10 @@ class FinancialDao extends DatabaseAccessor<KnightDatabase> with _$FinancialDaoM
     }
     return total;
   }
+
+  Stream<double> watchTotalBalance() {
+    return (selectOnly(transactionTable)..addColumns([transactionTable.amount.sum()]))
+        .watch()
+        .map((rows) => rows.first.read(transactionTable.amount.sum()) ?? 0.0);
+  }
 }

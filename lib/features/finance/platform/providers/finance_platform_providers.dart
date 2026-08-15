@@ -9,7 +9,8 @@ import '../engine/repair_engine.dart';
 import '../sync/smart_sync_engine.dart';
 import '../sync/finance_inbox_service.dart';
 import '../../../../core/internal/storage/drift/knight_database.dart';
-import '../../../../core/services/google_auth_service.dart';
+
+import '../../../../core/intelligence/providers/intelligence_providers.dart';
 
 final financePlatformDaoProvider = Provider<FinancePlatformDao>((ref) {
   final db = ref.watch(knightDatabaseProvider);
@@ -40,7 +41,13 @@ final financeEvidenceVaultProvider = Provider<FinanceEvidenceVault>((ref) {
   final db = ref.watch(knightDatabaseProvider);
   final dao = ref.watch(financePlatformDaoProvider);
   final parserEngine = ref.watch(financeParserEngineProvider);
-  return FinanceEvidenceVault(db: db, parserEngine: parserEngine, dao: dao);
+  final vafShadow = ref.watch(vafShadowServiceProvider);
+  return FinanceEvidenceVault(
+    db: db, 
+    parserEngine: parserEngine, 
+    dao: dao,
+    vafShadowService: vafShadow,
+  );
 });
 
 final repairEngineProvider = Provider<RepairEngine>((ref) {

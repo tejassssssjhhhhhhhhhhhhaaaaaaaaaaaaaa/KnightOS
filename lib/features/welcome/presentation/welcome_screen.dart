@@ -53,6 +53,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   setState(() {
                     _isProcessing = false;
                   });
+                }
+                if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Failed to start: $e')),
                   );

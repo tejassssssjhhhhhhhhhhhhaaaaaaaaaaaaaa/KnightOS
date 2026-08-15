@@ -35,6 +35,21 @@ class AutonomousService {
         .map((_) => engine.pendingApprovals);
   }
 
+  /// Proactively requests approval for a system-level action.
+  Future<ApprovalStatus> requestSystemAction({
+    required String id,
+    required String action,
+    required String reasoning,
+    ApprovalRisk risk = ApprovalRisk.medium,
+  }) {
+    return engine.requestApproval(
+      id: id,
+      actionDescription: action,
+      reasoning: reasoning,
+      riskLevel: risk,
+    );
+  }
+
   List<WorkflowState> _getActiveStates() {
     // This is a simplified fetch from the engine's internal map
     // In a real app, the engine would provide a proper stream.

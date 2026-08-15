@@ -34,7 +34,7 @@ class WorkspaceExtractionEngine {
 
     return KnightMemory.create(
       memoryId: 'workspace-email-$id',
-      category: BookCategory.communication,
+      category: BookCategory.social,
       domain: MemoryDomain.knowledge,
       source: MemorySource.imported,
       provenance: 'gmail_api',
@@ -67,7 +67,7 @@ class WorkspaceExtractionEngine {
 
     return KnightMemory.create(
       memoryId: 'workspace-cal-$id',
-      category: BookCategory.upcoming,
+      category: BookCategory.ambitions,
       domain: MemoryDomain.dailyRoutine,
       source: MemorySource.imported,
       provenance: 'google_calendar_api',
@@ -97,7 +97,7 @@ class WorkspaceExtractionEngine {
 
     return KnightMemory.create(
       memoryId: 'workspace-drive-$id',
-      category: BookCategory.knowledge,
+      category: BookCategory.skills,
       domain: MemoryDomain.documents,
       source: MemorySource.imported,
       provenance: 'google_drive_api',

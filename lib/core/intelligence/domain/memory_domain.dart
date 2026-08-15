@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 /// Represents the 30 foundational domains of the Knight Knowledge Base ontology.
 enum MemoryDomain {
   identity(1, "Identity"),
@@ -38,6 +40,36 @@ enum MemoryDomain {
 
   /// The human-readable label of the domain.
   final String label;
+
+  IconData get icon {
+    switch (this) {
+      case MemoryDomain.identity: return Icons.person_rounded;
+      case MemoryDomain.health: return Icons.favorite_rounded;
+      case MemoryDomain.finance: return Icons.account_balance_wallet_rounded;
+      case MemoryDomain.travel: return Icons.flight_takeoff_rounded;
+      case MemoryDomain.career: return Icons.work_rounded;
+      case MemoryDomain.goals: return Icons.track_changes_rounded;
+      case MemoryDomain.memories: return Icons.history_rounded;
+      case MemoryDomain.documents: return Icons.description_rounded;
+      case MemoryDomain.knowledge: return Icons.psychology_rounded;
+      default: return Icons.extension_rounded;
+    }
+  }
+
+  Color get color {
+    switch (this) {
+      case MemoryDomain.identity: return Colors.white;
+      case MemoryDomain.health: return Colors.redAccent;
+      case MemoryDomain.finance: return Colors.greenAccent;
+      case MemoryDomain.travel: return Colors.blueAccent;
+      case MemoryDomain.career: return Colors.indigoAccent;
+      case MemoryDomain.goals: return Colors.cyanAccent;
+      case MemoryDomain.memories: return Colors.amberAccent;
+      case MemoryDomain.documents: return Colors.blueGrey;
+      case MemoryDomain.knowledge: return Colors.orangeAccent;
+      default: return Colors.white24;
+    }
+  }
 
   /// Factory to get domain by ID.
   static MemoryDomain fromId(int id) {

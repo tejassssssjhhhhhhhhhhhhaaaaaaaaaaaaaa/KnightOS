@@ -45,7 +45,7 @@ class FakeMemoryRepository implements MemoryRepository {
   @override
   Future<List<KnightMemory>> getHistory(String id) async => [];
   @override
-  Future<List<KnightMemory>> search(String query) async {
+  Future<List<KnightMemory>> search(String query, {int? limit}) async {
     if (query.isEmpty) return memories;
     return memories.where((m) => m.summary?.contains(query) ?? false).toList();
   }
@@ -139,3 +139,4 @@ void main() {
     );
   });
 }
+

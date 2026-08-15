@@ -197,7 +197,7 @@ class DriftMemoryRepository implements MemoryRepository {
         isLatest: data.isLatest,
         verified: data.verified,
         lastVerifiedAt: data.lastVerifiedAt,
-        verificationHistory: data.verificationHistory != null
+        verificationHistory: (data.verificationHistory != null && data.verificationHistory!.isNotEmpty)
             ? (jsonDecode(data.verificationHistory!) as List<dynamic>)
                   .cast<Map<String, dynamic>>()
             : const [],
@@ -205,7 +205,7 @@ class DriftMemoryRepository implements MemoryRepository {
         tags: data.tags.isEmpty ? [] : data.tags.split(','),
         knowledgeState: KnowledgeState.values.byName(data.knowledgeState),
         explanation: data.explanation,
-        embedding: data.embedding != null
+        embedding: (data.embedding != null && data.embedding!.isNotEmpty)
             ? (jsonDecode(data.embedding!) as List<dynamic>).cast<double>()
             : null,
       ),
@@ -214,7 +214,7 @@ class DriftMemoryRepository implements MemoryRepository {
         previousVersionId: data.prevVersionId,
         changeType: ChangeType.values.byName(data.changeType),
         reasoning: data.reasoning,
-        delta: data.delta != null ? jsonDecode(data.delta!) : {},
+        delta: (data.delta != null && data.delta!.isNotEmpty) ? jsonDecode(data.delta!) : {},
       ),
       content: jsonDecode(data.content),
       summary: data.summary,

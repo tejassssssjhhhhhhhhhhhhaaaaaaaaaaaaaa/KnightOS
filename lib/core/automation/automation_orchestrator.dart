@@ -6,6 +6,7 @@ import '../intelligence/engines/memory_engine.dart';
 import '../intelligence/intelligence_bus.dart';
 import '../intelligence/services/google_data_hub.dart';
 import '../intelligence/services/sync_task_service.dart';
+import '../intelligence/providers/intelligence_providers.dart';
 import 'package:knight_os/core/internal/utils/knight_logger.dart';
 
 /// Orchestrates the entire Version 5 automation system.
@@ -30,6 +31,7 @@ class AutomationOrchestrator {
     
     // 1. Initialize Intelligence Subsystems
     ref.read(syncTaskServiceProvider.notifier).startPolling();
+    ref.read(userIdentityServiceProvider); // Ensure identity syncing is active
     
     // 2. Trigger Google Data Hub Synchronization (Delayed to avoid startup ANR)
     Future.delayed(const Duration(seconds: 5), () {

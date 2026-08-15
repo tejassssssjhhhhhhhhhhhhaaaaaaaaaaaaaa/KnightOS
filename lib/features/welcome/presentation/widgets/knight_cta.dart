@@ -2,17 +2,17 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:knight_os/core/theme/knight_theme_extensions.dart';
 
-class PremiumCTA extends StatefulWidget {
-  const PremiumCTA({super.key, required this.onPressed, required this.label});
+class KnightCTA extends StatefulWidget {
+  const KnightCTA({super.key, required this.onPressed, required this.label});
 
   final VoidCallback onPressed;
   final String label;
 
   @override
-  State<PremiumCTA> createState() => _PremiumCTAState();
+  State<KnightCTA> createState() => _KnightCTAState();
 }
 
-class _PremiumCTAState extends State<PremiumCTA> with TickerProviderStateMixin {
+class _KnightCTAState extends State<KnightCTA> with TickerProviderStateMixin {
   bool _isPressed = false;
 
   late final AnimationController _entranceController;
@@ -70,10 +70,10 @@ class _PremiumCTAState extends State<PremiumCTA> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final premiumTheme = theme.extension<KnightPremiumTheme>();
+    final horizonTheme = theme.extension<KnightHorizonTheme>();
 
-    final accentColor = premiumTheme?.accentColor ?? Colors.white;
-    final glassBlur = premiumTheme?.glassBlur ?? 20.0;
+    final accentColor = horizonTheme?.accentColor ?? Colors.white;
+    final glassBlur = horizonTheme?.glassBlur ?? 20.0;
 
     return FadeTransition(
       opacity: _opacity,

@@ -18,13 +18,25 @@ class NotificationEngine {
   ) {
     final List<KnightNotification> generated = [];
 
-    // 1. Mute Logic (Deep Work)
-    final currentActivity = context.workSummary.productivityPlaceholder.contains('Focus') 
-        ? 'Working' 
-        : 'Active';
-    final isMuted = currentActivity == 'Working';
+    // 1. Mute Logic (Deep Work / Relaxation)
+    final isWorking = context.workSummary.productivityPlaceholder.contains('Focus');
+    final isRelaxed = context.isRelaxationMode;
+    final isMuted = isWorking || isRelaxed;
 
-    // 2. Map high-priority recommendations
+    // 2. Health Monitoring
+    if (!isRelaxed && context.steps < 2000 && DateTime.now().hour > 14) {
+      generated.add(KnightNotification(
+        id: 'notif-health-lag',
+        title: 'Vitality Check',
+        body: 'Activity levels are lower than your baseline. 15-min walk recommended.',
+        category: NotificationCategory.health,
+        priority: NotificationPriority.medium,
+        timestamp: DateTime.now(),
+        actionLabel: 'Plan Walk',
+      ));
+    }
+
+    // 3. Map high-priority recommendations
     for (final rec in reasoning.recommendations) {
       final priority = _mapPriority(rec.priority);
       

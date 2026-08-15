@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../core/design_system/design_constants.dart';
+import '../../core/design_system/knight_tokens.dart';
 
 /// A prominent call-to-action card for the Home screen.
 class HomeCtaCard extends StatelessWidget {
@@ -25,87 +27,69 @@ class HomeCtaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Semantics(
       label: '$title. $subtitle',
       button: onTap != null,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(32),
-          boxShadow: [
-            BoxShadow(
-              color: theme.colorScheme.primary.withValues(alpha: 0.15),
-              blurRadius: 24,
-              offset: const Offset(0, 8),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(DesignSpacing.xl),
+          decoration: BoxDecoration(
+            color: DesignColors.surfaceHigh.withValues(alpha: 0.6),
+            borderRadius: DesignRadius.card,
+            border: Border.all(
+              color: DesignColors.accentBlue.withValues(alpha: 0.2),
+              width: 0.5,
             ),
-          ],
-        ),
-        child: Card(
-          elevation: 0,
-          clipBehavior: Clip.antiAlias,
-          color: theme.colorScheme.primaryContainer,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(32),
-            side: BorderSide(
-              color: theme.colorScheme.primary.withValues(alpha: 0.2),
-              width: 1.5,
-            ),
-          ),
-          child: InkWell(
-            onTap: onTap,
-            child: Padding(
-              padding: const EdgeInsets.all(28),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.w900,
-                            color: theme.colorScheme.onPrimaryContainer,
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          subtitle,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onPrimaryContainer
-                                .withValues(alpha: 0.75),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  ExcludeSemantics(
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.onPrimaryContainer.withValues(
-                          alpha: 0.12,
-                        ),
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: theme.colorScheme.onPrimaryContainer
-                              .withValues(alpha: 0.1),
-                        ),
-                      ),
-                      child: Icon(
-                        icon,
-                        size: 36,
-                        color: theme.colorScheme.onPrimaryContainer,
-                      ),
-                    ),
-                  ),
-                ],
+            boxShadow: [
+              BoxShadow(
+                color: DesignColors.accentBlue.withValues(alpha: 0.05),
+                blurRadius: 30,
+                offset: const Offset(0, 10),
               ),
-            ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      subtitle,
+                      style: KnightTokens.subheadline,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: DesignColors.accentBlue.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: DesignColors.accentBlue.withValues(alpha: 0.2),
+                  ),
+                ),
+                child: Icon(
+                  icon,
+                  size: 28,
+                  color: DesignColors.accentBlue,
+                ),
+              ),
+            ],
           ),
         ),
       ),

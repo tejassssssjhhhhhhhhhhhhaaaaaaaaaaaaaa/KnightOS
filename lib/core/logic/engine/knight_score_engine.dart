@@ -149,15 +149,15 @@ class KnightScoreEngine {
 
   String _scoreLabel(int score) {
     if (score >= 85) {
-      return 'Excellent';
+      return 'Optimal';
     }
     if (score >= 70) {
-      return 'Strong';
+      return 'Nominal';
     }
     if (score >= 50) {
       return 'Steady';
     }
-    return 'Needs attention';
+    return 'Sub-optimal';
   }
 
   String _scoreColor(int score) {

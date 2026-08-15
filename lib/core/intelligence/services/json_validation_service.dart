@@ -22,16 +22,11 @@ class JsonValidationService {
     MemoryDomain domain,
     Map<String, dynamic> content,
   ) async {
-    try {
-      final schema = await _getSchema(domain);
-      final result = schema.validate(content);
+    final schema = await _getSchema(domain);
+    final result = schema.validate(content);
 
-      if (!result.isValid) {
-        // Log validation errors but don't block the platform in RC2
-        // throw ValidationException(result.errors.map((e) => e.message).toList());
-      }
-    } catch (_) {
-      // Ignore validation errors to ensure data ingestion continues
+    if (!result.isValid) {
+      throw ValidationException(result.errors.map((e) => e.message).toList());
     }
   }
 
@@ -45,11 +40,11 @@ class JsonValidationService {
 
     try {
       final schemaJson = await rootBundle.loadString(assetPath);
-      // P0: Use synchronous create for reliability in RC2
       final schema = JsonSchema.create(jsonDecode(schemaJson));
       _schemaCache[domain.id] = schema;
       return schema;
     } catch (e) {
+       // If schema asset missing, fall back to open object schema
        return JsonSchema.create({'type': 'object'}); 
     }
   }

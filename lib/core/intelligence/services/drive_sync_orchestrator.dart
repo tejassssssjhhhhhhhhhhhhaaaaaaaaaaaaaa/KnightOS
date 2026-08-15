@@ -22,8 +22,7 @@ class DriveSyncOrchestrator extends SyncOrchestrator {
     await updateCursor('sync_status', 'in_progress');
 
     try {
-      final headers = await authService.getAuthHeaders();
-      final client = _AuthenticatedClient(headers, http.Client());
+      final client = await authService.getAuthenticatedClient();
       final driveApi = drive.DriveApi(client);
 
       await _runFullScan(driveApi);
@@ -51,6 +50,7 @@ class DriveSyncOrchestrator extends SyncOrchestrator {
       );
 
       if (response.files != null) {
+        fetchedCount += response.files!.length;
         for (final file in response.files!) {
           await _processFile(file);
           processed++;
@@ -64,25 +64,33 @@ class DriveSyncOrchestrator extends SyncOrchestrator {
   }
 
   Future<void> _processFile(drive.File file) async {
-    if (file.id == null) return;
+    if (file.id == null) {
+      skippedCount++;
+      return;
+    }
 
     final accountEmail = authService.currentUser?.email ?? 'unknown';
 
-    await db.googleResourceDao.upsertResource(GoogleResourceTableCompanion.insert(
-      id: file.id!,
-      resourceType: 'drive',
-      title: file.name ?? 'Untitled',
-      resourceDate: file.modifiedTime ?? DateTime.now(),
-      metadata: Value(jsonEncode({
-        'mimeType': file.mimeType,
-        'size': file.size,
-        'webViewLink': file.webViewLink,
-        'owners': file.owners?.map((o) => o.emailAddress).toList(),
-      })),
-      originAccount: accountEmail,
-      rawMetadata: Value(jsonEncode(file.toJson())),
-      syncStatus: const Value('synced'),
-    ));
+    try {
+      await db.googleResourceDao.upsertResource(GoogleResourceTableCompanion.insert(
+        id: file.id!,
+        resourceType: 'drive',
+        title: file.name ?? 'Untitled',
+        resourceDate: file.modifiedTime ?? DateTime.now(),
+        metadata: Value(jsonEncode({
+          'mimeType': file.mimeType,
+          'size': file.size,
+          'webViewLink': file.webViewLink,
+          'owners': file.owners?.map((o) => o.emailAddress).toList(),
+        })),
+        originAccount: accountEmail,
+        rawMetadata: Value(jsonEncode(file.toJson())),
+        syncStatus: const Value('synced'),
+      ));
+      createdCount++;
+    } catch (e) {
+      failedCount++;
+    }
   }
 }
 

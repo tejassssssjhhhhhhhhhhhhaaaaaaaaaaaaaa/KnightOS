@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../core/design_system/design_constants.dart';
+import '../../core/design_system/knight_tokens.dart';
 
+/// A standardized section container for dashboard modules.
 class DashboardSection extends StatelessWidget {
   const DashboardSection({
     required this.title,
@@ -14,43 +17,31 @@ class DashboardSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(DesignSpacing.l),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(
-          alpha: 0.35,
-        ),
-        borderRadius: BorderRadius.circular(24),
+        color: DesignColors.surface.withValues(alpha: 0.5),
+        borderRadius: DesignRadius.card,
         border: Border.all(
-          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.45),
+          color: Colors.white.withValues(alpha: 0.05),
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            title,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.2,
-            ),
+            title.toUpperCase(),
+            style: KnightTokens.label,
           ),
           if (subtitle != null) ...[
-            const SizedBox(height: 2),
+            const SizedBox(height: 4),
             Text(
               subtitle!,
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant.withValues(
-                  alpha: 0.7,
-                ),
-                fontWeight: FontWeight.w500,
-              ),
+              style: KnightTokens.subheadline,
             ),
           ],
-          const SizedBox(height: 16),
+          const SizedBox(height: DesignSpacing.l),
           child,
         ],
       ),

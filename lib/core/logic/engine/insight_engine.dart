@@ -49,7 +49,7 @@ class InsightEngine {
     }
 
     if (sessions.length >= 3) {
-      insights.add('Excellent Consistency');
+      insights.add('Consistent Execution');
     }
 
     if (profileCompletion < 70) {

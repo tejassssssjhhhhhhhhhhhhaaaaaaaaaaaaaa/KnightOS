@@ -59,7 +59,9 @@ class EvidenceRepositoryImpl implements IEvidenceRepository {
       fileSize: data.fileSize,
       ingestedAt: data.ingestedAt,
       storagePath: data.storagePath,
-      extractionData: json.decode(data.extractionData) as Map<String, dynamic>,
+      extractionData: (data.extractionData != null && data.extractionData.isNotEmpty)
+          ? json.decode(data.extractionData) as Map<String, dynamic>
+          : {},
       verificationStatus: EvidenceVerificationStatus.values.firstWhere(
         (e) => e.name == data.verificationStatus,
         orElse: () => EvidenceVerificationStatus.pending,
@@ -70,12 +72,14 @@ class EvidenceRepositoryImpl implements IEvidenceRepository {
         orElse: () => PrivacyClassification.personal,
       ),
       confidence: data.confidence,
-      auditHistory: (json.decode(data.auditHistory) as List).map((e) => EvidenceAuditEntry(
+      auditHistory: (data.auditHistory != null && data.auditHistory.isNotEmpty)
+          ? (json.decode(data.auditHistory) as List).map((e) => EvidenceAuditEntry(
         action: e['action'],
         timestamp: DateTime.parse(e['timestamp']),
         notes: e['notes'],
         userId: e['userId'],
-      )).toList(),
+      )).toList()
+          : [],
     );
   }
 }

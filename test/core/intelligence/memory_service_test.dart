@@ -45,7 +45,7 @@ class MockMemoryRepository implements MemoryRepository {
   }
 
   @override
-  Future<List<KnightMemory>> search(String query) async {
+  Future<List<KnightMemory>> search(String query, {int? limit}) async {
     return _memories.values.expand((l) => l).where((m) => (m.summary ?? '').contains(query)).toList();
   }
 
@@ -160,3 +160,4 @@ void main() {
     });
   });
 }
+

@@ -57,6 +57,11 @@ class KnightContextService {
     List<TripData> activeTrips = const [],
     HealthScores? healthScores,
     String activeActivity = 'stationary',
+    String currentModule = 'system',
+    String currentScreen = '/',
+    KnightDayPeriod period = KnightDayPeriod.day,
+    bool isFocusMode = false,
+    bool isRelaxationMode = false,
   }) {
     final now = timestamp ?? DateTime.now();
     final registeredModules = featureModules
@@ -80,7 +85,7 @@ class KnightContextService {
     final derivedHealth = healthSummary ??
         (recentMemories.any((m) => m.category == BookCategory.health)
             ? 'Vitals synchronized'
-            : 'Vital signs nominal');
+            : 'Parameters: Optimal');
 
     final finalGreeting = greeting ?? const GreetingService().getGreeting(overrideHour: now.hour);
 
@@ -93,8 +98,8 @@ class KnightContextService {
       searchSummary: searchSummary,
       moduleHealth: moduleHealth,
       lastSyncTime: lastSyncTime ?? now,
-      healthStatus: healthStatus,
-      dataFreshness: dataFreshness,
+      healthStatus: 'Status: Nominal',
+      dataFreshness: 'Asynchronized',
       applicationVersion: applicationVersion,
       fitnessSummary: fitnessSummary ?? _defaultFitnessSummary(),
       travelSummary: travelSummary ?? _defaultTravelSummary(),
@@ -132,6 +137,11 @@ class KnightContextService {
       activeTrips: activeTrips,
       healthScores: healthScores,
       activeActivity: activeActivity,
+      currentModule: currentModule,
+      currentScreen: currentScreen,
+      period: period,
+      isFocusMode: isFocusMode,
+      isRelaxationMode: isRelaxationMode,
     );
   }
 

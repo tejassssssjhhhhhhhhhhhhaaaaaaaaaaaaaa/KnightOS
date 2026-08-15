@@ -22,7 +22,7 @@ class HealthMigrationService {
         await db.into(db.workoutSessionTable).insertOnConflictUpdate(WorkoutSessionTableCompanion.insert(
           id: workout.id,
           workoutType: workout.workoutType,
-          durationMinutes: workout.duration.toDouble(),
+          durationMinutes: Value(workout.duration.toDouble()),
           caloriesBurned: Value(workout.caloriesBurned.toDouble()),
           notes: Value(workout.notes),
           startTime: DateTime.tryParse(workout.workoutDate) ?? DateTime.now(),

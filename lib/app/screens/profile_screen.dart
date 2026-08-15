@@ -1,28 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:collection/collection.dart';
 import '../../core/design_system/design_constants.dart';
+import '../../core/design_system/knight_tokens.dart';
 import '../../core/providers/storage_providers.dart';
+import '../../core/providers/google_auth_providers.dart';
 import '../../core/router/app_routes.dart';
 import '../../core/design_system/widgets/knight_circuit_shield.dart';
 import '../../core/internal/services/greeting_service.dart';
+import '../../core/intelligence/knight_context_provider.dart';
+import '../../core/design_system/widgets/usage_transparency_widget.dart';
 import '../widgets/knight_page_scaffold.dart';
 
-class SettingsScreen extends ConsumerStatefulWidget {
-  const SettingsScreen({super.key});
+class ProfileScreen extends ConsumerStatefulWidget {
+  const ProfileScreen({super.key});
 
   @override
-  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   int _devTapCount = 0;
 
   @override
   Widget build(BuildContext context) {
     return KnightPageScaffold(
-      title: 'Settings',
-      showBackButton: true,
+      title: 'Profile',
+      showBackButton: false, // Shell route primary destination
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(DesignSpacing.m),
         child: Column(
@@ -30,6 +35,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           children: [
             const SizedBox(height: 12),
             _buildProfileCard(context, ref),
+            const SizedBox(height: 24),
+            const UsageTransparencyWidget(
+              resourceName: 'Neural Core Usage',
+              used: 12,
+              total: 1000,
+              unit: 'calls',
+              resetInfo: 'Local processing - No technical reset required',
+            ),
             const SizedBox(height: 32),
             _buildSettingsList(context),
             const SizedBox(height: 140),
@@ -41,58 +54,102 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Widget _buildProfileCard(BuildContext context, WidgetRef ref) {
     final sessionAsync = ref.watch(authSessionProvider);
+    final contextAsync = ref.watch(currentContextNotifierProvider);
 
     return sessionAsync.when(
       data: (session) {
         final isAuthenticated = session?.isAuthenticated ?? false;
+        
+        // P0: Get identity from memories if session is minimal
+        String displayName = session?.displayName ?? 'Knight';
+        String email = session?.email ?? 'Intelligence active';
+        String? photoUrl = session?.photoUrl;
+
+        contextAsync.whenData((ctx) {
+          final identity = ctx.relatedMemories.firstWhereOrNull((m) => m.memoryId == 'user-profile-identity');
+          if (identity != null) {
+            displayName = identity.content['displayName'] ?? displayName;
+            email = identity.content['email'] ?? email;
+            photoUrl = identity.content['photoUrl'] ?? photoUrl;
+          }
+        });
 
         return Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: DesignColors.surfaceHigh,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+          padding: const EdgeInsets.all(24),
+          decoration: KnightTokens.glass(
+            accentColor: DesignColors.accentBlue,
+            opacity: 0.1,
           ),
           child: Row(
             children: [
               CircleAvatar(
-                radius: 28,
+                radius: 32,
                 backgroundColor: DesignColors.surfaceHigh,
-                child: const KnightCircuitShield(size: 32, period: KnightDayPeriod.day),
+                backgroundImage: photoUrl != null ? NetworkImage(photoUrl!) : null,
+                child: photoUrl == null 
+                  ? const KnightCircuitShield(size: 32, period: KnightDayPeriod.day)
+                  : null,
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 20),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Knight',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                    Text(
+                      displayName,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.5,
                       ),
                     ),
+                    const SizedBox(height: 4),
                     Text(
-                      isAuthenticated
-                          ? (session?.email ?? 'Intelligence active')
-                          : 'Sign in to enable cloud sync',
+                      isAuthenticated ? email : 'Sign in to enable cloud sync',
                       style: const TextStyle(
                         fontSize: 12,
                         color: Colors.white38,
                       ),
                     ),
+                    if (isAuthenticated) ...[
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.green.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text(
+                              'CLOUD SYNC ACTIVE',
+                              style: TextStyle(
+                                fontSize: 8,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.greenAccent,
+                                letterSpacing: 1.0,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          GestureDetector(
+                            onTap: () => ref.read(googleAuthServiceProvider).signOut(),
+                            child: const Text('SIGN OUT', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.redAccent)),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),
               if (!isAuthenticated)
-                FilledButton.icon(
+                FilledButton(
                   onPressed: () => context.push(AppRoutes.auth),
-                  icon: const Icon(Icons.login_rounded, size: 16),
-                  label: const Text('Sign In'),
                   style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    visualDensity: VisualDensity.compact,
+                    backgroundColor: DesignColors.accentBlue,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
+                  child: const Text('Connect'),
                 ),
             ],
           ),
@@ -105,7 +162,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Widget _buildSettingsList(BuildContext context) {
     final items = [
-      _SItem('Data Hub', Icons.hub_rounded, route: AppRoutes.importCenter),
+      _SItem('Data Hub', Icons.hub_rounded, route: AppRoutes.dataHub),
       _SItem('Profile & Account', Icons.person_outline_rounded, route: AppRoutes.profile),
       _SItem('Preferences', Icons.tune_rounded, explanation: 'Knight automatically adapts to your behavior. Manual overrides are restricted to ensure OS stability.'),
       _SItem('Data & Privacy', Icons.security_rounded, route: AppRoutes.privacy),

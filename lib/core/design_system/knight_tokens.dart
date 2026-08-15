@@ -11,32 +11,40 @@ class KnightTokens {
   // Material Identity colors based on period
   static Color shieldPrimary(KnightDayPeriod period) {
     switch (period) {
-      case KnightDayPeriod.dawn: return const Color(0xFFFDE68A); // Gold
+      case KnightDayPeriod.morning: return const Color(0xFFFDE68A); // Gold
       case KnightDayPeriod.day: return const Color(0xFFE2E8F0); // Silver
-      case KnightDayPeriod.dusk: return const Color(0xFFFB923C); // Copper
+      case KnightDayPeriod.afternoon: return const Color(0xFFCBD5E1); // Dark Silver
+      case KnightDayPeriod.evening: return const Color(0xFFFB923C); // Copper
       case KnightDayPeriod.night: return const Color(0xFF0C4A6E); // Navy
+      case KnightDayPeriod.lateNight: return const Color(0xFF0F172A); // Deep Navy
     }
   }
 
   static Color accent(KnightDayPeriod period) {
     switch (period) {
-      case KnightDayPeriod.dawn: return const Color(0xFF818CF8); // Indigo
+      case KnightDayPeriod.morning: return const Color(0xFF818CF8); // Indigo
       case KnightDayPeriod.day: return const Color(0xFF0EA5E9); // Sky
-      case KnightDayPeriod.dusk: return const Color(0xFFF43F5E); // Rose
+      case KnightDayPeriod.afternoon: return const Color(0xFF38BDF8); // Light Sky
+      case KnightDayPeriod.evening: return const Color(0xFF6366F1); // Radiant Indigo
       case KnightDayPeriod.night: return const Color(0xFF22D3EE); // Cyan
+      case KnightDayPeriod.lateNight: return const Color(0xFF0EA5E9); // Electric Blue
     }
   }
 
   static List<Color> backgroundGradient(KnightDayPeriod period) {
     switch (period) {
-      case KnightDayPeriod.dawn: 
+      case KnightDayPeriod.morning: 
         return [const Color(0xFF0F172A), const Color(0xFF1E1B4B), const Color(0xFF312E81)];
       case KnightDayPeriod.day: 
         return [const Color(0xFF020617), const Color(0xFF020408), const Color(0xFF0C4A6E)];
-      case KnightDayPeriod.dusk: 
+      case KnightDayPeriod.afternoon: 
+        return [const Color(0xFF020617), const Color(0xFF0F172A), const Color(0xFF1E293B)];
+      case KnightDayPeriod.evening: 
         return [const Color(0xFF020408), const Color(0xFF1E1B4B), const Color(0xFF312E81)];
       case KnightDayPeriod.night: 
         return [const Color(0xFF000000), const Color(0xFF020408), const Color(0xFF020617)];
+      case KnightDayPeriod.lateNight: 
+        return [const Color(0xFF000000), const Color(0xFF010204), const Color(0xFF020408)];
     }
   }
 
@@ -87,4 +95,20 @@ class KnightTokens {
     color: Colors.white24,
     letterSpacing: 2.0,
   );
+
+  // BRANDING IDENTITY
+  static const Color brandPrimary = Color(0xFFFFFFFF);
+  static const Color brandAccent = Color(0xFF0EA5E9);
+  static const double logoHighContrastOpacity = 0.95;
+
+  static InputDecoration inputDecoration({required String label, String? hint}) {
+    return InputDecoration(
+      labelText: label,
+      hintText: hint,
+      labelStyle: const TextStyle(color: Colors.white38, fontSize: 12),
+      hintStyle: const TextStyle(color: Colors.white10, fontSize: 12),
+      enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.white10)),
+      focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.blueAccent)),
+    );
+  }
 }

@@ -175,8 +175,8 @@ class _ProviderHealthCard extends StatelessWidget {
   }
 
   String _getFreshness() {
-    if (provider.lastSyncTime == null) return 'N/A';
-    final diff = DateTime.now().difference(provider.lastSyncTime!);
+    if (provider.lastSuccessfulSync == null) return 'N/A';
+    final diff = DateTime.now().difference(provider.lastSuccessfulSync!);
     if (diff.inMinutes < 60) return '${diff.inMinutes}m';
     if (diff.inHours < 24) return '${diff.inHours}h';
     return '${diff.inDays}d';
@@ -210,6 +210,8 @@ class _ProviderHealthCard extends StatelessWidget {
       case ProviderStatus.connected: return DesignColors.success;
       case ProviderStatus.syncing: return DesignColors.accentBlue;
       case ProviderStatus.error: return DesignColors.error;
+      case ProviderStatus.requiresAuthorization: return DesignColors.warning;
+      case ProviderStatus.notConfigured: return Colors.white10;
       case ProviderStatus.disconnected: return Colors.white24;
     }
   }

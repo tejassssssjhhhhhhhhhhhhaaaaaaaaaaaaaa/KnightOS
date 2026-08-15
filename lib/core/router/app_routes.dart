@@ -13,6 +13,7 @@ class AppRoutes {
   static const settings = '/settings';
   static const profile = '/profile';
   static const privacy = '/privacy';
+  static const relaxation = '/relaxation';
   static const appUpdates = '/app-updates';
   static const learning = '/learning';
   static const memory = '/memory';
@@ -35,6 +36,7 @@ class AppRoutes {
   static const financeReports = '/finance/reports';
   static const financeSettings = '/finance/settings';
   static const fitness = '/fitness';
+  static const workoutLogger = '/fitness/logger';
   static const mission = '/mission';
   static const planner = '/planner';
   static const knight = '/knight';
@@ -46,7 +48,8 @@ class AppRoutes {
   static const documents = '/documents';
   static const health = '/health';
   static const dataHub = '/data-hub';
-  static const importCenter = '/data-hub';
+  static const importCenter = '/data-hub/diagnostics';
+  static const brain = '/data-hub/brain';
   static const dataCenter = '/data-hub';
   static const connectors = '/connectors';
   static const discovery = '/discovery';
@@ -54,6 +57,7 @@ class AppRoutes {
   static const aiQa = '/ai-qa';
   static const developerMode = '/developer-mode';
   static const providerHealth = '/provider-health';
+  static const googleDataAudit = '/google-data-audit';
   static const executiveDashboard = '/executive-dashboard';
 
   // Travel Foundation

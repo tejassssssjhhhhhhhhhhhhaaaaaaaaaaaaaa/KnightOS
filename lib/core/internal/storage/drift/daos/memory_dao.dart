@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
+import '../../../../intelligence/domain/memory_domain.dart';
 import '../knight_database.dart';
 import '../tables/memories.dart';
 import '../tables/memory_relations.dart';
@@ -57,9 +58,21 @@ class MemoryDao extends BaseDao<MemoryTable, MemoryTableData>
     if (query.isEmpty) {
       return (select(memoryTable)
             ..where((t) => t.isLatest.equals(true))
-            ..limit(limit ?? 100)) // P0: Default limit for empty query
+            ..orderBy([(t) => OrderingTerm.desc(t.effectiveAt)])
+            ..limit(limit ?? 100))
           .get();
     }
+
+    if (query.startsWith('domain:')) {
+      final domainLabel = query.substring(7).trim();
+      return (select(memoryTable)
+            ..where((t) => t.isLatest.equals(true))
+            ..where((t) => t.domainId.isNotNull()) // Dummy check, we need ID
+            ..orderBy([(t) => OrderingTerm.desc(t.effectiveAt)]))
+          .get().then((list) => list.where((m) => 
+            MemoryDomain.fromId(m.domainId).label.toLowerCase() == domainLabel.toLowerCase()).toList());
+    }
+
     final pattern = '%$query%';
     return (select(memoryTable)
           ..where(
@@ -69,6 +82,7 @@ class MemoryDao extends BaseDao<MemoryTable, MemoryTableData>
                 t.tags.like(pattern),
           )
           ..where((t) => t.isLatest.equals(true))
+          ..orderBy([(t) => OrderingTerm.desc(t.effectiveAt)])
           ..limit(limit ?? 50))
         .get();
   }
@@ -218,6 +232,49 @@ class MemoryDao extends BaseDao<MemoryTable, MemoryTableData>
           ..where((t) => t.categoryId.equals(categoryId))
           ..where((t) => t.isLatest.equals(true)))
         .watch();
+  }
+
+  // --- Brain Metrics ---
+
+  /// Watches the total number of latest facts.
+  Stream<int> watchTotalFactsCount() {
+    final count = memoryTable.id.count();
+    final query = selectOnly(memoryTable)..addColumns([count])..where(memoryTable.isLatest.equals(true));
+    return query.watchSingle().map((row) => row.read(count) ?? 0);
+  }
+
+  /// Watches counts grouped by knowledge state.
+  Stream<Map<String, int>> watchStateCounts() {
+    final state = memoryTable.knowledgeState;
+    final count = state.count();
+    final query = selectOnly(memoryTable)
+      ..addColumns([state, count])
+      ..where(memoryTable.isLatest.equals(true))
+      ..groupBy([state]);
+    
+    return query.watch().map((rows) {
+      return {
+        for (final row in rows)
+          row.read(state)!: row.read(count)!,
+      };
+    });
+  }
+
+  /// Watches counts grouped by domain.
+  Stream<Map<int, int>> watchDomainCounts() {
+    final domain = memoryTable.domainId;
+    final count = domain.count();
+    final query = selectOnly(memoryTable)
+      ..addColumns([domain, count])
+      ..where(memoryTable.isLatest.equals(true))
+      ..groupBy([domain]);
+    
+    return query.watch().map((rows) {
+      return {
+        for (final row in rows)
+          row.read(domain)!: row.read(count)!,
+      };
+    });
   }
 }
 

@@ -5,12 +5,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'core/providers/preferences_provider.dart';
 import 'core/internal/utils/knight_logger.dart';
+import 'core/intelligence/services/background_orchestrator.dart';
 import 'knight_os_app.dart';
 
 void main() {
   // P0-1: Optimized Startup
   runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
+
+    // 1. Initialize Background Foundation
+    await BackgroundOrchestrator.init();
 
     // Enable Edge-to-Edge Experience immediately
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(

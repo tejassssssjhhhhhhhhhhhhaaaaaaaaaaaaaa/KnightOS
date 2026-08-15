@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:knight_os/app/screens/settings_screen.dart';
+import 'package:knight_os/app/screens/profile_screen.dart';
 import 'package:knight_os/core/providers/storage_providers.dart';
 import 'package:knight_os/core/repositories/authentication_repository.dart';
 
@@ -16,7 +16,7 @@ void main() {
             isAuthenticated: true,
           )),
         ],
-        child: const MaterialApp(home: SettingsScreen()),
+        child: const MaterialApp(home: ProfileScreen()),
       ),
     );
     await tester.pump();
@@ -33,7 +33,7 @@ void main() {
         overrides: [
           authSessionProvider.overrideWith((ref) => null),
         ],
-        child: const MaterialApp(home: SettingsScreen()),
+        child: const MaterialApp(home: ProfileScreen()),
       ),
     );
     await tester.pump();

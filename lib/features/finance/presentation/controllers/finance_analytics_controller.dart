@@ -26,11 +26,16 @@ class FinanceAnalyticsController extends AsyncNotifier<FinanceIntelligenceReport
       return _emptyReport();
     }
 
-    // 1. Spending Intelligence
+    // 1. Spending Intelligence (Current Month)
+    final now = DateTime.now();
+    final currentMonthTxs = txs.where((t) => t.transactionDate.year == now.year && t.transactionDate.month == now.month).toList();
     final spendingTxs = txs.where((t) => t.type == 'expense').toList();
-    final catBreakdown = groupBy(spendingTxs, (TransactionData t) => t.category)
+    final currentMonthSpending = currentMonthTxs.where((t) => t.type == 'expense').toList();
+
+    final catBreakdown = groupBy(currentMonthSpending, (TransactionData t) => t.category)
         .map((k, v) => MapEntry(k, v.fold(0.0, (sum, t) => sum + t.amount)));
-    final merchantBreakdown = groupBy(spendingTxs, (TransactionData t) => t.merchant)
+    
+    final merchantBreakdown = groupBy(currentMonthSpending, (TransactionData t) => t.merchant)
         .map((k, v) => MapEntry(k, v.fold(0.0, (sum, t) => sum + t.amount)));
 
     // 2. Income Intelligence
@@ -96,8 +101,6 @@ class FinanceAnalyticsController extends AsyncNotifier<FinanceIntelligenceReport
     }).toList()..sort((a, b) => b.lifetimeSpend.compareTo(a.lifetimeSpend));
 
     // 6. Cash Flow (Current Month)
-    final now = DateTime.now();
-    final currentMonthTxs = txs.where((t) => t.transactionDate.year == now.year && t.transactionDate.month == now.month).toList();
     final monthlyInflow = currentMonthTxs.where((t) => t.type == 'income').fold(0.0, (sum, t) => sum + t.amount);
     final monthlyOutflow = currentMonthTxs.where((t) => t.type == 'expense').fold(0.0, (sum, t) => sum + t.amount);
 
@@ -107,7 +110,7 @@ class FinanceAnalyticsController extends AsyncNotifier<FinanceIntelligenceReport
         merchantBreakdown: merchantBreakdown,
         monthlyTrend: spendingTrend,
         recurringExpenses: [], 
-        unexpectedSpending: spendingTxs.where((t) => t.amount > 10000).toList(),
+        unexpectedSpending: currentMonthSpending.where((t) => t.amount > 10000).toList(),
       ),
       income: IncomeIntelligence(
         totalIncome: incomeTxs.fold(0.0, (sum, t) => sum + t.amount),
@@ -118,7 +121,9 @@ class FinanceAnalyticsController extends AsyncNotifier<FinanceIntelligenceReport
             .map((k, v) => MapEntry(k, v.fold(0.0, (sum, t) => sum + t.amount))),
       ),
       savings: SavingsIntelligence(
-        currentSavingsRate: monthlyInflow > 0 ? ((monthlyInflow - monthlyOutflow) / monthlyInflow) : 0,
+        currentSavingsRate: monthlyInflow > 0 
+          ? ((monthlyInflow - monthlyOutflow) / monthlyInflow).clamp(-1.0, 1.0) 
+          : (monthlyOutflow > 0 ? -1.0 : 0.0),
         savingsTrend: savingsTrend,
         projectedEndOfMonth: monthlyInflow - (now.day > 0 ? (monthlyOutflow / now.day * 30) : 0),
         averageMonthlySavings: savingsTrend.isEmpty ? 0 : savingsTrend.fold(0.0, (sum, p) => sum + p.value) / savingsTrend.length,

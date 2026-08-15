@@ -13,6 +13,8 @@ import '../services/timeline_projection_listener.dart';
 import '../intelligence/verification/calendar_verification_engine.dart';
 import '../connectors/implementations/google_calendar_connector.dart';
 
+import '../intelligence/providers/intelligence_providers.dart';
+
 final eventBusProvider = Provider<EventBus>((ref) => EventBus.instance);
 
 final evidenceRepositoryProvider = Provider((ref) {
@@ -30,7 +32,10 @@ final evidenceServiceProvider = Provider((ref) {
 });
 
 final timelineServiceProvider = Provider((ref) {
-  return TimelineService(ref.watch(timelineRepositoryProvider));
+  return TimelineService(
+    ref.watch(timelineRepositoryProvider),
+    vafShadowService: ref.watch(vafShadowServiceProvider),
+  );
 });
 
 final evidenceReviewServiceProvider = Provider((ref) {

@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/design_system/knight_tokens.dart';
 import '../../domain/finance_timeline_models.dart';
+import '../../../../core/router/app_routes.dart';
+import '../../domain/finance_explorer_filter.dart';
+import '../controllers/finance_explorer_controller.dart';
 
 class MonthTimelineCard extends StatefulWidget {
   const MonthTimelineCard({super.key, required this.period});
@@ -99,39 +104,51 @@ class _Metric extends StatelessWidget {
   }
 }
 
-class _MemoryEventTile extends StatelessWidget {
+class _MemoryEventTile extends ConsumerWidget {
   const _MemoryEventTile({required this.event});
   final FinanceMemoryEvent event;
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(top: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: _getEventColor(event.type).withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _getEventColor(event.type).withValues(alpha: 0.1)),
-      ),
-      child: Row(
-        children: [
-          Icon(_getEventIcon(event.type), size: 18, color: _getEventColor(event.type)),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(event.title.toUpperCase(), style: KnightTokens.label.copyWith(fontSize: 8, color: _getEventColor(event.type))),
-                const SizedBox(height: 2),
-                Text(event.description, style: const TextStyle(fontSize: 12, color: Colors.white70)),
-              ],
+  Widget build(BuildContext context, WidgetRef ref) {
+    return InkWell(
+      onTap: () {
+        final start = DateTime(event.date.year, event.date.month, event.date.day);
+        final end = start.add(const Duration(days: 1));
+        ref.read(explorerFilterProvider.notifier).update(ExplorerFilter(
+          dateRange: DateTimeRange(start: start, end: end),
+          searchQuery: event.title,
+        ));
+        context.push(AppRoutes.financeExplorer);
+      },
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        margin: const EdgeInsets.only(top: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: _getEventColor(event.type).withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: _getEventColor(event.type).withValues(alpha: 0.1)),
+        ),
+        child: Row(
+          children: [
+            Icon(_getEventIcon(event.type), size: 18, color: _getEventColor(event.type)),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(event.title.toUpperCase(), style: KnightTokens.label.copyWith(fontSize: 8, color: _getEventColor(event.type))),
+                  const SizedBox(height: 2),
+                  Text(event.description, style: const TextStyle(fontSize: 12, color: Colors.white70)),
+                ],
+              ),
             ),
-          ),
-          Text(
-            DateFormat('dd MMM').format(event.date),
-            style: const TextStyle(fontSize: 10, color: Colors.white24),
-          ),
-        ],
+            Text(
+              DateFormat('dd MMM').format(event.date),
+              style: const TextStyle(fontSize: 10, color: Colors.white24),
+            ),
+          ],
+        ),
       ),
     );
   }

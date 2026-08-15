@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../core/design_system/design_constants.dart';
+import '../../core/design_system/knight_tokens.dart';
+import '../../core/design_system/widgets/knight_card.dart';
 
+/// A card displaying the user's primary objective and progress metrics.
 class MissionCard extends StatelessWidget {
   const MissionCard({
     required this.mission,
@@ -14,75 +18,59 @@ class MissionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(DesignSpacing.xl),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(24),
+        color: DesignColors.surface.withValues(alpha: 0.4),
+        borderRadius: DesignRadius.card,
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Today\'s Mission',
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(mission, style: theme.textTheme.bodyLarge),
-          const SizedBox(height: 24),
           Row(
             children: [
-              Expanded(
-                child: _MissionStat(label: 'Current Streak', value: streak),
+              const Icon(
+                Icons.auto_awesome_rounded,
+                size: 14,
+                color: DesignColors.accentBlue,
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _MissionStat(label: 'Momentum', value: message),
+              const SizedBox(width: 8),
+              Text(
+                'TODAY\'S MISSION',
+                style: KnightTokens.label.copyWith(color: DesignColors.accentBlue),
               ),
             ],
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MissionStat extends StatelessWidget {
-  const _MissionStat({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface.withValues(alpha: 0.8),
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+          const SizedBox(height: DesignSpacing.l),
           Text(
-            label,
-            style: theme.textTheme.labelLarge?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+            mission,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
             ),
           ),
-          const SizedBox(height: 6),
-          Text(
-            value,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
+          const SizedBox(height: DesignSpacing.xl),
+          Row(
+            children: [
+              Expanded(
+                child: KnightStatCard(
+                  label: 'STREAK',
+                  value: streak,
+                  color: DesignColors.accentPurple,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: KnightStatCard(
+                  label: 'MOMENTUM',
+                  value: message,
+                  color: DesignColors.accentCyan,
+                ),
+              ),
+            ],
           ),
         ],
       ),

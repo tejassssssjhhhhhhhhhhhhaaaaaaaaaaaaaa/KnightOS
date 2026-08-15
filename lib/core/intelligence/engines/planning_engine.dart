@@ -50,6 +50,16 @@ class PlanningEngine {
           estimatedMinutes: 30,
         ));
       }
+      if (warning.contains('dehydration') || warning.contains('water')) {
+        suggestedTasks.add(const KnightTask(
+          id: 'task-mitigation-water',
+          title: 'Hydration Target',
+          description: 'Drink 500ml water to maintain mission energy.',
+          priority: MissionPriority.high,
+          isCompleted: false,
+          estimatedMinutes: 5,
+        ));
+      }
     }
 
     // 3. Assemble Daily Plan

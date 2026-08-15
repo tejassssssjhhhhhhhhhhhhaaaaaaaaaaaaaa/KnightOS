@@ -3,8 +3,10 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/design_system/design_constants.dart';
+import '../../core/router/app_routes.dart';
 import '../../core/design_system/widgets/knight_circuit_shield.dart';
 import '../../core/intelligence/services/voice_service.dart';
 import '../../core/intelligence/providers/intelligence_providers.dart';
@@ -19,7 +21,7 @@ class KnightCompanion extends ConsumerStatefulWidget {
 }
 
 class _KnightCompanionState extends ConsumerState<KnightCompanion> with TickerProviderStateMixin {
-  Offset _position = const Offset(300, 600); 
+  Offset? _position; 
   bool _isDragging = false;
   late AnimationController _animationController;
 
@@ -31,7 +33,6 @@ class _KnightCompanionState extends ConsumerState<KnightCompanion> with TickerPr
       duration: const Duration(seconds: 4),
     );
     
-    // P0: Avoid infinite animations during widget tests to prevent pumpAndSettle timeouts.
     if (!kDebugMode || !Platform.environment.containsKey('FLUTTER_TEST')) {
        _animationController.repeat();
     }
@@ -45,7 +46,7 @@ class _KnightCompanionState extends ConsumerState<KnightCompanion> with TickerPr
 
   void _onDragUpdate(DragUpdateDetails details) {
     setState(() {
-      _position += details.delta;
+      _position = (_position ?? Offset.zero) + details.delta;
       _isDragging = true;
     });
   }
@@ -53,9 +54,10 @@ class _KnightCompanionState extends ConsumerState<KnightCompanion> with TickerPr
   void _onDragEnd(DragEndDetails details) {
     final size = MediaQuery.of(context).size;
     setState(() {
-      // Snap to nearest edge
-      final targetX = _position.dx < size.width / 2 ? 16.0 : size.width - 80.0;
-      _position = Offset(targetX, _position.dy.clamp(100.0, size.height - 200.0));
+      if (_position == null) return;
+      // Snap to nearest side edge, stay above nav bar
+      final targetX = _position!.dx < size.width / 2 ? 24.0 : size.width - 88.0;
+      _position = Offset(targetX, _position!.dy.clamp(100.0, size.height - 180.0));
       _isDragging = false;
     });
     HapticFeedback.selectionClick();
@@ -63,6 +65,11 @@ class _KnightCompanionState extends ConsumerState<KnightCompanion> with TickerPr
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    
+    // P0: Set reliable initial position on first build
+    _position ??= Offset(size.width - 88.0, size.height - 180.0);
+
     final voiceState = ref.watch(voiceServiceProvider);
     final period = ref.watch(currentPeriodProvider);
     final perception = ref.watch(perceptionEngineProvider);
@@ -70,8 +77,8 @@ class _KnightCompanionState extends ConsumerState<KnightCompanion> with TickerPr
     return AnimatedPositioned(
       duration: _isDragging ? Duration.zero : const Duration(milliseconds: 300),
       curve: Curves.easeOutBack,
-      left: _position.dx,
-      top: _position.dy,
+      left: _position!.dx,
+      top: _position!.dy,
       width: 64,
       height: 64,
       child: GestureDetector(
@@ -98,16 +105,15 @@ class _KnightCompanionState extends ConsumerState<KnightCompanion> with TickerPr
     if (mode == VoiceMode.listening) return ShieldState.listening;
     if (mode == VoiceMode.processing) return ShieldState.thinking;
     if (mode == VoiceMode.speaking) return ShieldState.speaking;
+    // P0: Pulse perception state if active
     if (perception != 'stationary') return ShieldState.perception;
     return ShieldState.idle;
   }
 
   void _handleTap(VoiceMode mode) {
-    if (mode == VoiceMode.idle) {
-      ref.read(voiceServiceProvider.notifier).startListening();
-    } else {
-      ref.read(voiceServiceProvider.notifier).stop();
-    }
+    HapticFeedback.mediumImpact();
+    // P0: Always switch to the real assistant UI in the shell (Mutual Exclusion)
+    context.go(AppRoutes.knight);
   }
 
   void _showQuickActions() {
@@ -146,7 +152,14 @@ class _ActionGrid extends StatelessWidget {
       crossAxisCount: 4,
       mainAxisSpacing: 20,
       children: [
-        _QuickAction(icon: Icons.mic_rounded, label: 'Voice'),
+        _QuickAction(
+          icon: Icons.mic_rounded, 
+          label: 'Voice',
+          onTap: () {
+            Navigator.pop(context);
+            context.push(AppRoutes.voiceCapture);
+          },
+        ),
         _QuickAction(icon: Icons.edit_note_rounded, label: 'Note'),
         _QuickAction(icon: Icons.qr_code_scanner_rounded, label: 'Scan'),
         _QuickAction(icon: Icons.add_task_rounded, label: 'Task'),
@@ -158,6 +171,14 @@ class _ActionGrid extends StatelessWidget {
           onTap: () {
             Navigator.pop(context);
             UniversalSearchOverlay.show(context);
+          },
+        ),
+        _QuickAction(
+          icon: Icons.hub_rounded, 
+          label: 'Data Hub',
+          onTap: () {
+            Navigator.pop(context);
+            context.push(AppRoutes.dataHub);
           },
         ),
         _QuickAction(icon: Icons.visibility_off_rounded, label: 'Hide'),

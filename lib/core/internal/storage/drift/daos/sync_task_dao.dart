@@ -26,4 +26,11 @@ class SyncTaskDao extends BaseDao<SyncTaskQueueTable, SyncTask>
       ),
     );
   }
+
+  Future<int> cleanupCompletedTasks(DateTime before) {
+    return (delete(syncTaskQueueTable)
+          ..where((t) => t.status.equals('completed') | t.status.equals('failed'))
+          ..where((t) => t.updatedAt.isSmallerThanValue(before)))
+        .go();
+  }
 }

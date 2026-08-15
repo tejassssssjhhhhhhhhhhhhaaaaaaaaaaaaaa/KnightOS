@@ -37,7 +37,7 @@ class OcrKnowledgeService {
 
     final memory = KnightMemory.create(
       memoryId: 'ocr-${DateTime.now().millisecondsSinceEpoch}',
-      category: BookCategory.knowledge,
+      category: BookCategory.skills,
       domain: MemoryDomain.knowledge,
       source: MemorySource.manual,
       content: {'raw_text': text, 'type': 'ocr_ingestion'},

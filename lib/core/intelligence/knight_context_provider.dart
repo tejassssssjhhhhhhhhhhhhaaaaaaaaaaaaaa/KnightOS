@@ -12,9 +12,14 @@ import 'domain/reasoning_models.dart';
 import 'knight_context_models.dart';
 import 'knight_context_service.dart';
 import 'providers/intelligence_providers.dart';
+import '../router/router_providers.dart';
 import 'services/context_engine.dart';
 import 'services/device_intelligence_service.dart';
 import 'engines/health/health_engine.dart';
+
+import '../providers/focus_mode_provider.dart';
+import '../providers/relaxation_mode_provider.dart';
+import '../theme/knight_theme_provider.dart';
 
 final knightContextServiceProvider = Provider<KnightContextService>((ref) {
   return KnightContextService();
@@ -79,10 +84,14 @@ class CurrentContextNotifier extends AsyncNotifier<KnightContext> {
       // 5. Fetch Real Metrics for V4 Dashboard
       final db = ref.watch(knightDatabaseProvider);
       
+      // Sprint V5.2: Reactive Data Monitoring
+      final liveBalance = ref.watch(totalBalanceStreamProvider).value ?? 0.0;
+      final liveSteps = ref.watch(dailyStepsStreamProvider).value ?? 0;
+
       final dbStart = stopwatch.elapsedMilliseconds;
       final results = await Future.wait([
-        db.financialDao.getTotalBalance(),
-        db.healthDao.getLatestMetrics('STEPS', limit: 1),
+        Future.value(liveBalance), // Use reactive balance
+        Future.value(liveSteps),   // Use reactive steps
         db.healthDao.getLatestMetrics('WATER', limit: 1),
         db.healthDao.getLatestMetrics('CALORIES', limit: 1),
         db.healthDao.getLatestMetrics('ACTIVE_MINS', limit: 1),
@@ -97,7 +106,7 @@ class CurrentContextNotifier extends AsyncNotifier<KnightContext> {
       KnightLogger.info('[STARTUP] DB/Parallel tasks complete in ${stopwatch.elapsedMilliseconds - dbStart}ms', category: KnightLogCategory.startup);
 
       final totalBalance = results[0] as double;
-      final latestSteps = results[1] as List<HealthMetricData>;
+      final steps = results[1] as int;
       final latestWater = results[2] as List<HealthMetricData>;
       final latestCalories = results[3] as List<HealthMetricData>;
       final latestActiveMins = results[4] as List<HealthMetricData>;
@@ -108,11 +117,6 @@ class CurrentContextNotifier extends AsyncNotifier<KnightContext> {
       final reminders = results[9] as List<ReminderData>;
       final activeTrips = results[10] as List<TripData>;
       final healthScores = results[11] as HealthScores;
-
-      int steps = 0;
-      if (latestSteps.isNotEmpty) {
-        steps = (await db.healthDao.getDailyTotal('STEPS', latestSteps.first.startTime)).toInt();
-      }
 
       double water = 0.0;
       if (latestWater.isNotEmpty) {
@@ -137,9 +141,17 @@ class CurrentContextNotifier extends AsyncNotifier<KnightContext> {
         }
       }
 
-      final greeting = ref.read(greetingServiceProvider).getGreeting();
+      final simulatedHour = ref.watch(simulatedHourProvider);
+      final greeting = ref.read(greetingServiceProvider).getGreeting(overrideHour: simulatedHour);
       
       final activeActivity = ref.watch(perceptionEngineProvider);
+      
+      final currentScreen = ref.watch(currentLocationProvider);
+      final currentModule = ref.watch(currentModuleProvider);
+      
+      final period = ref.watch(currentPeriodProvider);
+      final isFocusMode = ref.watch(focusModeProvider);
+      final isRelaxationMode = ref.watch(relaxationModeProvider);
 
       final context = service.buildContext(
         featureModules: [],
@@ -161,6 +173,11 @@ class CurrentContextNotifier extends AsyncNotifier<KnightContext> {
         activeTrips: activeTrips,
         healthScores: healthScores,
         activeActivity: activeActivity,
+        currentScreen: currentScreen,
+        currentModule: currentModule,
+        period: period,
+        isFocusMode: isFocusMode,
+        isRelaxationMode: isRelaxationMode,
       );
 
       // 8. Record History via ContextEngine

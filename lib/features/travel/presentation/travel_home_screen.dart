@@ -10,6 +10,8 @@ import '../../../core/internal/storage/drift/knight_database.dart';
 import '../../../core/design_system/widgets/entrance_fader.dart';
 import 'providers/travel_providers.dart';
 import 'travel_search_delegate.dart';
+import 'widgets/india_travel_map.dart';
+import 'widgets/add_trip_sheet.dart';
 
 class TravelHomeScreen extends ConsumerWidget {
   const TravelHomeScreen({super.key});
@@ -24,6 +26,7 @@ class TravelHomeScreen extends ConsumerWidget {
 
     return KnightPageScaffold(
       title: 'Travel',
+      settingsRoute: AppRoutes.travelDevMode, // Using Dev Mode as settings for now
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(travelMetricsProvider);
@@ -39,9 +42,21 @@ class TravelHomeScreen extends ConsumerWidget {
             children: [
               EntranceFader(child: _buildHeader(context, syncStatus)),
               const SizedBox(height: DesignSpacing.xl),
-              EntranceFader(delay: const Duration(milliseconds: 100), child: _buildSearchBar(context)),
+              EntranceFader(
+                delay: const Duration(milliseconds: 100), 
+                child: tripsAsync.when(
+                  data: (trips) => IndiaTravelMap(
+                    trips: trips,
+                    onTripTap: (trip) => context.push('${AppRoutes.travelTripStory}/${trip.id}'),
+                  ),
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (e, s) => const SizedBox.shrink(),
+                ),
+              ),
               const SizedBox(height: DesignSpacing.xl),
-              EntranceFader(delay: const Duration(milliseconds: 200), child: _buildSummaryCards(metricsAsync)),
+              EntranceFader(delay: const Duration(milliseconds: 200), child: _buildSearchBar(context)),
+              const SizedBox(height: DesignSpacing.xl),
+              EntranceFader(delay: const Duration(milliseconds: 300), child: _buildSummaryCards(metricsAsync)),
               const SizedBox(height: DesignSpacing.xl),
               EntranceFader(delay: const Duration(milliseconds: 300), child: _buildHighlights(context, highlightsAsync)),
               const SizedBox(height: DesignSpacing.xl),
@@ -60,6 +75,11 @@ class TravelHomeScreen extends ConsumerWidget {
             ],
           ),
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => AddTripSheet.show(context),
+        backgroundColor: DesignColors.accentBlue,
+        child: const Icon(Icons.add_road_rounded, color: Colors.black),
       ),
     );
   }
@@ -136,7 +156,7 @@ class TravelHomeScreen extends ConsumerWidget {
         const SizedBox(height: 16),
         highlightsAsync.when(
           data: (highlights) {
-            if (highlights.isEmpty) return const Text('No highlights yet.', style: TextStyle(color: Colors.white24));
+            if (highlights.isEmpty) return _buildEmptyMetricState('No highlights yet. Sync your travel data.');
             return SizedBox(
               height: 120,
               child: ListView.builder(
@@ -167,7 +187,7 @@ class TravelHomeScreen extends ConsumerWidget {
         const SizedBox(height: 16),
         recommendationsAsync.when(
           data: (list) {
-            if (list.isEmpty) return const SizedBox.shrink();
+            if (list.isEmpty) return _buildEmptyMetricState('Knight AI is looking for travel opportunities...');
             return Column(
               children: list.map((r) => _RecommendationTile(rec: r)).toList(),
             );
@@ -213,7 +233,7 @@ class TravelHomeScreen extends ConsumerWidget {
               _ActionChip(label: 'Lane', icon: Icons.auto_awesome_rounded, onTap: () => context.push(AppRoutes.travelMemoryLane)),
               _ActionChip(label: 'DNA', icon: Icons.fingerprint, onTap: () => context.push(AppRoutes.travelDna)),
               _ActionChip(label: 'Ask AI', icon: Icons.chat_bubble_outline_rounded, onTap: () => context.push(AppRoutes.travelAssistant)),
-              _ActionChip(label: 'Import', icon: Icons.import_export, onTap: () => context.push(AppRoutes.travelImport)),
+              _ActionChip(label: 'Import', icon: Icons.import_export, onTap: () => context.push(AppRoutes.importCenter)),
             ],
           ),
         ),
@@ -309,6 +329,15 @@ class TravelHomeScreen extends ConsumerWidget {
       loading: () => const SizedBox.shrink(),
       error: (e, s) => const SizedBox.shrink(),
     );
+  }
+
+  Widget _buildEmptyMetricState(String message) {
+     return Container(
+       padding: const EdgeInsets.all(24),
+       width: double.infinity,
+       decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.02), borderRadius: BorderRadius.circular(16)),
+       child: Text(message, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white12, fontSize: 12)),
+     );
   }
 }
 

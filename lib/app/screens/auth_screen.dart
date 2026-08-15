@@ -130,8 +130,16 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       KnightLogger.info('[AUTH] Google Sign-In successful: ${account.email}', category: KnightLogCategory.ui);
       if (!mounted) return;
 
-      // In a real app, we would authenticate with our backend here using account.idToken
-      // For Milestone 7, we'll proceed to home.
+      final session = AuthSession(
+        userId: account.uid,
+        displayName: account.displayName ?? 'Google User',
+        email: account.email,
+        photoUrl: account.photoUrl,
+        provider: 'google',
+      );
+      await ref.read(authenticationRepositoryProvider).persistSession(session);
+      
+      if (!mounted) return;
       
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Welcome, ${account.displayName}')),

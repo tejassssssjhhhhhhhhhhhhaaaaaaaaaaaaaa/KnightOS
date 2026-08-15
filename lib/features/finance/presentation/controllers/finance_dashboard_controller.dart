@@ -19,13 +19,23 @@ class FinanceDashboardController extends AsyncNotifier<FinanceDashboardData> {
     final healthCenter = ref.watch(financeHealthCenterProvider);
     final auditEngine = ref.watch(gmailAuditEngineProvider);
 
-    // 1. Fetch Transactions (Current Month)
-    final firstOfMonth = DateTime(DateTime.now().year, DateTime.now().month, 1);
+    // 1. Fetch Transactions (Current Month or Recent 30 days if empty)
+    DateTime firstOfMonth = DateTime(DateTime.now().year, DateTime.now().month, 1);
     
-    final transactions = await (db.select(db.transactionTable)
+    var transactions = await (db.select(db.transactionTable)
           ..where((t) => t.isLatest.equals(true) & t.transactionDate.isBiggerOrEqualValue(firstOfMonth))
           ..orderBy([(t) => OrderingTerm.desc(t.transactionDate)]))
         .get();
+
+    // Lookback if current month is sparse
+    if (transactions.length < 5) {
+      final thirtyDaysAgo = DateTime.now().subtract(const Duration(days: 30));
+      transactions = await (db.select(db.transactionTable)
+            ..where((t) => t.isLatest.equals(true) & t.transactionDate.isBiggerOrEqualValue(thirtyDaysAgo))
+            ..orderBy([(t) => OrderingTerm.desc(t.transactionDate)])
+            ..limit(50))
+          .get();
+    }
 
     double income = 0;
     double expenses = 0;
@@ -41,12 +51,22 @@ class FinanceDashboardController extends AsyncNotifier<FinanceDashboardData> {
     final accounts = await db.select(db.financialAccountTable).get();
     double cash = 0;
     double debt = 0;
-    for (final acc in accounts) {
-      if (acc.type.toLowerCase().contains('credit')) {
-        debt += acc.balance.abs();
-      } else {
-        cash += acc.balance;
+    
+    if (accounts.isNotEmpty) {
+      for (final acc in accounts) {
+        if (acc.type.toLowerCase().contains('credit')) {
+          debt += acc.balance.abs();
+        } else {
+          cash += acc.balance;
+        }
       }
+    }
+
+    // P0: Fallback to Transaction-based calculation if accounts are empty/0
+    if (cash == 0 && debt == 0) {
+      final totalBal = await db.financialDao.getTotalBalance();
+      cash = totalBal > 0 ? totalBal : 0;
+      debt = totalBal < 0 ? totalBal.abs() : 0;
     }
     
     // 3. Health & Audit Metrics
@@ -93,7 +113,8 @@ class FinanceDashboardController extends AsyncNotifier<FinanceDashboardData> {
     if (income == 0 && expenses == 0) return 100; // Baseline
     if (income == 0) return (100 - (utilization * 100)).toInt();
     
-    double savingsRate = (income - expenses) / income;
+    // P0: Clamped savings rate to avoid extreme values
+    double savingsRate = ((income - expenses) / income).clamp(-1.0, 1.0);
     int score = 0;
     
     // Savings Rate (Max 60 points)
@@ -103,6 +124,9 @@ class FinanceDashboardController extends AsyncNotifier<FinanceDashboardData> {
       score += 40;
     } else if (savingsRate > 0) {
       score += 20;
+    } else {
+      // Penalty for deficit
+      score -= (savingsRate.abs() * 50).toInt();
     }
     
     // Utilization (Max 40 points)

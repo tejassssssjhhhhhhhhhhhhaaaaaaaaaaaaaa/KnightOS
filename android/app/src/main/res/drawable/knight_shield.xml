@@ -3,12 +3,31 @@
     android:height="200dp"
     android:viewportWidth="200"
     android:viewportHeight="200">
+    <!-- Premium Hex/Shield Hybrid Background -->
     <path
-        android:pathData="M100,10 L180,10 L180,120 Q180,180 100,190 Q20,180 20,120 L20,10 Z"
+        android:pathData="M100,4 L184,30 L196,90 L184,150 Q100,196 100,200 Q100,196 16,150 L4,90 L16,30 Z"
         android:fillColor="#0F172A"/>
+
+    <!-- Circuit Traces (Matching Concept 08) -->
     <path
-        android:pathData="M80,70 L80,130 M80,100 L120,70 M80,100 L120,130"
+        android:pathData="M100,110 A25,25 0 1 1 100,110.01 Z"
         android:strokeColor="#0EA5E9"
-        android:strokeWidth="8"
+        android:strokeWidth="3"
+        android:fillColor="#00000000"/>
+    <path
+        android:pathData="M76,96 L50,70 L50,40 M124,96 L150,70 L150,40 M100,136 L100,170"
+        android:strokeColor="#0EA5E9"
+        android:strokeWidth="3"
         android:strokeLineCap="round"/>
+
+    <!-- Terminals -->
+    <path
+        android:pathData="M50,40 A4,4 0 1 1 50,39.9 Z"
+        android:fillColor="#0EA5E9"/>
+    <path
+        android:pathData="M150,40 A4,4 0 1 1 150,39.9 Z"
+        android:fillColor="#0EA5E9"/>
+    <path
+        android:pathData="M100,170 A4,4 0 1 1 100,169.9 Z"
+        android:fillColor="#0EA5E9"/>
 </vector>

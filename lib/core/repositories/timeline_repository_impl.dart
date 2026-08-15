@@ -56,6 +56,20 @@ class TimelineRepositoryImpl implements ITimelineRepository {
   }
 
   TimelineEvent _mapToEntity(TimelineEventData data) {
+    Map<String, dynamic> decodedMetadata = {};
+    try {
+      final meta = data.metadata;
+      if (meta != null && meta.trim().isNotEmpty) {
+        final decoded = json.decode(meta);
+        if (decoded is Map<String, dynamic>) {
+          decodedMetadata = decoded;
+        }
+      }
+    } catch (e) {
+      // P1: Fail-safe for corrupted JSON in metadata
+      print('[TIMELINE REPO] Metadata decode failed for ${data.id}');
+    }
+
     return TimelineEvent(
       id: data.id,
       type: TimelineEventType.values.firstWhere(
@@ -66,9 +80,7 @@ class TimelineRepositoryImpl implements ITimelineRepository {
       startTime: data.startTime,
       endTime: data.endTime,
       location: data.location,
-      metadata: data.metadata != null 
-          ? json.decode(data.metadata!) as Map<String, dynamic> 
-          : {},
+      metadata: decodedMetadata,
       originProviderId: data.originProviderId,
       originResourceId: data.originResourceId,
       confidenceScore: data.confidenceScore,

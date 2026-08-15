@@ -31,7 +31,7 @@ class FakeMemoryRepository implements MemoryRepository {
   @override
   Future<List<KnightMemory>> getHistory(String id) async => [];
   @override
-  Future<List<KnightMemory>> search(String query) async => memories;
+  Future<List<KnightMemory>> search(String query, {int? limit}) async => memories;
   @override
   Future<List<KnightMemory>> searchByDateRange(DateTime start, DateTime end) async => [];
   @override
@@ -153,3 +153,4 @@ void main() {
     expect(insights.first.id, 'insight-fitness-streak');
   });
 }
+

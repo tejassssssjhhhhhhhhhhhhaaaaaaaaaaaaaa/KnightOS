@@ -24,6 +24,8 @@ class MissionDao extends DatabaseAccessor<KnightDatabase> with _$MissionDaoMixin
     return select(taskTable).get(); // Simplified for now
   }
 
+  Future<List<TaskData>> getAllTasks() => select(taskTable).get();
+
   Future<void> updateTaskStatus(String taskId, bool isCompleted) async {
     await (update(taskTable)..where((t) => t.id.equals(taskId)))
       .write(TaskTableCompanion(isCompleted: Value(isCompleted)));

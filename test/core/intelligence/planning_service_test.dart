@@ -21,7 +21,7 @@ import 'package:mocktail/mocktail.dart';
 
 class MockMemoryRepository extends Fake implements MemoryRepository {
   @override
-  Future<List<KnightMemory>> search(String query) async => [];
+  Future<List<KnightMemory>> search(String query, {int? limit}) async => [];
   @override
   Future<List<KnightMemory>> getByCategory(BookCategory category) async => [];
   @override
@@ -89,3 +89,4 @@ void main() {
     });
   });
 }
+

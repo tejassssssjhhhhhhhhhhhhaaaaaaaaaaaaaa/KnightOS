@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/database_provider.dart';
+import '../../providers/preferences_provider.dart';
 
 // Engines
 import '../engines/discovery_engine.dart';
@@ -19,6 +20,8 @@ import '../engines/sensor_fusion_engine.dart';
 import '../engines/perception_engine.dart';
 import '../engines/local_llm_engine.dart';
 import '../engines/wasm_reasoning_runtime.dart';
+import '../engines/notification_engine.dart';
+import '../engines/unified_search_layer.dart';
 import '../engines/modules/health_module.dart';
 import '../engines/modules/mission_module.dart';
 import '../engines/modules/work_module.dart';
@@ -49,6 +52,10 @@ import '../services/autonomous_service.dart';
 import '../services/memory_service.dart';
 import '../services/dataset_verification_service.dart';
 import '../services/email_classification_service.dart';
+import '../services/data_retrieval_service.dart';
+import '../services/user_identity_service.dart';
+import '../services/search_service.dart';
+import '../../services/google_auth_service.dart';
 
 // Internal/Services
 import '../../internal/services/greeting_service.dart';
@@ -64,6 +71,7 @@ import '../domain/repositories/drift_memory_repository.dart';
 import '../qa/knight_ai_test_suite.dart';
 import '../../../../features/discovery/infrastructure/question_bank_loader.dart';
 import '../domain/cognitive_models.dart';
+import '../domain/notification_models.dart';
 import '../../repositories/system_integrity_repository.dart'; 
 import '../../repositories/mission_repository.dart'; 
 import '../../repositories/health_repository.dart'; 
@@ -76,6 +84,8 @@ export 'data_providers.dart';
 
 import '../engines/ai_provider.dart';
 import '../domain/ai_models.dart';
+
+import '../services/vaf_shadow_service.dart';
 
 // (Infrastructure)
 
@@ -149,6 +159,30 @@ final analyticsEngineProvider = Provider<AnalyticsEngine>((ref) {
   );
 });
 
+final unifiedSearchLayerProvider = Provider<UnifiedSearchLayer>((ref) {
+  return UnifiedSearchLayer(
+    memoryEngine: ref.watch(memoryEngineProvider),
+    intentEngine: ref.watch(intentEngineProvider),
+  );
+});
+
+final searchServiceProvider = Provider<SearchService>((ref) {
+  return SearchService(layer: ref.watch(unifiedSearchLayerProvider));
+});
+
+final notificationEngineProvider = Provider<NotificationEngine>((ref) {
+  return NotificationEngine(bus: ref.watch(intelligenceBusProvider));
+});
+
+class ActiveNotificationsNotifier extends Notifier<List<KnightNotification>> {
+  @override
+  List<KnightNotification> build() => [];
+  void add(KnightNotification n) => state = [...state, n];
+  void clear() => state = [];
+}
+
+final activeNotificationsProvider = NotifierProvider<ActiveNotificationsNotifier, List<KnightNotification>>(ActiveNotificationsNotifier.new);
+
 final intelligencePlatformProvider = Provider<IntelligencePlatform>((ref) {
   return IntelligencePlatform(
     bus: ref.watch(intelligenceBusProvider),
@@ -210,6 +244,10 @@ final memoryRepositoryProvider = Provider<MemoryRepository>((ref) {
 
 // (Engines)
 
+final vafShadowServiceProvider = Provider<VafShadowService>((ref) {
+  return VafShadowService(memoryEngine: ref.watch(memoryEngineProvider));
+});
+
 final intentEngineProvider = Provider<IntentEngine>((ref) => const IntentEngine());
 
 final contextEngineProvider = Provider<ContextEngine>((ref) {
@@ -224,9 +262,33 @@ final optimizationEngineProvider = Provider<OptimizationEngine>((ref) {
   return OptimizationEngine(bus: ref.watch(intelligenceBusProvider));
 });
 
+class AiUsageCounter extends Notifier<int> {
+  static const _key = 'ai_usage_count';
+
+  @override
+  int build() {
+    final prefs = ref.watch(sharedPreferencesProvider);
+    return prefs.getInt(_key) ?? 0;
+  }
+
+  void increment() {
+    state++;
+    ref.read(sharedPreferencesProvider).setInt(_key, state);
+  }
+
+  void reset() {
+    state = 0;
+    ref.read(sharedPreferencesProvider).setInt(_key, 0);
+  }
+}
+
+final aiUsageProvider = NotifierProvider<AiUsageCounter, int>(AiUsageCounter.new);
+
 final aiRouterHighLevelProvider = Provider<AiRouter>((ref) {
   final router = AiRouter();
-  final mock = MockAiProvider();
+  final mock = MockAiProvider(onUsageIncrement: () {
+    ref.read(aiUsageProvider.notifier).increment();
+  });
   router.registerProvider(mock, const ModelManifest(
     id: 'mock-knight-v1',
     name: 'Knight Mock',
@@ -282,6 +344,7 @@ final knightCognitionProvider = Provider<KnightCognition>((ref) {
     aiRouter: ref.watch(aiRouterHighLevelProvider),
     contextService: ref.watch(knightContextServiceProvider),
     worldService: ref.watch(worldServiceProvider),
+    retrievalService: ref.watch(dataRetrievalServiceProvider),
   );
 });
 
@@ -377,8 +440,13 @@ final missionRepositoryProvider = Provider<MissionRepository>((ref) {
   );
 });
 
+final intelligenceBusProviderForAuth = Provider<IntelligenceBus>((ref) => ref.read(intelligenceBusProvider));
+
 final healthRepositoryProvider = Provider<HealthRepository>((ref) {
-  return HealthRepository(db: ref.watch(knightDatabaseProvider));
+  return HealthRepository(
+    db: ref.watch(knightDatabaseProvider),
+    vafShadowService: ref.watch(vafShadowServiceProvider),
+  );
 });
 
 final autonomousEngineProvider = Provider<AutonomousEngine>((ref) {
@@ -411,4 +479,25 @@ final vaultItemsProvider = Provider<List<dynamic>>((ref) => []); // Placeholder
 
 final emailClassificationServiceProvider = Provider<EmailClassificationService>((ref) {
   return EmailClassificationService(db: ref.watch(knightDatabaseProvider));
+});
+
+final dataRetrievalServiceProvider = Provider<DataRetrievalService>((ref) {
+  return DataRetrievalService(db: ref.watch(knightDatabaseProvider));
+});
+
+final userIdentityServiceProvider = Provider<UserIdentityService>((ref) {
+  return UserIdentityService(
+    authService: GoogleAuthService.instance,
+    memoryEngine: ref.watch(memoryEngineProvider),
+  );
+});
+
+final totalBalanceStreamProvider = StreamProvider<double>((ref) {
+  final db = ref.watch(knightDatabaseProvider);
+  return db.financialDao.watchTotalBalance();
+});
+
+final dailyStepsStreamProvider = StreamProvider<int>((ref) {
+  final db = ref.watch(knightDatabaseProvider);
+  return db.healthDao.watchDailyTotal('STEPS', DateTime.now()).map((v) => v.toInt());
 });

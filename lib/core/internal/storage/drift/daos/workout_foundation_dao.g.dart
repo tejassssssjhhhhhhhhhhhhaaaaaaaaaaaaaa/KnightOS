@@ -10,6 +10,7 @@ mixin _$WorkoutFoundationDaoMixin on DatabaseAccessor<KnightDatabase> {
       attachedDatabase.equipmentProfileTable;
   $WorkoutSessionTableTable get workoutSessionTable =>
       attachedDatabase.workoutSessionTable;
+  $WorkoutSetTableTable get workoutSetTable => attachedDatabase.workoutSetTable;
   WorkoutFoundationDaoManager get managers => WorkoutFoundationDaoManager(this);
 }
 
@@ -30,5 +31,10 @@ class WorkoutFoundationDaoManager {
       $$WorkoutSessionTableTableTableManager(
         _db.attachedDatabase,
         _db.workoutSessionTable,
+      );
+  $$WorkoutSetTableTableTableManager get workoutSetTable =>
+      $$WorkoutSetTableTableTableManager(
+        _db.attachedDatabase,
+        _db.workoutSetTable,
       );
 }

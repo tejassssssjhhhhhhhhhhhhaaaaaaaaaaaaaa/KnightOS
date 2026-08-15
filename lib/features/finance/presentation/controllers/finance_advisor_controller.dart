@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/finance_advisor_models.dart';
 import '../../platform/providers/finance_platform_providers.dart';
@@ -21,6 +22,8 @@ class FinanceAdvisorController extends Notifier<FinanceAdvisorState> {
   }
 
   Future<void> sendQuery(String text) async {
+    if (text.isEmpty) return;
+    
     final userMessage = AdvisorMessage(
       text: text,
       isUser: true,
@@ -32,11 +35,26 @@ class FinanceAdvisorController extends Notifier<FinanceAdvisorState> {
       isProcessing: true,
     );
 
+    await _process(text);
+  }
+
+  Future<void> regenerate() async {
+    final lastUserMsg = state.messages.lastWhere((m) => m.isUser, orElse: () => AdvisorMessage(text: '', isUser: true, timestamp: DateTime.now()));
+    if (lastUserMsg.text.isEmpty) return;
+
+    state = state.copyWith(isProcessing: true);
+    await _process(lastUserMsg.text);
+  }
+
+  Future<void> _process(String text) async {
     final service = ref.read(financeAdvisorServiceProvider);
     
     try {
       final response = await service.processQuery(text, history: state.messages);
       
+      // Check if still processing (not cancelled)
+      if (!state.isProcessing) return;
+
       final botMessage = AdvisorMessage(
         text: response.answer,
         isUser: false,
@@ -49,6 +67,8 @@ class FinanceAdvisorController extends Notifier<FinanceAdvisorState> {
         isProcessing: false,
       );
     } catch (e) {
+      if (!state.isProcessing) return;
+      
       state = state.copyWith(
         isProcessing: false,
         messages: [
@@ -61,6 +81,10 @@ class FinanceAdvisorController extends Notifier<FinanceAdvisorState> {
         ],
       );
     }
+  }
+
+  void cancel() {
+    state = state.copyWith(isProcessing: false);
   }
 
   void clearHistory() {
