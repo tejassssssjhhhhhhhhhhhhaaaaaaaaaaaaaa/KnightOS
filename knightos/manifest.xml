@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="TaskPaneApp">
+  <Id>6e1881b8-2421-4f11-9a7c-6587c6e613f1</Id>
+  <Version>1.0.0.0</Version>
+  <ProviderName>KnightOS</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+  <DisplayName DefaultValue="KnightOS v6.0"/>
+  <Description DefaultValue="Futuristic Personal Data Operating System"/>
+  <IconUrl DefaultValue="https://tejassssssjhhhhhhhhhhhhaaaaaaaaaaaaaa.github.io/KnightOS/knightos/assets/logo/icon-32.png"/>
+  <HighResolutionIconUrl DefaultValue="https://tejassssssjhhhhhhhhhhhhaaaaaaaaaaaaaa.github.io/KnightOS/knightos/assets/logo/icon-64.png"/>
+  <SupportUrl DefaultValue="https://www.knightos.com/support"/>
+  <AppDomains>
+    <AppDomain>https://www.knightos.com</AppDomain>
+    <AppDomain>https://generativelanguage.googleapis.com</AppDomain>
+  </AppDomains>
+  <Hosts>
+    <Host Name="Workbook"/>
+  </Hosts>
+  <DefaultSettings>
+    <SourceLocation DefaultValue="https://tejassssssjhhhhhhhhhhhhaaaaaaaaaaaaaa.github.io/KnightOS/knightos/taskpane.html"/>
+  </DefaultSettings>
+  <Permissions>ReadWriteDocument</Permissions>
+</OfficeApp>

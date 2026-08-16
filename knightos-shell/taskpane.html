@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KnightOS v6.0</title>
+    <link rel="stylesheet" href="knightos.css">
+</head>
+<body>
+    <div id="atmosphere"></div>
+
+    <nav>
+        <div class="nav-item active" data-view="home">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            <span class="nav-label">Home</span>
+        </div>
+        <div class="nav-item" data-view="datahub">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+            <span class="nav-label">Hub</span>
+        </div>
+        <div class="nav-item" data-view="brain">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M9 21c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/></svg>
+            <span class="nav-label">Brain</span>
+        </div>
+        <div class="nav-item" data-view="ssot">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M4 14h4v-4H4v4zm0 5h4v-4H4v4zM4 9h4V5H4v4zm5 5h12v-4H9v4zm0 5h12v-4H9v4zM9 5v4h12V5H9z"/></svg>
+            <span class="nav-label">SSoT</span>
+        </div>
+        <div class="nav-item" data-view="diagnostics">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49.88c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-.88c-.22-.08-.49 0-.61.22l-2 3.46c-.12.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-.88c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49.88c.22.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg>
+            <span class="nav-label">Health</span>
+        </div>
+    </nav>
+
+    <main id="view-container">
+        <!-- Home View -->
+        <section id="view-home" class="view active fade-in">
+            <h1>KNIGHTOS</h1>
+            <h2>Data Operating System v6.0</h2>
+
+            <p class="greeting" id="greeting">Good morning, Commander</p>
+            <p style="color: var(--text-secondary); margin-bottom: 24px;">Your system is optimal. No critical failures detected.</p>
+
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-header">SYSTEM HEALTH</div>
+                    <div class="card-metric" id="metric-health">98%</div>
+                    <div class="card-status">● Healthy</div>
+                </div>
+                <div class="card">
+                    <div class="card-header">DATA RECORDS</div>
+                    <div class="card-metric" id="metric-records">12.4k</div>
+                    <div class="card-status" id="metric-records-status">Synchronized</div>
+                </div>
+                <div class="card">
+                    <div class="card-header">BRAIN MEMORY</div>
+                    <div class="card-metric" id="metric-memories">847</div>
+                    <div class="card-status">Knowledge Facts</div>
+                </div>
+                <div class="card">
+                    <div class="card-header">REVIEW ITEMS</div>
+                    <div class="card-metric" id="metric-review">12</div>
+                    <div class="card-status" style="color: var(--status-amber);">Attention Required</div>
+                </div>
+            </div>
+
+            <div class="section-title">Data Pulse</div>
+            <div id="data-pulse-list">
+                <!-- Pulse items injected by JS -->
+            </div>
+
+            <div class="section-title">Quick Actions</div>
+            <div class="action-grid">
+                <div class="action-btn">
+                    <svg class="action-icon" viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 3V5c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 13.95 20 12.54 20 11c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 9.05 4 10.46 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
+                    <span class="action-label">Sync</span>
+                </div>
+                <div class="action-btn">
+                    <svg class="action-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                    <span class="action-label">Ask Knight</span>
+                </div>
+                <div class="action-btn">
+                    <svg class="action-icon" viewBox="0 0 24 24"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg>
+                    <span class="action-label">Teleport</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Data Hub View -->
+        <section id="view-datahub" class="view fade-in">
+            <h1>Data Hub</h1>
+            <h2>The Engine Room</h2>
+            <div class="section-title">Source Health</div>
+            <div id="hub-source-list">
+                <!-- Injected by JS -->
+            </div>
+            <div class="section-title">Data Journey</div>
+            <div id="hub-pipeline">
+                <!-- Injected by JS -->
+            </div>
+        </section>
+
+        <!-- Brain View -->
+        <section id="view-brain" class="view fade-in">
+            <h1>Knight Brain</h1>
+            <h2>Knowledge Layer</h2>
+            <div class="card" style="margin-bottom: 20px;">
+                 <div class="card-header">BRAIN HEALTH</div>
+                 <div class="card-metric" id="brain-health-val">92%</div>
+            </div>
+            <div id="brain-map" style="height: 200px; background: rgba(255,255,255,0.02); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <div class="orb-inner"></div>
+                <span style="margin-left: 20px; font-size: 10px; color: var(--text-dim);">[ SPATIAL MAP INITIALIZING ]</span>
+            </div>
+        </section>
+
+        <!-- SSoT View -->
+        <section id="view-ssot" class="view fade-in">
+            <h1>SSoT</h1>
+            <h2>Authoritative Reality</h2>
+            <div id="ssot-table-container" style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+                    <thead style="background: var(--panel-color); text-align: left;">
+                        <tr>
+                            <th style="padding: 10px; color: var(--accent-color);">ID</th>
+                            <th style="padding: 10px;">SOURCE</th>
+                            <th style="padding: 10px;">TITLE</th>
+                            <th style="padding: 10px;">CONF</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ssot-body">
+                        <!-- Injected -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Diagnostics View -->
+        <section id="view-diagnostics" class="view fade-in">
+            <h1>Health Console</h1>
+            <div id="diag-list"></div>
+        </section>
+    </main>
+
+    <div id="knight-orb">
+        <div class="orb-inner"></div>
+    </div>
+
+    <script src="dataProvider.js"></script>
+    <script src="knightos.js"></script>
+</body>
+</html>
