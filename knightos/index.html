@@ -14,10 +14,7 @@
     <nav id="desktop-nav">
         <div class="nav-item active" data-view="home">HOME</div>
         <div class="nav-item" data-view="finance">FINANCE</div>
-        <div class="nav-item" data-view="travel">TRAVEL</div>
-        <div class="nav-item" data-view="career">CAREER</div>
-        <div class="nav-item" data-view="life">LIFE</div>
-        <div class="nav-item" data-view="tasks">TASKS</div>
+        <div class="nav-item" data-view="life">PLAN</div>
         <div class="nav-item" data-view="brain">BRAIN</div>
         <div class="nav-item" data-view="engine">ENGINE</div>
         <div class="nav-item" data-view="settings">SETTINGS</div>
@@ -32,7 +29,7 @@
                 <div class="card">
                     <div class="card-header">SYSTEM HEALTH</div>
                     <div class="card-metric" id="metric-health">--%</div>
-                    <div class="card-status">● Real-time</div>
+                    <div class="card-status" id="status-health">● Offline</div>
                 </div>
                 <div class="card">
                     <div class="card-header">DATA RECORDS</div>
@@ -61,31 +58,42 @@
         <!-- FINANCE -->
         <section id="view-finance" class="view fade-in">
             <h1>Finance</h1><h2>Wealth & Expenditure</h2>
-            <div class="card">Waiting for financial source connection.</div>
-        </section>
-
-        <!-- TRAVEL -->
-        <section id="view-travel" class="view fade-in">
-            <h1>Travel</h1><h2>Trips & Journeys</h2>
-            <div class="card">No active itineraries detected.</div>
-        </section>
-
-        <!-- CAREER -->
-        <section id="view-career" class="view fade-in">
-            <h1>Career</h1><h2>Professional Growth</h2>
-            <div class="card">Skills mapping initialized.</div>
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-header">MONTHLY SPENDING</div>
+                    <div class="card-metric" id="finance-monthly-total">₹ --</div>
+                </div>
+                <div class="card">
+                    <div class="card-header">SAVINGS GOAL</div>
+                    <div class="card-metric" id="finance-savings-progress">--%</div>
+                </div>
+            </div>
+            <div class="section-title">Connected Sources</div>
+            <div class="list-item">
+                <div class="item-icon-box">E</div>
+                <div class="item-content">
+                    <div class="item-title">Excel SSoT</div>
+                    <div class="item-subtitle" id="source-excel-status">Connected</div>
+                </div>
+            </div>
+            <div class="list-item" style="opacity: 0.5;">
+                <div class="item-icon-box">G</div>
+                <div class="item-content">
+                    <div class="item-title">Gmail Sync</div>
+                    <div class="item-subtitle">Waiting for Auth</div>
+                </div>
+            </div>
         </section>
 
         <!-- LIFE PLANNING -->
         <section id="view-life" class="view fade-in">
             <h1>Life Planning</h1><h2>Goals & Habits</h2>
-            <div class="card">Targeting optimal life balance.</div>
-        </section>
-
-        <!-- TASKS -->
-        <section id="view-tasks" class="view fade-in">
-            <h1>Tasks</h1><h2>Priorities & Execution</h2>
-            <div class="card">Unified task list active.</div>
+            <div id="planning-results">
+                <div class="card">
+                    <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 15px;">Generate an intelligent plan based on your current data and priorities.</p>
+                    <button class="btn-confirm" id="btn-plan-today" style="width: 100%;">Plan Today</button>
+                </div>
+            </div>
         </section>
 
         <!-- BRAIN -->
@@ -96,12 +104,34 @@
 
         <!-- ENGINE -->
         <section id="view-engine" class="view fade-in">
-            <h1>Engine</h1><h2>System Activity [SIMULATION]</h2>
-            <div class="card">
-                <div class="card-header">CURRENT OPERATION</div>
-                <div class="card-metric" id="metric-activity">IDLE</div>
-                <div id="engine-log-list" style="font-family: monospace; font-size: 11px; margin-top: 10px;"></div>
+            <h1>System Engine</h1>
+            <h2>Orchestration & Data Intake</h2>
+
+            <div class="card" id="engine-status-card" style="margin-bottom: 20px; border-left: 4px solid var(--accent-color);">
+                <div class="card-header">CORE STATUS</div>
+                <div class="card-metric" id="engine-op-name">IDLE</div>
+                <div class="card-status" id="engine-op-status">System Ready</div>
+                <div id="engine-progress-container" style="display:none; width: 100%; height: 8px; background: var(--surface-secondary); border-radius: 4px; margin-top: 20px; overflow: hidden;">
+                    <div id="engine-progress-bar" style="width: 0%; height: 100%; background: var(--accent-color); transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);"></div>
+                </div>
             </div>
+
+            <div class="section-title">Ingestion Control</div>
+            <div class="card" style="margin-bottom: 20px;">
+                <p style="font-size: 14px; margin-bottom: 18px; color: var(--text-secondary); line-height: 1.5;">Select local files (PDF, CSV, TXT) to parse and classify into your SSoT reality layer.</p>
+                <input type="file" id="file-intake-input" style="display: none;" multiple>
+                <button class="btn-confirm" id="btn-upload-trigger" style="width: 100%; display: block; background: var(--accent-color); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: 800; cursor: pointer;">
+                    UPLOAD DOCUMENTS
+                </button>
+            </div>
+
+            <div class="section-title">System Activity Log</div>
+            <div class="card" style="padding: 15px; background: #111111; border: 1px solid #333333; border-radius: 12px; min-height: 250px; max-height: 450px; overflow-y: auto; box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);">
+                <div id="engine-log-list" style="font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 11px; line-height: 1.6; color: #BBBBBB;">
+                    <div style="color: #666;">> System initialized. Waiting for operation...</div>
+                </div>
+            </div>
+            <button class="btn-confirm" id="btn-clear-logs" style="margin-top: 15px; background: transparent; color: var(--text-dim); border: 1px solid var(--border-color); width: 100%; padding: 10px;">Clear Activity History</button>
         </section>
 
         <!-- SETTINGS -->
@@ -109,12 +139,49 @@
             <h1>Settings</h1><h2>System Configuration</h2>
             <div class="card">
                 <div class="card-header">AI ENGINE (GEMINI)</div>
+                <label for="setting-gemini-key" style="display:none;">Gemini Key</label>
                 <input type="password" id="setting-gemini-key" class="config-input" placeholder="Enter Gemini API Key">
                 <button class="btn-confirm" id="btn-save-settings">Save Key</button>
                 <button class="btn-confirm" id="btn-test-ai" style="margin-top:10px; background: transparent; color: var(--accent-color); border: 1px solid var(--accent-color);">Test AI Connection</button>
             </div>
         </section>
     </main>
+
+    <!-- Intake Preview Overlay -->
+    <div id="intake-preview-overlay" class="overlay">
+        <div class="overlay-content">
+            <div class="card-header">IMPORT PREVIEW</div>
+            <div id="intake-preview-content" style="font-size: 14px; line-height: 1.6; margin-bottom: 24px; color: var(--text-primary);"></div>
+            <div style="display: flex; gap: 12px;">
+                <button class="btn-confirm" id="btn-intake-confirm" style="flex: 1;">Confirm & Write</button>
+                <button class="btn-confirm" id="btn-intake-cancel" style="flex: 1; background: var(--surface-secondary); color: var(--text-primary); border: 1px solid var(--border-color);">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Bottom Nav -->
+    <div class="mobile-nav">
+        <div class="nav-item active" data-view="home">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            <span class="nav-label">Home</span>
+        </div>
+        <div class="nav-item" data-view="finance">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+            <span class="nav-label">Finance</span>
+        </div>
+        <div class="nav-item" data-view="life">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+            <span class="nav-label">Plan</span>
+        </div>
+        <div class="nav-item" data-view="engine">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+            <span class="nav-label">Engine</span>
+        </div>
+        <div class="nav-item" data-view="settings">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87a.49.49 0 0 0 .12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.03-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+            <span class="nav-label">Config</span>
+        </div>
+    </div>
 
     <!-- Chat Overlay -->
     <div id="chat-panel" style="position: fixed; bottom: 90px; right: 20px; width: 320px; height: 450px; background: var(--surface-color); border: 1px solid var(--border-color); display: none; flex-direction: column; border-radius: 12px; z-index: 2000; box-shadow: var(--shadow-subtle);">
@@ -124,6 +191,7 @@
         </div>
         <div id="chat-messages" style="flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px;"></div>
         <div style="padding: 15px; border-top: 1px solid var(--border-color);">
+            <label for="chat-input" style="display:none;">Message</label>
             <input type="text" id="chat-input" placeholder="Type a message..." style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border-color);">
         </div>
     </div>

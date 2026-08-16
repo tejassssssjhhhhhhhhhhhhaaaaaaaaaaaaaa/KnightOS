@@ -1,6 +1,6 @@
 /**
  * KNIGHTOS Data Provider Abstraction
- * Supports both standalone Mock mode and live Excel Office.js mode.
+ * Corrected: Supports both standalone Mock mode and live Excel Office.js mode.
  */
 
 const MockDataProvider = {
@@ -28,6 +28,10 @@ const MockDataProvider = {
         if (filter.id) records = records.filter(r => r.id === filter.id);
         return records;
     },
+    createSSoTRecord: async (record) => {
+        console.log("MOCK: Creating record", record);
+        return true;
+    },
     activateSheet: async (name) => console.log("MOCK: Activating", name),
     teleportToRecord: async (id) => console.log("MOCK: Teleporting to", id),
     updateRecordMetadata: async (id, field, value) => true,
@@ -54,7 +58,7 @@ const ExcelDataProvider = {
                 }
             }
             return { overall: status === "HEALTHY" ? 100 : 50, status };
-        });
+        }).catch(() => ({ overall: 0, status: 'DISCONNECTED' }));
     },
     getDataSummary: async () => {
         return await Excel.run(async (context) => {
@@ -62,8 +66,12 @@ const ExcelDataProvider = {
             const range = ssot.getUsedRange();
             range.load("rowCount");
             await context.sync();
-            return { totalRecords: range.rowCount - 1, documents: 0, recordsByDomain: { finance: 0 } };
-        });
+            return {
+                totalRecords: range.rowCount - 1,
+                documents: 0,
+                recordsByDomain: { finance: 0 }
+            };
+        }).catch(() => ({ totalRecords: 0, documents: 0, recordsByDomain: { finance: 0 } }));
     },
     getBrainMetrics: async () => {
         return await Excel.run(async (context) => {
@@ -71,7 +79,7 @@ const ExcelDataProvider = {
             brain.load("rowCount");
             await context.sync();
             return { memories: brain.rowCount - 1, health: 100 };
-        });
+        }).catch(() => ({ memories: 0, health: 0 }));
     },
     getSSoTRecords: async (filter = {}) => {
         return await Excel.run(async (context) => {
@@ -86,7 +94,36 @@ const ExcelDataProvider = {
             }));
             if (filter.id) records = records.filter(r => r.id === filter.id);
             return records;
+        }).catch(() => []);
+    },
+    createSSoTRecord: async (record) => {
+        return await Excel.run(async (context) => {
+            const sheet = context.workbook.worksheets.getItem("10_SSOT_STORE");
+            const range = sheet.getUsedRange();
+            const lastRow = range.getLastRow().getOffsetRange(1, 0);
+            // record: { id, date, source, title, content, category, importance, conf }
+            lastRow.values = [[
+                record.id, record.date, record.source, record.title, record.content || "", record.category || "Unclassified", record.importance || "Normal", record.conf || "0.0"
+            ]];
+            await context.sync();
+            return true;
+        }).catch((e) => {
+            console.error("SSOT Write Failed", e);
+            throw new Error("SSOT_WRITE_FAILURE");
         });
+    },
+    getRecentActivity: async () => {
+        return await Excel.run(async (context) => {
+            const sheet = context.workbook.worksheets.getItemOrNullObject("AI_CHAT_LOG");
+            await context.sync();
+            if (sheet.isNullObject) return [];
+            const range = sheet.getUsedRange();
+            range.load("values");
+            await context.sync();
+            return range.values.slice(1).slice(-5).map(r => ({
+                id: r[0], time: r[1], sender: r[2], detail: r[3], type: 'LOG'
+            }));
+        }).catch(() => []);
     },
     activateSheet: async (name) => {
         await Excel.run(async (context) => {
@@ -97,10 +134,11 @@ const ExcelDataProvider = {
     teleportToRecord: async (id) => {
         await Excel.run(async (context) => {
             const sheet = context.workbook.worksheets.getItem("10_SSOT_STORE");
-            const values = sheet.getUsedRange().load("values");
+            const range = sheet.getUsedRange();
+            range.load("values");
             await context.sync();
             let rowIdx = -1;
-            for(let i=0; i<values.values.length; i++) if(values.values[i][0] === id) { rowIdx = i; break; }
+            for(let i=0; i<range.values.length; i++) if(range.values[i][0] === id) { rowIdx = i; break; }
             if (rowIdx !== -1) {
                 sheet.activate();
                 sheet.getRange(`${rowIdx + 1}:${rowIdx + 1}`).select();
@@ -111,10 +149,11 @@ const ExcelDataProvider = {
     updateRecordMetadata: async (id, field, value) => {
         return await Excel.run(async (context) => {
             const sheet = context.workbook.worksheets.getItem("10_SSOT_STORE");
-            const values = sheet.getUsedRange().load("values");
+            const range = sheet.getUsedRange();
+            range.load("values");
             await context.sync();
             let rowIdx = -1;
-            for(let i=0; i<values.values.length; i++) if(values.values[i][0] === id) { rowIdx = i; break; }
+            for(let i=0; i<range.values.length; i++) if(range.values[i][0] === id) { rowIdx = i; break; }
             if (rowIdx !== -1) {
                 const colMap = { 'category': 5, 'importance': 6 };
                 const colIdx = colMap[field];
@@ -131,7 +170,8 @@ const ExcelDataProvider = {
         try {
             await Excel.run(async (context) => {
                 const sheet = context.workbook.worksheets.getItem("AI_CHAT_LOG");
-                const lastRow = sheet.getUsedRange().getLastRow().getOffsetRange(1, 0);
+                const range = sheet.getUsedRange();
+                const lastRow = range.getLastRow().getOffsetRange(1, 0);
                 lastRow.values = [[ entry.id, new Date().toISOString(), entry.sender, entry.text, entry.intent || "", entry.evidenceId || "" ]];
                 await context.sync();
             });
