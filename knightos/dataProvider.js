@@ -92,7 +92,7 @@ const ExcelDataProvider = {
             let records = values.slice(1).map(r => ({
                 id: r[0], date: r[1], source: r[2], title: r[3], content: r[4], category: r[5], importance: r[6], conf: r[7]
             }));
-            if (filter.id) records = records.filter(r => r.id === filter.id);
+            if (filter.id) records = records.filter(r => String(r.id).trim() === String(filter.id).trim());
             return records;
         }).catch(() => []);
     },
