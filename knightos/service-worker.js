@@ -1,6 +1,6 @@
-const CACHE_NAME = 'knightos-v6-cache-v1';
+const CACHE_NAME = 'knightos-pwa-v2';
 const ASSETS = [
-  'taskpane.html',
+  'index.html',
   'knightos.css',
   'knightos.js',
   'dataProvider.js',

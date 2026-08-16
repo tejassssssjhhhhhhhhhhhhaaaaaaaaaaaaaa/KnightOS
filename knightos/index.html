@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>KnightOS — Personal Operating System</title>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="stylesheet" href="knightos.css">
+    <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+</head>
+<body class="desktop">
+    <div id="atmosphere"></div>
+
+    <nav id="desktop-nav">
+        <div class="nav-item active" data-view="home">HOME</div>
+        <div class="nav-item" data-view="finance">FINANCE</div>
+        <div class="nav-item" data-view="travel">TRAVEL</div>
+        <div class="nav-item" data-view="career">CAREER</div>
+        <div class="nav-item" data-view="life">LIFE</div>
+        <div class="nav-item" data-view="tasks">TASKS</div>
+        <div class="nav-item" data-view="brain">BRAIN</div>
+        <div class="nav-item" data-view="engine">ENGINE</div>
+        <div class="nav-item" data-view="settings">SETTINGS</div>
+    </nav>
+
+    <main id="view-container">
+        <!-- HOME -->
+        <section id="view-home" class="view active fade-in">
+            <h1>KNIGHTOS</h1>
+            <h2>Personal Operating System</h2>
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-header">SYSTEM HEALTH</div>
+                    <div class="card-metric" id="metric-health">--%</div>
+                    <div class="card-status">● Real-time</div>
+                </div>
+                <div class="card">
+                    <div class="card-header">DATA RECORDS</div>
+                    <div class="card-metric" id="metric-records">--</div>
+                    <div class="card-status">Authoritative SSoT</div>
+                </div>
+                <div class="card">
+                    <div class="card-header">AI STATUS</div>
+                    <div class="card-metric" id="ai-status">OFF</div>
+                    <div class="card-status" id="ai-status-label">Not Configured</div>
+                </div>
+                <div class="card">
+                    <div class="card-header">BRAIN MEMORY</div>
+                    <div class="card-metric" id="metric-brain">--</div>
+                    <div class="card-status">Memories Stored</div>
+                </div>
+            </div>
+            <div class="section-title">Quick Actions</div>
+            <div class="action-grid">
+                <div class="action-btn" id="action-sync"><span class="action-label">Sync</span></div>
+                <div class="action-btn" id="action-ask"><span class="action-label">Ask Knight</span></div>
+                <div class="action-btn" id="action-upload"><span class="action-label">Upload</span></div>
+            </div>
+        </section>
+
+        <!-- FINANCE -->
+        <section id="view-finance" class="view fade-in">
+            <h1>Finance</h1><h2>Wealth & Expenditure</h2>
+            <div class="card">Waiting for financial source connection.</div>
+        </section>
+
+        <!-- TRAVEL -->
+        <section id="view-travel" class="view fade-in">
+            <h1>Travel</h1><h2>Trips & Journeys</h2>
+            <div class="card">No active itineraries detected.</div>
+        </section>
+
+        <!-- CAREER -->
+        <section id="view-career" class="view fade-in">
+            <h1>Career</h1><h2>Professional Growth</h2>
+            <div class="card">Skills mapping initialized.</div>
+        </section>
+
+        <!-- LIFE PLANNING -->
+        <section id="view-life" class="view fade-in">
+            <h1>Life Planning</h1><h2>Goals & Habits</h2>
+            <div class="card">Targeting optimal life balance.</div>
+        </section>
+
+        <!-- TASKS -->
+        <section id="view-tasks" class="view fade-in">
+            <h1>Tasks</h1><h2>Priorities & Execution</h2>
+            <div class="card">Unified task list active.</div>
+        </section>
+
+        <!-- BRAIN -->
+        <section id="view-brain" class="view fade-in">
+            <h1>Knight Brain</h1><h2>Knowledge OS</h2>
+            <div class="card">Memory health: 100%</div>
+        </section>
+
+        <!-- ENGINE -->
+        <section id="view-engine" class="view fade-in">
+            <h1>Engine</h1><h2>System Activity [SIMULATION]</h2>
+            <div class="card">
+                <div class="card-header">CURRENT OPERATION</div>
+                <div class="card-metric" id="metric-activity">IDLE</div>
+                <div id="engine-log-list" style="font-family: monospace; font-size: 11px; margin-top: 10px;"></div>
+            </div>
+        </section>
+
+        <!-- SETTINGS -->
+        <section id="view-settings" class="view fade-in">
+            <h1>Settings</h1><h2>System Configuration</h2>
+            <div class="card">
+                <div class="card-header">AI ENGINE (GEMINI)</div>
+                <input type="password" id="setting-gemini-key" class="config-input" placeholder="Enter Gemini API Key">
+                <button class="btn-confirm" id="btn-save-settings">Save Key</button>
+                <button class="btn-confirm" id="btn-test-ai" style="margin-top:10px; background: transparent; color: var(--accent-color); border: 1px solid var(--accent-color);">Test AI Connection</button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Chat Overlay -->
+    <div id="chat-panel" style="position: fixed; bottom: 90px; right: 20px; width: 320px; height: 450px; background: var(--surface-color); border: 1px solid var(--border-color); display: none; flex-direction: column; border-radius: 12px; z-index: 2000; box-shadow: var(--shadow-subtle);">
+        <div id="chat-header" style="padding: 15px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between;">
+            <span style="font-weight: 700; color: var(--accent-color);">KNIGHT AI</span>
+            <span id="chat-close" style="cursor: pointer;">✕</span>
+        </div>
+        <div id="chat-messages" style="flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px;"></div>
+        <div style="padding: 15px; border-top: 1px solid var(--border-color);">
+            <input type="text" id="chat-input" placeholder="Type a message..." style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border-color);">
+        </div>
+    </div>
+
+    <div id="knight-orb">
+        <div class="orb-inner"></div>
+    </div>
+
+    <script src="dataProvider.js"></script>
+    <script src="knightos.js"></script>
+</body>
+</html>

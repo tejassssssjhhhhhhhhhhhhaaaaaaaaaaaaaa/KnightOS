@@ -1,25 +1,43 @@
 /**
  * KNIGHTOS Data Provider Abstraction
- * Final Live version with configuration management.
+ * Supports both standalone Mock mode and live Excel Office.js mode.
  */
 
 const MockDataProvider = {
     getEnvironment: () => "DEMO",
-    getSystemHealth: async () => ({ overall: 98, status: 'HEALTHY' }),
-    getDataSummary: async () => ({ totalRecords: 12482 }),
-    getBrainMetrics: async () => ({ memories: 847, health: 92 }),
-    getSSoTRecords: async (f = {}) => [{ id: 'K001', source: 'GMAIL', title: 'Invoice: Gym', conf: '1.0', category: 'FINANCE' }],
-    activateSheet: async (n) => console.log("MOCK NAV", n),
-    teleportToRecord: async (id) => console.log("MOCK TELEPORT", id),
+    getSystemHealth: async () => ({
+        overall: 98,
+        status: 'Optimal',
+        subsystems: [
+            { name: 'ENGINE', status: 'ONLINE', lastSync: 'Just now' },
+            { name: 'BRAIN', status: 'ONLINE', lastSync: '1 min ago' }
+        ]
+    }),
+    getDataSummary: async () => ({
+        totalRecords: 12482,
+        documents: 624,
+        recordsByDomain: { finance: 2184, travel: 143, career: 87, documents: 624 }
+    }),
+    getBrainMetrics: async () => ({ memories: 847, health: 92, entities: 126, relationships: 314 }),
+    getRecentActivity: async () => [
+        { id: 1, type: 'SYNC', source: 'Gmail', detail: '12 new financial records identified', time: '12:44 PM' },
+        { id: 2, type: 'UPDATE', source: 'Calendar', detail: 'Flight AI-101 confirmed', time: '11:30 AM' }
+    ],
+    getSSoTRecords: async (filter = {}) => {
+        let records = [{ id: 'K001', date: '2026-08-16', source: 'GMAIL', title: 'Invoice: Amazon', category: 'FINANCE', conf: '1.0' }];
+        if (filter.id) records = records.filter(r => r.id === filter.id);
+        return records;
+    },
+    activateSheet: async (name) => console.log("MOCK: Activating", name),
+    teleportToRecord: async (id) => console.log("MOCK: Teleporting to", id),
     updateRecordMetadata: async (id, field, value) => true,
-    logInteraction: async (entry) => console.log("MOCK LOG", entry),
-    getConfig: (key) => localStorage.getItem(key),
-    saveConfig: (key, val) => localStorage.setItem(key, val)
+    logInteraction: async (entry) => console.log("MOCK LOG:", entry),
+    getConfig: (key) => localStorage.getItem(`knightos_${key}`),
+    saveConfig: (key, val) => localStorage.setItem(`knightos_${key}`, val)
 };
 
 const ExcelDataProvider = {
     getEnvironment: () => "EXCEL",
-
     getSystemHealth: async () => {
         return await Excel.run(async (context) => {
             const sheet = context.workbook.worksheets.getItemOrNullObject("90_DIAGNOSTICS");
@@ -38,17 +56,15 @@ const ExcelDataProvider = {
             return { overall: status === "HEALTHY" ? 100 : 50, status };
         });
     },
-
     getDataSummary: async () => {
         return await Excel.run(async (context) => {
             const ssot = context.workbook.worksheets.getItem("10_SSOT_STORE");
             const range = ssot.getUsedRange();
             range.load("rowCount");
             await context.sync();
-            return { totalRecords: range.rowCount - 1 };
+            return { totalRecords: range.rowCount - 1, documents: 0, recordsByDomain: { finance: 0 } };
         });
     },
-
     getBrainMetrics: async () => {
         return await Excel.run(async (context) => {
             const brain = context.workbook.worksheets.getItem("40_KNIGHT_BRAIN");
@@ -57,7 +73,6 @@ const ExcelDataProvider = {
             return { memories: brain.rowCount - 1, health: 100 };
         });
     },
-
     getSSoTRecords: async (filter = {}) => {
         return await Excel.run(async (context) => {
             const sheet = context.workbook.worksheets.getItem("10_SSOT_STORE");
@@ -73,23 +88,19 @@ const ExcelDataProvider = {
             return records;
         });
     },
-
     activateSheet: async (name) => {
         await Excel.run(async (context) => {
             context.workbook.worksheets.getItem(name).activate();
             await context.sync();
         });
     },
-
     teleportToRecord: async (id) => {
         await Excel.run(async (context) => {
             const sheet = context.workbook.worksheets.getItem("10_SSOT_STORE");
-            const range = sheet.getUsedRange();
-            range.load("values");
+            const values = sheet.getUsedRange().load("values");
             await context.sync();
-            const values = range.values;
             let rowIdx = -1;
-            for(let i=0; i<values.length; i++) if(values[i][0] === id) { rowIdx = i; break; }
+            for(let i=0; i<values.values.length; i++) if(values.values[i][0] === id) { rowIdx = i; break; }
             if (rowIdx !== -1) {
                 sheet.activate();
                 sheet.getRange(`${rowIdx + 1}:${rowIdx + 1}`).select();
@@ -97,16 +108,13 @@ const ExcelDataProvider = {
             await context.sync();
         });
     },
-
     updateRecordMetadata: async (id, field, value) => {
         return await Excel.run(async (context) => {
             const sheet = context.workbook.worksheets.getItem("10_SSOT_STORE");
-            const range = sheet.getUsedRange();
-            range.load("values");
+            const values = sheet.getUsedRange().load("values");
             await context.sync();
-            const values = range.values;
             let rowIdx = -1;
-            for(let i=0; i<values.length; i++) if(values[i][0] === id) { rowIdx = i; break; }
+            for(let i=0; i<values.values.length; i++) if(values.values[i][0] === id) { rowIdx = i; break; }
             if (rowIdx !== -1) {
                 const colMap = { 'category': 5, 'importance': 6 };
                 const colIdx = colMap[field];
@@ -119,19 +127,16 @@ const ExcelDataProvider = {
             return false;
         });
     },
-
     logInteraction: async (entry) => {
         try {
             await Excel.run(async (context) => {
                 const sheet = context.workbook.worksheets.getItem("AI_CHAT_LOG");
-                const range = sheet.getUsedRange();
-                const lastRow = range.getLastRow().getOffsetRange(1, 0);
+                const lastRow = sheet.getUsedRange().getLastRow().getOffsetRange(1, 0);
                 lastRow.values = [[ entry.id, new Date().toISOString(), entry.sender, entry.text, entry.intent || "", entry.evidenceId || "" ]];
                 await context.sync();
             });
-        } catch (e) { console.warn("Log failed", e); }
+        } catch (e) {}
     },
-
     getConfig: (key) => localStorage.getItem(`knightos_${key}`),
     saveConfig: (key, val) => localStorage.setItem(`knightos_${key}`, val)
 };
